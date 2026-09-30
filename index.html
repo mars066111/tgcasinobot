@@ -230,6 +230,9 @@
             actionBtn.disabled = false;
             actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
             secBtn.style.display = 'none';
+            // Сбрасываем старые обработчики во избежание конфликтов
+            actionBtn.onclick = executeGame;
+            secBtn.onclick = null;
         }
 
         function openGame(game) {
@@ -532,7 +535,7 @@
             }
         }
 
-        // --- ВЫПОЛНЕНИЕ ДЕЙСТВИЙ (С ИСПРАВЛЕННЫМИ КНОПКАМИ) ---
+        // --- ВЫПОЛНЕНИЕ ДЕЙСТВИЙ ---
         function executeGame() {
             let bet = parseInt(document.getElementById('bet').value);
             if (isNaN(bet) || bet <= 0) { alert('Введите корректную ставку!'); return; }
@@ -611,6 +614,7 @@
                         if(won) { balance += reward; saveState(); updateDisplay(); }
                         initRacingCanvas(p1, p2, p3, true, won ? `ПОБЕДА #${winner}! +${reward}` : `Победил #${winner}. Проигрыш.`);
                         actionBtn.disabled = false; actionBtn.innerText = "Новая гонка";
+                        actionBtn.onclick = executeGame;
                         tg.HapticFeedback.notificationOccurred(won ? 'success' : 'error');
                     }
                 }, 80);
@@ -630,12 +634,13 @@
                     if(success) { balance += reward; saveState(); updateDisplay(); }
                     initFishingCanvas('success', success ? `Сундук пойман! +${reward} 🪙` : `Сорвалось! Пусто.`);
                     actionBtn.disabled = false; actionBtn.innerText = "Забросить снова";
+                    actionBtn.onclick = executeGame;
                     tg.HapticFeedback.notificationOccurred(success ? 'success' : 'error');
                 }, 1500);
                 return;
             }
 
-            // 5. ВОЗДУШНЫЙ ШАР (Две кнопки: Забрать / Продолжить)
+            // 5. ВОЗДУШНЫЙ ШАР
             if (currentGame === 'balloon') {
                 balance -= bet; saveState(); updateDisplay();
                 balloonState = { active: true, size: 25, mult: 1.0, bet: bet };
@@ -704,12 +709,13 @@
                     if(success) { balance += reward; saveState(); updateDisplay(); }
                     initKnockoutCanvas(success ? 'hit' : 'idle', success ? `НОКАУТ! +${reward} 🪙` : `Промах! Соперник увернулся.`);
                     actionBtn.disabled = false; actionBtn.innerText = "Новый удар";
+                    actionBtn.onclick = executeGame;
                     tg.HapticFeedback.notificationOccurred(success ? 'success' : 'error');
                 }, 1200);
                 return;
             }
 
-            // 7. СПАСАТЕЛЬНЫЙ ВЕРТОЛЕТ (Две кнопки: Эвакуация / Лететь дальше)
+            // 7. СПАСАТЕЛЬНЫЙ ВЕРТОЛЕТ
             if (currentGame === 'chopper') {
                 balance -= bet; saveState(); updateDisplay();
                 actionBtn.disabled = true;
@@ -799,7 +805,7 @@
                 return;
             }
 
-            // 9. ЛУННЫЙ ПРЫЖОК (Две кнопки: Забрать / Прыгнуть выше)
+            // 9. ЛУННЫЙ ПРЫЖОК
             if (currentGame === 'moonjump') {
                 balance -= bet; saveState(); updateDisplay();
                 moonState = { active: true, floor: 0, bet: bet };
@@ -819,7 +825,7 @@
                     alert(`🎉 Вы забрали ${reward} монет!`);
                     secBtn.style.display = 'none';
                     actionBtn.innerText = "Играть снова";
-                    actionBtn.onclick = function() { openGame('moonjump'); };
+                    actionBtn.onclick = executeGame;
                     tg.HapticFeedback.notificationOccurred('success');
                 };
 
@@ -830,7 +836,7 @@
                         document.getElementById('moonArea').innerHTML = `💥 Космонавт сорвался в открытый космос на ${moonState.floor + 1} этаже! Ставка сгорела.`;
                         secBtn.style.display = 'none';
                         actionBtn.innerText = "Играть снова";
-                        actionBtn.onclick = function() { openGame('moonjump'); };
+                        actionBtn.onclick = executeGame;
                         tg.HapticFeedback.notificationOccurred('error');
                         return;
                     }
@@ -846,7 +852,7 @@
                         alert(`🏆 КОСМИЧЕСКИЙ ДЖЕКПОТ! Вы забрали ${reward} монет!`);
                         secBtn.style.display = 'none';
                         actionBtn.innerText = "Играть снова";
-                        actionBtn.onclick = function() { openGame('moonjump'); };
+                        actionBtn.onclick = executeGame;
                     }
                 };
                 return;
