@@ -28,116 +28,53 @@
             margin-bottom: 20px;
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
-        h1 { margin: 0 0 8px 0; font-size: 26px; color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font-weight: 900; letter-spacing: 0.5px; }
+        h1 { margin: 0 0 8px 0; font-size: 26px; color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font-weight: 900; }
         .balance-container { font-size: 32px; font-weight: 900; color: #facc15; margin-bottom: 6px; text-shadow: 0 0 15px rgba(250, 204, 21, 0.6); }
         .bonus-info { font-size: 13px; color: #fca5a5; margin-bottom: 14px; font-weight: 700; text-transform: uppercase; }
         .btn-bonus {
             background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            border: none;
-            border-radius: 14px;
-            padding: 12px;
-            font-size: 15px;
-            font-weight: 800;
-            cursor: pointer;
-            width: 100%;
+            color: white; border: none; border-radius: 14px; padding: 12px; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%;
             box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
-            transition: transform 0.2s;
         }
-        .btn-bonus:active { transform: scale(0.97); }
         .section-title {
-            width: 100%;
-            max-width: 400px;
-            font-size: 17px;
-            font-weight: 900;
-            color: #f43f5e;
-            margin-bottom: 12px;
-            padding-left: 4px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+            width: 100%; max-width: 400px; font-size: 17px; font-weight: 900; color: #f43f5e; margin-bottom: 12px; padding-left: 4px; text-transform: uppercase;
             text-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
         }
         .games-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 30px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 400px; margin-bottom: 30px;
         }
         .game-card {
-            background: linear-gradient(145deg, #1e1b2e, #2d2640);
-            border-radius: 20px;
-            padding: 16px 12px;
-            text-align: center;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: linear-gradient(145deg, #1e1b2e, #2d2640); border-radius: 20px; padding: 16px 12px; text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6); display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .game-card:active { transform: scale(0.95); }
         .game-card h3 { margin: 0 0 4px 0; font-size: 15px; color: #fff; font-weight: 800; }
         .game-desc { font-size: 11px; color: #cbd5e1; margin-bottom: 12px; }
         .btn-game {
-            color: #ffffff;
-            border: none;
-            border-radius: 12px;
-            padding: 10px;
-            font-size: 13px;
-            font-weight: 800;
-            cursor: pointer;
-            width: 100%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            color: #ffffff; border: none; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 800; cursor: pointer; width: 100%;
         }
-
-        /* Модальные окна */
         .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 4, 15, 0.92);
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            backdrop-filter: blur(10px);
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 4, 15, 0.94); justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(10px);
         }
         .modal-content {
-            background: linear-gradient(135deg, #1e1b38, #2a2251);
-            border-radius: 26px;
-            padding: 22px;
-            width: 90%;
-            max-width: 360px;
-            text-align: center;
-            border: 2px solid #8b5cf6;
-            box-shadow: 0 25px 60px rgba(139, 92, 246, 0.4);
+            background: linear-gradient(135deg, #1e1b38, #2a2251); border-radius: 26px; padding: 20px; width: 92%; max-width: 360px; text-align: center;
+            border: 2px solid #8b5cf6; box-shadow: 0 25px 60px rgba(139, 92, 246, 0.4);
         }
-        .modal-title { font-size: 20px; font-weight: 900; color: #facc15; margin-bottom: 12px; text-shadow: 0 0 10px rgba(250, 204, 21, 0.4); }
+        .modal-title { font-size: 19px; font-weight: 900; color: #facc15; margin-bottom: 10px; }
         .animation-box {
-            font-size: 45px;
-            margin: 15px 0;
-            min-height: 80px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
+            margin: 10px 0; min-height: 70px; display: flex; justify-content: center; align-items: center; font-size: 40px;
         }
-        .controls-group { margin-bottom: 14px; text-align: left; font-size: 13px; }
-        .controls-group label { display: block; color: #e2e8f0; margin-bottom: 5px; font-weight: 700; }
+        .controls-group { margin-bottom: 12px; text-align: left; font-size: 13px; }
+        .controls-group label { display: block; color: #e2e8f0; margin-bottom: 4px; font-weight: 700; }
         .controls-group select, .controls-group input {
-            width: 100%; padding: 11px; border-radius: 12px; border: 1px solid #7c3aed;
-            background: #0f0c1b; color: #fff; font-size: 14px; box-sizing: border-box; outline: none; font-weight: 600;
+            width: 100%; padding: 10px; border-radius: 12px; border: 1px solid #7c3aed; background: #0f0c1b; color: #fff; font-size: 14px; box-sizing: border-box; outline: none; font-weight: 600;
         }
         .btn-action {
             background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 14px;
-            padding: 13px; font-size: 16px; font-weight: 900; cursor: pointer; width: 100%;
-            margin-top: 5px; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+            padding: 13px; font-size: 16px; font-weight: 900; cursor: pointer; width: 100%; margin-top: 5px;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
         }
-        .btn-close {
-            background: transparent; border: none; color: #94a3b8; font-size: 13px;
-            margin-top: 14px; cursor: pointer; text-decoration: underline; font-weight: 700;
-        }
+        .btn-close { background: transparent; border: none; color: #94a3b8; font-size: 13px; margin-top: 12px; cursor: pointer; text-decoration: underline; font-weight: 700; }
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             20% { transform: translate(-3px, 0px) rotate(-3deg); }
@@ -163,7 +100,7 @@
     <div class="games-grid">
         <div class="game-card" style="border-color: #f43f5e;">
             <h3>✈️ Самолётик</h3>
-            <div class="game-desc">Легендарный Crash (x10+)</div>
+            <div class="game-desc">Легендарный Crash</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #e11d48, #f43f5e);" onclick="openGame('crash')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #eab308;">
@@ -173,12 +110,12 @@
         </div>
         <div class="game-card" style="border-color: #a855f7;">
             <h3>🗼 Башня Риска</h3>
-            <div class="game-desc">Подъем наверх (x3)</div>
+            <div class="game-desc">Подъем наверх (x4)</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #9333ea, #a855f7);" onclick="openGame('tower')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #06b6d4;">
             <h3>⚪ Plinko Шарики</h3>
-            <div class="game-desc">Лучи удачи (x5)</div>
+            <div class="game-desc">Лучи удачи (x4)</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #0891b2, #06b6d4);" onclick="openGame('plinko')">Играть</button>
         </div>
         <div class="game-card">
@@ -271,69 +208,118 @@
             let actionBtn = document.getElementById('actionBtn');
             
             actionBtn.style.display = 'block';
-            anim.innerText = game === 'crash' ? '✈️' : game === 'slots' ? '🎰' : game === 'tower' ? '🗼' : game === 'plinko' ? '⚪' : game === 'dice' ? '🎲' : game === 'redblack' ? '🔴' : game === 'roulette' ? '🎡' : '💣';
 
             if (game === 'crash') {
                 title.innerText = "✈️ Самолётик (Crash)";
+                anim.innerHTML = `<canvas id="crashCanvas" width="300" height="130" style="background:#090714; border-radius:12px; border: 1px solid #4f46e5;"></canvas>`;
                 body.innerHTML = `
                     <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
-                    <div id="crashStatus" style="font-size: 14px; font-weight: bold; color: #38bdf8; margin: 8px 0;">Запустите самолёт и успейте забрать кэш!</div>`;
+                    <div id="crashStatus" style="font-size: 13px; color: #38bdf8; font-weight: bold; margin-bottom: 6px;">Нажмите старт для полёта</div>`;
                 actionBtn.innerText = "Запустить полёт";
-            } else if (game === 'slots') {
-                title.innerText = "🎰 Слоты 777";
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>`;
-                actionBtn.innerText = "Крутить слоты";
-            } else if (game === 'tower') {
-                title.innerText = "🗼 Башня Риска";
-                body.innerHTML = `
-                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
-                    <div class="controls-group"><label>Выберите этаж:</label>
-                        <select id="towerChoice"><option value="1">Этаж 1 (x1.5)</option><option value="2">Этаж 2 (x2.5)</option><option value="3">Этаж 3 (x4.0)</option></select>
-                    </div>`;
-                actionBtn.innerText = "Взобраться";
-            } else if (game === 'plinko') {
-                title.innerText = "⚪ Plinko Шарики";
-                body.innerHTML = `
-                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
-                    <div class="controls-group"><label>Лунка:</label>
-                        <select id="plinkoChoice"><option value="left">Левая лунка (x2)</option><option value="center">Центр (x4)</option><option value="right">Правая лунка (x2)</option></select>
-                    </div>`;
-                actionBtn.innerText = "Бросить шар";
-            } else if (game === 'dice') {
-                title.innerText = "🎲 Кости";
-                body.innerHTML = `
-                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50"></div>
-                    <div class="controls-group"><label>Прогноз (1-6):</label>
-                        <select id="diceChoice"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6" selected>6</option></select>
-                    </div>`;
-                actionBtn.innerText = "Бросить";
-            } else if (game === 'redblack') {
-                title.innerText = "🔴 Черное / Красное";
-                body.innerHTML = `
-                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
-                    <div class="controls-group"><label>Цвет:</label>
-                        <select id="rbChoice"><option value="red">🔴 Красное (x2)</option><option value="black">⚫ Черное (x2)</option></select>
-                    </div>`;
-                actionBtn.innerText = "Поставить";
-            } else if (game === 'roulette') {
-                title.innerText = "🎡 Колесо Фортуны";
-                body.innerHTML = `
-                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
-                    <div class="controls-group"><label>Сектор (0-4):</label>
-                        <select id="rouletteChoice"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
-                    </div>`;
-                actionBtn.innerText = "Крутить колесо";
-            } else if (game === 'mines') {
-                title.innerText = "💣 Сапёр";
-                body.innerHTML = `
-                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
-                    <div class="controls-group"><label>Тайник (1 из 3):</label>
-                        <select id="mineChoice"><option value="1">Тайник №1</option><option value="2">Тайник №2</option><option value="3">Тайник №3</option></select>
-                    </div>`;
-                actionBtn.innerText = "Открыть";
+                initCrashCanvas(1.00, false);
+            } else {
+                anim.innerText = game === 'slots' ? '🎰' : game === 'tower' ? '🗼' : game === 'plinko' ? '⚪' : game === 'dice' ? '🎲' : game === 'redblack' ? '🔴' : game === 'roulette' ? '🎡' : '💣';
+                if (game === 'slots') {
+                    title.innerText = "🎰 Слоты 777";
+                    body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>`;
+                    actionBtn.innerText = "Крутить слоты";
+                } else if (game === 'tower') {
+                    title.innerText = "🗼 Башня Риска";
+                    body.innerHTML = `
+                        <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
+                        <div class="controls-group"><label>Этаж:</label>
+                            <select id="towerChoice"><option value="1">Этаж 1 (x1.5)</option><option value="2">Этаж 2 (x2.5)</option><option value="3">Этаж 3 (x4.0)</option></select>
+                        </div>`;
+                    actionBtn.innerText = "Взобраться";
+                } else if (game === 'plinko') {
+                    title.innerText = "⚪ Plinko Шарики";
+                    body.innerHTML = `
+                        <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
+                        <div class="controls-group"><label>Лунка:</label>
+                            <select id="plinkoChoice"><option value="left">Левая (x2)</option><option value="center">Центр (x4)</option><option value="right">Правая (x2)</option></select>
+                        </div>`;
+                    actionBtn.innerText = "Бросить шар";
+                } else if (game === 'dice') {
+                    title.innerText = "🎲 Кости";
+                    body.innerHTML = `
+                        <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50"></div>
+                        <div class="controls-group"><label>Прогноз (1-6):</label>
+                            <select id="diceChoice"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6" selected>6</option></select>
+                        </div>`;
+                    actionBtn.innerText = "Бросить";
+                } else if (game === 'redblack') {
+                    title.innerText = "🔴 Черное / Красное";
+                    body.innerHTML = `
+                        <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
+                        <div class="controls-group"><label>Цвет:</label>
+                            <select id="rbChoice"><option value="red">🔴 Красное (x2)</option><option value="black">⚫ Черное (x2)</option></select>
+                        </div>`;
+                    actionBtn.innerText = "Поставить";
+                } else if (game === 'roulette') {
+                    title.innerText = "🎡 Колесо Фортуны";
+                    body.innerHTML = `
+                        <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
+                        <div class="controls-group"><label>Сектор (0-4):</label>
+                            <select id="rouletteChoice"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+                        </div>`;
+                    actionBtn.innerText = "Крутить колесо";
+                } else if (game === 'mines') {
+                    title.innerText = "💣 Сапёр";
+                    body.innerHTML = `
+                        <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
+                        <div class="controls-group"><label>Тайник (1 из 3):</label>
+                            <select id="mineChoice"><option value="1">Тайник №1</option><option value="2">Тайник №2</option><option value="3">Тайник №3</option></select>
+                        </div>`;
+                    actionBtn.innerText = "Открыть";
+                }
             }
 
             document.getElementById('gameModal').style.display = 'flex';
+        }
+
+        function initCrashCanvas(mult, isCrashed, textStatus="") {
+            let canvas = document.getElementById('crashCanvas');
+            if (!canvas) return;
+            let ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Сетка фона
+            ctx.strokeStyle = '#1e1b38';
+            ctx.lineWidth = 1;
+            for(let i=0; i<canvas.width; i+=30) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+            }
+            for(let i=0; i<canvas.height; i+=30) {
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+            }
+
+            // Траектория полета кривой
+            let progress = Math.min((mult - 1.0) / 2.5, 1);
+            let endX = 40 + progress * 200;
+            let endY = 110 - progress * 80;
+
+            ctx.strokeStyle = isCrashed ? '#ef4444' : '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(20, 110);
+            ctx.quadraticCurveTo(100, 110, endX, endY);
+            ctx.stroke();
+
+            // Самолётик на конце кривой
+            ctx.font = '22px Arial';
+            ctx.fillText(isCrashed ? '💥' : '✈️', endX - 10, endY + 8);
+
+            // Текст множителя внутри холста
+            ctx.fillStyle = isCrashed ? '#ef4444' : '#facc15';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(mult.toFixed(2) + 'x', canvas.width / 2, 40);
+
+            if (textStatus) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px Arial';
+                ctx.fillText(textStatus, canvas.width / 2, 115);
+            }
         }
 
         function closeModal() {
@@ -346,10 +332,9 @@
             if (isNaN(bet) || bet <= 0) { alert('Введите корректную ставку!'); return; }
             if (balance < bet) { alert('❌ Недостаточно средств!'); return; }
 
-            let animBox = document.getElementById('animBox');
             let actionBtn = document.getElementById('actionBtn');
 
-            // Ультра-анимация самолетика (Crash)
+            // Полноценная холст-анимация самолетика (Crash)
             if (currentGame === 'crash') {
                 balance -= bet;
                 saveState();
@@ -359,7 +344,6 @@
                 let multiplier = 1.00;
                 let crashPoint = (1.2 + Math.random() * 2.8).toFixed(2);
                 
-                animBox.innerHTML = `<div style="font-size:24px; color:#38bdf8;">✈️ <span id="multNum">1.00</span>x</div>`;
                 actionBtn.innerText = "ЗАБРАТЬ ВЫИГРЫШ";
                 actionBtn.style.background = "linear-gradient(135deg, #ef4444, #dc2626)";
                 actionBtn.disabled = false;
@@ -370,8 +354,8 @@
                     balance += winSum;
                     saveState();
                     updateDisplay();
-                    animBox.innerHTML = `<div style="font-size:22px; color:#10b981;">💰 УСПЕХ! +${winSum} (${multiplier}x)</div>`;
-                    document.getElementById('crashStatus').innerText = `Вы успешно забрали монеты!`;
+                    initCrashCanvas(parseFloat(multiplier), false, `УСПЕХ! +${winSum} монет`);
+                    document.getElementById('crashStatus').innerText = `Вы успешно забрали кэш!`;
                     actionBtn.innerText = "Запустить полёт";
                     actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
                     actionBtn.onclick = executeGame;
@@ -379,21 +363,20 @@
                 };
 
                 crashInterval = setInterval(() => {
-                    multiplier = (parseFloat(multiplier) + 0.09).toFixed(2);
-                    let el = document.getElementById('multNum');
-                    if(el) el.innerText = multiplier;
+                    multiplier = (parseFloat(multiplier) + 0.08).toFixed(2);
+                    initCrashCanvas(parseFloat(multiplier), false);
 
                     if (parseFloat(multiplier) >= parseFloat(crashPoint)) {
                         clearInterval(crashInterval);
-                        animBox.innerHTML = `<div style="font-size:22px; color:#ef4444;">💥 ВЗРЫВ (${crashPoint}x)</div>`;
-                        document.getElementById('crashStatus').innerText = `Самолёт сгорел! Ставка сгорела.`;
+                        initCrashCanvas(parseFloat(crashPoint), true, "ВЗРЫВ САМОЛЁТА!");
+                        document.getElementById('crashStatus').innerText = `Самолёт улетел! Ставка сгорела.`;
                         actionBtn.innerText = "Запустить полёт";
                         actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
                         actionBtn.onclick = executeGame;
                         actionBtn.disabled = false;
                         tg.HapticFeedback.notificationOccurred('error');
                     }
-                }, 200);
+                }, 180);
                 return;
             }
 
@@ -401,6 +384,7 @@
             saveState();
             updateDisplay();
 
+            let animBox = document.getElementById('animBox');
             animBox.classList.add('shake');
             actionBtn.disabled = true;
 
@@ -468,7 +452,7 @@
                         let mult = choice === 'center' ? 4 : 2;
                         let reward = bet * mult;
                         balance += reward;
-                        msg = `🎉 Шарик попал в нужную лунку! Вы выиграли ${reward} монет!`;
+                        msg = `🎉 Шарик попал в лунку! Вы выиграли ${reward} монет!`;
                     } else {
                         msg = `😢 Шарик улетел в другую лунку.`;
                     }
