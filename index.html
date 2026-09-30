@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Casino Lobby</title>
+    <title>VIP Telegram Casino</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color, #0f1115);
-            color: var(--tg-theme-text-color, #ffffff);
+            background-color: #0f1115;
+            color: #ffffff;
             margin: 0;
             padding: 12px;
             display: flex;
@@ -60,7 +60,7 @@
             margin-bottom: 20px;
         }
         .game-card {
-            background: var(--tg-theme-secondary-bg-color, #1a1d23);
+            background: #1a1d23;
             border-radius: 14px;
             padding: 14px;
             text-align: center;
@@ -73,8 +73,8 @@
         .game-card h3 { margin: 0 0 5px 0; font-size: 15px; color: #fff; }
         .game-desc { font-size: 11px; color: #95a5a6; margin-bottom: 10px; }
         .btn-game {
-            background-color: var(--tg-theme-button-color, #3498db);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            background-color: #3498db;
+            color: #ffffff;
             border: none;
             border-radius: 8px;
             padding: 9px;
@@ -84,6 +84,62 @@
             width: 100%;
         }
         .btn-game:active { opacity: 0.8; }
+
+        /* Модальные окна с анимациями */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: #1f242d;
+            border-radius: 20px;
+            padding: 20px;
+            width: 85%;
+            max-width: 340px;
+            text-align: center;
+            border: 1px solid #3b4252;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        .modal-title { font-size: 18px; font-weight: bold; color: #f1c40f; margin-bottom: 15px; }
+        .animation-box {
+            font-size: 45px;
+            margin: 20px 0;
+            min-height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .controls-group { margin-bottom: 15px; text-align: left; font-size: 13px; }
+        .controls-group label { display: block; color: #a3a8b8; margin-bottom: 5px; }
+        .controls-group select, .controls-group input {
+            width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #4c566a;
+            background: #111318; color: #fff; font-size: 14px; box-sizing: border-box;
+        }
+        .btn-action {
+            background-color: #2ecc71; color: white; border: none; border-radius: 10px;
+            padding: 12px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%;
+            margin-top: 5px; box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+        }
+        .btn-close {
+            background: transparent; border: none; color: #95a5a6; font-size: 13px;
+            margin-top: 12px; cursor: pointer; text-decoration: underline;
+        }
+
+        /* Анимации тряски */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(-3deg); }
+            40% { transform: translate(1px, -1px) rotate(2deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            80% { transform: translate(2px, -2px) rotate(2deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake { animation: shake 0.4s ease infinite; }
     </style>
 </head>
 <body>
@@ -98,41 +154,47 @@
     <div class="section-title">🎲 Игровой зал</div>
 
     <div class="games-grid">
-        <!-- Кости -->
         <div class="game-card">
             <h3>🎲 Кости</h3>
-            <div class="game-desc">Угадай ≥ 4 (Ставка: 50)</div>
-            <button class="btn-game" onclick="playDice()">Играть</button>
+            <div class="game-desc">Выбери число и бросай</div>
+            <button class="btn-game" onclick="openGame('dice')">Играть</button>
         </div>
-        <!-- Красное / Черное -->
         <div class="game-card">
             <h3>🔴 Черное / Красное</h3>
-            <div class="game-desc">Шанс 50/50 (Ставка: 100)</div>
-            <button class="btn-game" style="background-color: #e74c3c;" onclick="playRedBlack()">Играть</button>
+            <div class="game-desc">Выбор цвета x2</div>
+            <button class="btn-game" style="background-color: #e74c3c;" onclick="openGame('redblack')">Играть</button>
         </div>
-        <!-- Больше / Меньше -->
         <div class="game-card">
             <h3>📊 Больше / Меньше</h3>
-            <div class="game-desc">Число 1-100 (Ставка: 75)</div>
-            <button class="btn-game" style="background-color: #9b59b6;" onclick="playHighLow()">Играть</button>
+            <div class="game-desc">Настрой порог и угадай</div>
+            <button class="btn-game" style="background-color: #9b59b6;" onclick="openGame('highlow')">Играть</button>
         </div>
-        <!-- Слоты -->
         <div class="game-card">
-            <h3>🎰 Слот-машина</h3>
-            <div class="game-desc">Джекпот x5 (Ставка: 100)</div>
-            <button class="btn-game" style="background-color: #f1c40f; color:#000;" onclick="playSlots()">Играть</button>
+            <h3>🎰 Слоты</h3>
+            <div class="game-desc">Джекпот x5</div>
+            <button class="btn-game" style="background-color: #f1c40f; color:#000;" onclick="openGame('slots')">Играть</button>
         </div>
-        <!-- Рулетка -->
         <div class="game-card">
-            <h3>🎡 Мини-рулетка</h3>
-            <div class="game-desc">Сектор 0-3 (Ставка: 100)</div>
-            <button class="btn-game" style="background-color: #e67e22;" onclick="playRoulette()">Играть</button>
+            <h3>🎡 Рулетка</h3>
+            <div class="game-desc">Секторы 0-5</div>
+            <button class="btn-game" style="background-color: #e67e22;" onclick="openGame('roulette')">Играть</button>
         </div>
-        <!-- Монетка -->
         <div class="game-card">
             <h3>🪙 Орёл и Решка</h3>
-            <div class="game-desc">Классика x2 (Ставка: 50)</div>
-            <button class="btn-game" style="background-color: #1abc9c;" onclick="playCoinFlip()">Играть</button>
+            <div class="game-desc">Выбор стороны x2</div>
+            <button class="btn-game" style="background-color: #1abc9c;" onclick="openGame('coin')">Играть</button>
+        </div>
+    </div>
+
+    <!-- Универсальное модальное окно -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">Игра</div>
+            <div class="animation-box" id="animBox">🎲</div>
+            <div id="modalBody"></div>
+            <button class="btn-action" id="actionBtn" onclick="executeGame()">Сделать ставку</button>
+            <br>
+            <button class="btn-close" onclick="closeModal()">Закрыть</button>
         </div>
     </div>
 
@@ -142,30 +204,29 @@
 
         let balance = 1000;
         let nextBonusTime = Date.now();
+        let currentGame = '';
 
-        // Таймер бонуса (каждые 10 минут)
         setInterval(() => {
             let now = Date.now();
             let diff = nextBonusTime - now;
             let btn = document.getElementById('bonusBtn');
             let timerTxt = document.getElementById('timerText');
-
             if (diff <= 0) {
                 timerTxt.innerText = "Бонус доступен!";
                 btn.style.display = "block";
             } else {
-                let minutes = Math.floor(diff / 60000);
-                let seconds = Math.floor((diff % 60000) / 1000);
-                timerTxt.innerText = `Следующий бонус через: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                let m = Math.floor(diff / 60000);
+                let s = Math.floor((diff % 60000) / 1000);
+                timerTxt.innerText = `Бонус через: ${m}:${s < 10 ? '0' : ''}${s}`;
                 btn.style.display = "none";
             }
         }, 1000);
 
         function claimBonus() {
             balance += 200;
-            nextBonusTime = Date.now() + 10 * 60 * 1000; // 10 минут
+            nextBonusTime = Date.now() + 10 * 60 * 1000;
             updateDisplay();
-            alert('🎁 Вы получили бесплатный бонус 200 монет!');
+            alert('🎁 Бонус получен (+200 монет)!');
             tg.HapticFeedback.notificationOccurred('success');
         }
 
@@ -173,95 +234,201 @@
             document.getElementById('balance').innerText = `🪙 ${balance}`;
         }
 
-        function checkBalance(cost) {
-            if (balance < cost) {
-                alert('❌ Недостаточно средств! Ждите бонус каждые 10 минут.');
-                return false;
-            }
-            balance -= cost;
-            return true;
-        }
-
-        function playDice() {
-            if (!checkBalance(50)) return;
-            let roll = Math.floor(Math.random() * 6) + 1;
-            if (roll >= 4) {
-                balance += 100;
-                alert(`🎉 Выпало ${roll}! Вы выиграли 100 монет!`);
-            } else {
-                alert(`😢 Выпало ${roll}. Вы проиграли.`);
-            }
-            updateDisplay();
-            tg.HapticFeedback.impactOccurred('medium');
-        }
-
-        function playRedBlack() {
-            if (!checkBalance(100)) return;
-            let isRed = Math.random() < 0.5;
-            if (isRed) {
-                balance += 200;
-                alert('🔴 Выпало КРАСНОЕ! Вы выиграли 200 монет!');
-            } else {
-                alert('⚫ Выпало ЧЁРНОЕ. Вы проиграли.');
-            }
-            updateDisplay();
-            tg.HapticFeedback.impactOccurred('medium');
-        }
-
-        function playHighLow() {
-            if (!checkBalance(75)) return;
-            let secret = Math.floor(Math.random() * 100) + 1;
-            let userChoice = prompt('Число больше 50 или нет? Введите "б" (больше) или "м" (меньше):', 'б');
-            if (!userChoice) { balance += 75; return; }
+        function openGame(game) {
+            currentGame = game;
+            let title = document.getElementById('modalTitle');
+            let body = document.getElementById('modalBody');
+            let anim = document.getElementById('animBox');
             
-            let isHigh = secret > 50;
-            let userGuessedRight = (userChoice.toLowerCase() === 'б' && isHigh) || (userChoice.toLowerCase() === 'м' && !isHigh);
-            
-            if (userGuessedRight) {
-                balance += 150;
-                alert(`🎉 Число было ${secret}. Вы выиграли 150 монет!`);
-            } else {
-                alert(`😢 Число было ${secret}. Вы проиграли.`);
+            anim.innerText = game === 'dice' ? '🎲' : game === 'redblack' ? '🔴' : game === 'highlow' ? '📊' : game === 'slots' ? '🎰' : game === 'roulette' ? '🎡' : '🪙';
+
+            if (game === 'dice') {
+                title.innerText = "🎲 Игра в Кости";
+                body.innerHTML = `
+                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50"></div>
+                    <div class="controls-group"><label>Ваш прогноз (1-6):</label>
+                        <select id="diceChoice">
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                            <option value="4">4</option><option value="5">5</option><option value="6" selected>6</option>
+                        </select>
+                    </div>`;
+            } else if (game === 'redblack') {
+                title.innerText = "🔴 Черное / Красное";
+                body.innerHTML = `
+                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
+                    <div class="controls-group"><label>Выбор цвета:</label>
+                        <select id="rbChoice">
+                            <option value="red">🔴 Красное (x2)</option>
+                            <option value="black">⚫ Черное (x2)</option>
+                            <option value="zero">🟢 Зеро (x10)</option>
+                        </select>
+                    </div>`;
+            } else if (game === 'highlow') {
+                title.innerText = "📊 Больше / Меньше";
+                body.innerHTML = `
+                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="75"></div>
+                    <div class="controls-group"><label>Порог числа (1-99):</label><input type="number" id="hlThreshold" value="50" min="1" max="99"></div>
+                    <div class="controls-group"><label>Прогноз:</label>
+                        <select id="hlChoice">
+                            <option value="high">Больше порога</option>
+                            <option value="low">Меньше или равно</option>
+                        </select>
+                    </div>`;
+            } else if (game === 'slots') {
+                title.innerText = "🎰 Слот-машина";
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>`;
+            } else if (game === 'roulette') {
+                title.innerText = "🎡 Мини-рулетка (0-5)";
+                body.innerHTML = `
+                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
+                    <div class="controls-group"><label>Выберите сектор:</label>
+                        <select id="rouletteChoice">
+                            <option value="0">0 (Зеро)</option><option value="1">1</option><option value="2">2</option>
+                            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                        </select>
+                    </div>`;
+            } else if (game === 'coin') {
+                title.innerText = "🪙 Орёл и Решка";
+                body.innerHTML = `
+                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50"></div>
+                    <div class="controls-group"><label>Сторона:</label>
+                        <select id="coinChoice">
+                            <option value="eagle">🦅 Орёл</option>
+                            <option value="tail">🪙 Решка</option>
+                        </select>
+                    </div>`;
             }
-            updateDisplay();
+
+            document.getElementById('gameModal').style.display = 'flex';
         }
 
-        function playSlots() {
-            if (!checkBalance(100)) return;
-            let win = Math.random() < 0.25;
-            if (win) {
-                balance += 500;
-                alert('🔥 ДЖЕКПОТ! Вы выиграли 500 монет!');
-            } else {
-                alert('🎰 Мимо! Попробуйте еще раз.');
-            }
-            updateDisplay();
-            tg.HapticFeedback.notificationOccurred(win ? 'success' : 'error');
+        function closeModal() {
+            document.getElementById('gameModal').style.display = 'none';
         }
 
-        function playRoulette() {
-            if (!checkBalance(100)) return;
-            let sector = Math.floor(Math.random() * 4);
-            let winSector = Math.floor(Math.random() * 4);
-            if (sector === winSector) {
-                balance += 400;
-                alert(`🎡 Сектор ${sector}! Вы выиграли 400 монет!`);
-            } else {
-                alert(`🎡 Выпал сектор ${sector} (выигрыш был на ${winSector}). Вы проиграли.`);
-            }
-            updateDisplay();
-        }
+        async function executeGame() {
+            let bet = parseInt(document.getElementById('bet').value);
+            if (isNaN(bet) || bet <= 0) { alert('Введите корректную ставку!'); return; }
+            if (balance < bet) { alert('❌ Недостаточно средств на балансе!'); return; }
 
-        function playCoinFlip() {
-            if (!checkBalance(50)) return;
-            let win = Math.random() < 0.5;
-            if (win) {
-                balance += 100;
-                alert('🪙 Выпал ОРЁЛ! Вы выиграли 100 монет!');
-            } else {
-                alert('🪙 Выпала РЕШКА. Вы проиграли.');
-            }
+            balance -= bet;
             updateDisplay();
+
+            let animBox = document.getElementById('animBox');
+            animBox.classList.add('shake');
+            let actionBtn = document.getElementById('actionBtn');
+            actionBtn.disabled = true;
+
+            // Имитация анимации (1.2 секунды)
+            let frames = ['🔄', '⟳', '⏳', '🎲', '✨'];
+            let interval = setInterval(() => {
+                animBox.innerText = frames[Math.floor(Math.random() * frames.length)];
+            }, 150);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                animBox.classList.remove('shake');
+                actionBtn.disabled = false;
+
+                let win = false;
+                let msg = '';
+
+                if (currentGame === 'dice') {
+                    let choice = parseInt(document.getElementById('diceChoice').value);
+                    let roll = Math.floor(Math.random() * 6) + 1;
+                    animBox.innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][roll-1];
+                    if (roll === choice) {
+                        win = true;
+                        let reward = bet * 5;
+                        balance += reward;
+                        msg = `🎉 Ура! Выпало ${roll}! Вы выиграли ${reward} монет!`;
+                    } else {
+                        msg = `😢 Выпало ${roll}. Вы проиграли ставку.`;
+                    }
+                } 
+                else if (currentGame === 'redblack') {
+                    let choice = document.getElementById('rbChoice').value;
+                    let rand = Math.random();
+                    let result = rand < 0.48 ? 'red' : rand < 0.96 ? 'black' : 'zero';
+                    animBox.innerText = result === 'red' ? '🔴' : result === 'black' ? '⚫' : '🟢';
+
+                    if (result === choice) {
+                        win = true;
+                        let mult = result === 'zero' ? 10 : 2;
+                        let reward = bet * mult;
+                        balance += reward;
+                        msg = `🎉 Выпало ${result.toUpperCase()}! Вы выиграли ${reward} монет!`;
+                    } else {
+                        msg = `😢 Выпало ${result.toUpperCase()}. Вы проиграли.`;
+                    }
+                }
+                else if (currentGame === 'highlow') {
+                    let threshold = parseInt(document.getElementById('hlThreshold').value);
+                    let choice = document.getElementById('hlChoice').value;
+                    let number = Math.floor(Math.random() * 99) + 1;
+                    animBox.innerText = `📊 ${number}`;
+
+                    let isHigh = number > threshold;
+                    let guessed = (choice === 'high' && isHigh) || (choice === 'low' && !isHigh);
+
+                    if (guessed) {
+                        win = true;
+                        let reward = bet * 2;
+                        balance += reward;
+                        msg = `🎉 Число оказалось ${number}! Вы выиграли ${reward} монет!`;
+                    } else {
+                        msg = `😢 Число выпало ${number}. Вы проиграли.`;
+                    }
+                }
+                else if (currentGame === 'slots') {
+                    let symbols = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
+                    let s1 = symbols[Math.floor(Math.random() * symbols.length)];
+                    let s2 = symbols[Math.floor(Math.random() * symbols.length)];
+                    let s3 = symbols[Math.floor(Math.random() * symbols.length)];
+                    animBox.innerText = `${s1} ${s2} ${s3}`;
+
+                    if (s1 === s2 && s2 === s3) {
+                        win = true;
+                        let reward = bet * 6;
+                        balance += reward;
+                        msg = `🔥 ДЖЕКПОТ (${s1}${s2}${s3})! Вы выиграли ${reward} монет!`;
+                    } else {
+                        msg = `🎰 Комбинация: ${s1} ${s2} ${s3}. Мимо!`;
+                    }
+                }
+                else if (currentGame === 'roulette') {
+                    let choice = parseInt(document.getElementById('rouletteChoice').value);
+                    let sector = Math.floor(Math.random() * 6);
+                    animBox.innerText = `🎡 [${sector}]`;
+
+                    if (sector === choice) {
+                        win = true;
+                        let reward = bet * 5;
+                        balance += reward;
+                        msg = `🎉 Сектор ${sector}! Вы выиграли ${reward} монет!`;
+                    } else {
+                        msg = `😢 Выпал сектор ${sector} (а вы ставили на ${choice}).`;
+                    }
+                }
+                else if (currentGame === 'coin') {
+                    let choice = document.getElementById('coinChoice').value;
+                    let res = Math.random() < 0.5 ? 'eagle' : 'tail';
+                    animBox.innerText = res === 'eagle' ? '🦅' : '🪙';
+
+                    if (res === choice) {
+                        win = true;
+                        let reward = bet * 2;
+                        balance += reward;
+                        msg = `🎉 Выпал ${res === 'eagle' ? 'Орёл' : 'Решка'}! Вы выиграли ${reward} монет!`;
+                    } else {
+                        msg = `😢 Не угадали сторону. Вы проиграли.`;
+                    }
+                }
+
+                updateDisplay();
+                alert(msg);
+                tg.HapticFeedback.notificationOccurred(win ? 'success' : 'error');
+            }, 1200);
         }
     </script>
 </body>
