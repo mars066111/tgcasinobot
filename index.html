@@ -42,7 +42,6 @@
             cursor: pointer;
             width: 100%;
             box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
-            transition: 0.2s;
         }
         .section-title {
             width: 100%;
@@ -52,9 +51,6 @@
             color: #d4ac0d;
             margin-bottom: 12px;
             padding-left: 4px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
         .games-grid {
             display: grid;
@@ -74,9 +70,7 @@
             flex-direction: column;
             justify-content: space-between;
             border: 1px solid #2d3446;
-            transition: transform 0.2s;
         }
-        .game-card:active { transform: scale(0.97); }
         .game-card h3 { margin: 0 0 4px 0; font-size: 14px; color: #fff; }
         .game-desc { font-size: 11px; color: #a4b0be; margin-bottom: 10px; }
         .btn-game {
@@ -89,10 +83,7 @@
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
         }
-
-        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
@@ -131,13 +122,12 @@
         .btn-action {
             background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; border-radius: 12px;
             padding: 12px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%;
-            margin-top: 5px; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+            margin-top: 5px;
         }
         .btn-close {
             background: transparent; border: none; color: #718093; font-size: 13px;
             margin-top: 12px; cursor: pointer; text-decoration: underline;
         }
-
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             20% { transform: translate(-3px, 0px) rotate(-3deg); }
@@ -197,13 +187,12 @@
             <button class="btn-game" style="background: linear-gradient(135deg, #2980b9, #2980b9);" onclick="openGame('mines')">Играть</button>
         </div>
         <div class="game-card">
-            <h3>✂️ КНБ</h3>
+            <h3>✂️️ КНБ</h3>
             <div class="game-desc">Дуэль с ботом (x2)</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #7f8c8d, #95a5a6);" onclick="openGame('rps')">Играть</button>
         </div>
     </div>
 
-    <!-- Модальное окно -->
     <div class="modal" id="gameModal">
         <div class="modal-content">
             <div class="modal-title" id="modalTitle">Игра</div>
@@ -219,8 +208,24 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        let balance = 1000;
-        let nextBonusTime = Date.now();
+        // Загрузка сохраненного баланса или установка 1000 по умолчанию
+        let balance = localStorage.getItem('casino_balance');
+        if (balance === null) {
+            balance = 1000;
+        } else {
+            balance = parseInt(balance);
+        }
+
+        // Загрузка таймера бонуса
+        let nextBonusTime = localStorage.getItem('casino_bonus');
+        if (nextBonusTime === null) {
+            nextBonusTime = Date.now();
+        } else {
+            nextBonusTime = parseInt(nextBonusTime);
+        }
+
+        updateDisplay();
+
         let currentGame = '';
 
         setInterval(() => {
@@ -239,9 +244,15 @@
             }
         }, 1000);
 
+        function saveState() {
+            localStorage.setItem('casino_balance', balance);
+            localStorage.setItem('casino_bonus', nextBonusTime);
+        }
+
         function claimBonus() {
             balance += 200;
             nextBonusTime = Date.now() + 10 * 60 * 1000;
+            saveState();
             updateDisplay();
             alert('🎁 Бонус получен (+200 монет)!');
             tg.HapticFeedback.notificationOccurred('success');
@@ -314,10 +325,10 @@
                         </select>
                     </div>`;
             } else if (game === 'mines') {
-                title.innerText = "💣 Сапёр (Безопасный путь)";
+                title.innerText = "💣 Сапёр";
                 body.innerHTML = `
                     <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
-                    <div class="controls-group"><label>Выберите тайник (1 из 3):</label>
+                    <div class="controls-group"><label>Тайник (1 из 3):</label>
                         <select id="mineChoice">
                             <option value="1">Тайник №1</option>
                             <option value="2">Тайник №2</option>
@@ -350,6 +361,7 @@
             if (balance < bet) { alert('❌ Недостаточно средств на балансе!'); return; }
 
             balance -= bet;
+            saveState();
             updateDisplay();
 
             let animBox = document.getElementById('animBox');
@@ -478,13 +490,12 @@
                     let choice = document.getElementById('rpsChoice').value;
                     let botChoices = ['rock', 'scissors', 'paper'];
                     let botChoice = botChoices[Math.floor(Math.random() * botChoices.length)];
-                    
                     let emojis = { rock: '🪨', scissors: '✂️', paper: '📄' };
                     animBox.innerText = `${emojis[choice]} vs ${emojis[botChoice]}`;
 
                     if (choice === botChoice) {
-                        balance += bet; // Возврат ставки при ничьей
-                        msg = `🤝 Ничья! (${emojis[botChoice]}). Ставка возвращена.`;
+                        balance += bet; 
+                        msg = `🤝 Ничья! Ставка возвращена.`;
                     } else if (
                         (choice === 'rock' && botChoice === 'scissors') ||
                         (choice === 'scissors' && botChoice === 'paper') ||
@@ -499,6 +510,7 @@
                     }
                 }
 
+                saveState();
                 updateDisplay();
                 alert(msg);
                 tg.HapticFeedback.notificationOccurred(win ? 'success' : 'error');
