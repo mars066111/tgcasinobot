@@ -71,12 +71,16 @@
         }
         .btn-action {
             background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 14px;
-            padding: 13px; font-size: 16px; font-weight: 900; cursor: pointer; width: 100%; margin-top: 5px;
+            padding: 13px; font-size: 15px; font-weight: 900; cursor: pointer; width: 100%; margin-top: 5px;
             box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; border-radius: 14px;
+            padding: 13px; font-size: 15px; font-weight: 900; cursor: pointer; width: 100%; margin-top: 8px; display: none;
+            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4);
         }
         .btn-close { background: transparent; border: none; color: #94a3b8; font-size: 13px; margin-top: 12px; cursor: pointer; text-decoration: underline; font-weight: 700; }
         
-        /* Стили сетки Мин */
         .mines-grid {
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 320px; margin: 0 auto;
         }
@@ -158,6 +162,7 @@
             <div class="animation-box" id="animBox">🎲</div>
             <div id="modalBody"></div>
             <button class="btn-action" id="actionBtn" onclick="executeGame()">Сделать ставку</button>
+            <button class="btn-secondary" id="secondaryBtn" style="display:none;">Продолжить / Удвоить</button>
             <br>
             <button class="btn-close" onclick="closeModal()">Закрыть</button>
         </div>
@@ -177,14 +182,12 @@
         let currentGame = '';
         let activeInterval = null;
 
-        // Переменные для мин
         let minesState = { active: false, minesCount: 3, openedCount: 0, bet: 100 };
-        // Переменные для шара
-        let balloonState = { active: false, size: 20, mult: 1.0, bet: 100 };
-        // Переменные для блекджека
-        let bjState = { active: false, playerSum: 0, dealerSum: 0, bet: 100 };
-        // Переменные для лунного прыжка
+        let balloonState = { active: false, size: 25, mult: 1.0, bet: 100 };
+        let chopperState = { active: false, x: 20, y: 70, mult: 1.0, bet: 100 };
+        let crashState = { active: false, mult: 1.0, crashPoint: 1.5, bet: 100 };
         let moonState = { active: false, floor: 0, bet: 100 };
+        let bjState = { active: false, playerSum: 0, dealerSum: 0, bet: 100 };
 
         setInterval(() => {
             let now = Date.now();
@@ -220,6 +223,15 @@
             document.getElementById('balance').innerText = `🪙 ${balance}`;
         }
 
+        function resetButtons() {
+            let actionBtn = document.getElementById('actionBtn');
+            let secBtn = document.getElementById('secondaryBtn');
+            actionBtn.style.display = 'block';
+            actionBtn.disabled = false;
+            actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+            secBtn.style.display = 'none';
+        }
+
         function openGame(game) {
             currentGame = game;
             if (activeInterval) { clearInterval(activeInterval); activeInterval = null; }
@@ -228,10 +240,9 @@
             let body = document.getElementById('modalBody');
             let anim = document.getElementById('animBox');
             let actionBtn = document.getElementById('actionBtn');
+            let secBtn = document.getElementById('secondaryBtn');
             
-            actionBtn.style.display = 'block';
-            actionBtn.disabled = false;
-            actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+            resetButtons();
 
             if (game === 'crash') {
                 title.innerText = "✈️ Самолётик (Crash)";
@@ -320,7 +331,7 @@
                 anim.innerHTML = `<canvas id="chopperCanvas" width="320" height="140" style="background:#090714; border-radius:12px; border: 1px solid #06b6d4;"></canvas>`;
                 body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>`;
                 actionBtn.innerText = "Запустить вертолет";
-                initChopperCanvas(10, 40, 1.0, false);
+                initChopperCanvas(20, 70, 1.0, false);
             }
             else if (game === 'blackjack') {
                 title.innerText = "🃏 Блекджек 21";
@@ -343,7 +354,7 @@
             document.getElementById('gameModal').style.display = 'none';
         }
 
-        // --- ЛОГИКА МИН ---
+        // --- МИНЫ ---
         function renderMinesPreview() {
             let grid = document.getElementById('minesGrid');
             grid.innerHTML = '';
@@ -386,8 +397,9 @@
                     if(isMine) {
                         cell.innerText = '💣'; cell.style.background = '#ef4444';
                         minesState.active = false;
-                        document.getElementById('actionBtn').innerText = "Играть снова";
-                        document.getElementById('actionBtn').onclick = function() { openGame('mines'); };
+                        let actionBtn = document.getElementById('actionBtn');
+                        actionBtn.innerText = "Играть снова";
+                        actionBtn.onclick = function() { openGame('mines'); };
                         alert('💥 Вы подорвались на мине!');
                         tg.HapticFeedback.notificationOccurred('error');
                     } else {
@@ -421,7 +433,7 @@
             };
         }
 
-        // --- ЛОГИКА САМОЛЕТИКА ---
+        // --- CANVAS РИСОВАНИЕ ---
         function initCrashCanvas(mult, isCrashed, textStatus="") {
             let canvas = document.getElementById('crashCanvas');
             if (!canvas) return;
@@ -438,7 +450,6 @@
             if (textStatus) { ctx.fillStyle = '#ffffff'; ctx.font = '12px Arial'; ctx.fillText(textStatus, canvas.width / 2, 115); }
         }
 
-        // --- ЛОГИКА СТРИТРЕЙСИНГА ---
         function initRacingCanvas(p1X, p2X, p3X, isFinished, winnerText="") {
             let canvas = document.getElementById('racingCanvas');
             if(!canvas) return;
@@ -459,7 +470,6 @@
             }
         }
 
-        // --- ЛОГИКА РЫБАЛКИ ---
         function initFishingCanvas(state, depthText="") {
             let canvas = document.getElementById('fishingCanvas');
             if(!canvas) return;
@@ -480,7 +490,6 @@
             }
         }
 
-        // --- ЛОГИКА ВОЗДУШНОГО ШАРА ---
         function initBalloonCanvas(radius, mult) {
             let canvas = document.getElementById('balloonCanvas');
             if(!canvas) return;
@@ -494,7 +503,6 @@
             ctx.fillText(mult.toFixed(2) + 'x', canvas.width/2, 77);
         }
 
-        // --- ЛОГИКА НОЧНОГО НОКАУТА ---
         function initKnockoutCanvas(state, text="") {
             let canvas = document.getElementById('knockoutCanvas');
             if(!canvas) return;
@@ -509,7 +517,6 @@
             }
         }
 
-        // --- ЛОГИКА ВЕРТОЛЕТА ---
         function initChopperCanvas(x, y, mult, isCrashed, text="") {
             let canvas = document.getElementById('chopperCanvas');
             if(!canvas) return;
@@ -525,44 +532,54 @@
             }
         }
 
-        // --- ВЫПОЛНЕНИЕ ДЕЙСТВИЙ ИГР ---
+        // --- ВЫПОЛНЕНИЕ ДЕЙСТВИЙ (С ИСПРАВЛЕННЫМИ КНОПКАМИ) ---
         function executeGame() {
             let bet = parseInt(document.getElementById('bet').value);
             if (isNaN(bet) || bet <= 0) { alert('Введите корректную ставку!'); return; }
             if (balance < bet) { alert('❌ Недостаточно средств!'); return; }
 
             let actionBtn = document.getElementById('actionBtn');
+            let secBtn = document.getElementById('secondaryBtn');
 
-            // САМОЛЕТИК
+            // 1. САМОЛЕТИК
             if (currentGame === 'crash') {
                 balance -= bet; saveState(); updateDisplay();
                 actionBtn.disabled = true;
-                let multiplier = 1.00;
-                let crashPoint = (1.2 + Math.random() * 2.8).toFixed(2);
+                crashState = { active: true, mult: 1.0, crashPoint: parseFloat((1.2 + Math.random() * 2.5).toFixed(2)), bet: bet };
+                
                 actionBtn.innerText = "ЗАБРАТЬ ВЫИГРЫШ";
                 actionBtn.style.background = "linear-gradient(135deg, #ef4444, #dc2626)";
                 actionBtn.disabled = false;
+                
                 actionBtn.onclick = function() {
+                    if(!crashState.active) return;
                     clearInterval(activeInterval);
-                    let winSum = Math.floor(bet * multiplier);
+                    crashState.active = false;
+                    let winSum = Math.floor(bet * crashState.mult);
                     balance += winSum; saveState(); updateDisplay();
-                    initCrashCanvas(parseFloat(multiplier), false, `УСПЕХ! +${winSum} монет`);
-                    document.getElementById('crashStatus').innerText = `Вы забрали кэш!`;
+                    initCrashCanvas(crashState.mult, false, `УСПЕХ! +${winSum} 🪙`);
+                    document.getElementById('crashStatus').innerText = `Вы успешно забрали выигрыш!`;
+                    
                     actionBtn.innerText = "Запустить полёт";
                     actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
                     actionBtn.onclick = executeGame;
+                    secBtn.style.display = 'none';
                     tg.HapticFeedback.notificationOccurred('success');
                 };
+
                 activeInterval = setInterval(() => {
-                    multiplier = (parseFloat(multiplier) + 0.08).toFixed(2);
-                    initCrashCanvas(parseFloat(multiplier), false);
-                    if (parseFloat(multiplier) >= parseFloat(crashPoint)) {
+                    if(!crashState.active) return;
+                    crashState.mult = parseFloat((crashState.mult + 0.08).toFixed(2));
+                    initCrashCanvas(crashState.mult, false);
+                    if (crashState.mult >= crashState.crashPoint) {
                         clearInterval(activeInterval);
-                        initCrashCanvas(parseFloat(crashPoint), true, "ВЗРЫВ САМОЛЁТА!");
+                        crashState.active = false;
+                        initCrashCanvas(crashState.crashPoint, true, "ВЗРЫВ САМОЛЁТА!");
                         document.getElementById('crashStatus').innerText = `Самолёт улетел! Ставка сгорела.`;
                         actionBtn.innerText = "Запустить полёт";
                         actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
                         actionBtn.onclick = executeGame;
+                        secBtn.style.display = 'none';
                         actionBtn.disabled = false;
                         tg.HapticFeedback.notificationOccurred('error');
                     }
@@ -570,13 +587,13 @@
                 return;
             }
 
-            // МИНЫ
+            // 2. МИНЫ
             if (currentGame === 'mines') {
                 startMinesGame();
                 return;
             }
 
-            // СТРИТРЕЙСИНГ
+            // 3. СТРИТРЕЙСИНГ
             if (currentGame === 'racing') {
                 balance -= bet; saveState(); updateDisplay();
                 actionBtn.disabled = true;
@@ -600,7 +617,7 @@
                 return;
             }
 
-            // РЫБАЛКА
+            // 4. РЫБАЛКА
             if (currentGame === 'fishing') {
                 balance -= bet; saveState(); updateDisplay();
                 actionBtn.disabled = true;
@@ -618,19 +635,36 @@
                 return;
             }
 
-            // ВОЗДУШНЫЙ ШАР
+            // 5. ВОЗДУШНЫЙ ШАР (Две кнопки: Забрать / Продолжить)
             if (currentGame === 'balloon') {
                 balance -= bet; saveState(); updateDisplay();
                 balloonState = { active: true, size: 25, mult: 1.0, bet: bet };
-                actionBtn.innerText = "КАЧАТЬ ШАР (+ МНОЖИТЕЛЬ)";
-                actionBtn.style.background = "linear-gradient(135deg, #ec4899, #be185d)";
+                
+                actionBtn.innerText = "💰 ЗАБРАТЬ ВЫИГРЫШ";
+                actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+                
+                secBtn.style.display = 'block';
+                secBtn.innerText = "🎈 ПРОДОЛЖИТЬ (НАДУТЬ ЕЩЕ)";
                 
                 actionBtn.onclick = function() {
                     if (!balloonState.active) return;
-                    if (Math.random() < 0.22) {
+                    balloonState.active = false;
+                    let reward = Math.floor(bet * balloonState.mult);
+                    balance += reward; saveState(); updateDisplay();
+                    alert(`🎉 Вы успешно забрали ${reward} монет!`);
+                    secBtn.style.display = 'none';
+                    actionBtn.innerText = "Начать заново";
+                    actionBtn.onclick = executeGame;
+                    tg.HapticFeedback.notificationOccurred('success');
+                };
+
+                secBtn.onclick = function() {
+                    if (!balloonState.active) return;
+                    if (Math.random() < 0.24) {
                         balloonState.active = false;
                         initBalloonCanvas(balloonState.size, balloonState.mult);
                         alert('💥 Шар лопнул! Ставка сгорела.');
+                        secBtn.style.display = 'none';
                         actionBtn.innerText = "Начать заново";
                         actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
                         actionBtn.onclick = executeGame;
@@ -640,22 +674,22 @@
                     balloonState.size += 5;
                     balloonState.mult = parseFloat((balloonState.mult + 0.35).toFixed(2));
                     initBalloonCanvas(balloonState.size, balloonState.mult);
-                    actionBtn.innerText = `ЗАБРАТЬ (${Math.floor(bet * balloonState.mult)} 🪙)`;
+                    actionBtn.innerText = `💰 ЗАБРАТЬ (${Math.floor(bet * balloonState.mult)} 🪙)`;
                     
                     if(balloonState.size > 55) {
                         balloonState.active = false;
                         let reward = Math.floor(bet * balloonState.mult);
                         balance += reward; saveState(); updateDisplay();
-                        alert(`🏆 Победа! Вы забрали ${reward} монет!`);
+                        alert(`🏆 Максимальный размер! Вы забрали ${reward} монет!`);
+                        secBtn.style.display = 'none';
                         actionBtn.innerText = "Сыграть снова";
-                        actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
                         actionBtn.onclick = executeGame;
                     }
                 };
                 return;
             }
 
-            // НОЧНОЙ НОКАУТ
+            // 6. НОЧНОЙ НОКАУТ
             if (currentGame === 'knockout') {
                 balance -= bet; saveState(); updateDisplay();
                 actionBtn.disabled = true;
@@ -675,47 +709,62 @@
                 return;
             }
 
-            // СПАСАТЕЛЬНЫЙ ВЕРТОЛЕТ
+            // 7. СПАСАТЕЛЬНЫЙ ВЕРТОЛЕТ (Две кнопки: Эвакуация / Лететь дальше)
             if (currentGame === 'chopper') {
                 balance -= bet; saveState(); updateDisplay();
                 actionBtn.disabled = true;
-                let chMult = 1.0;
-                let cx = 20, cy = 70;
-                actionBtn.innerText = "ЭВАКУАЦИЯ (ЗАБРАТЬ)";
-                actionBtn.style.background = "linear-gradient(135deg, #06b6d4, #0e7490)";
+                chopperState = { active: true, x: 20, y: 70, mult: 1.0, bet: bet };
+                
+                actionBtn.innerText = "🛬 ЭВАКУАЦИЯ (ЗАБРАТЬ)";
+                actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+                
+                secBtn.style.display = 'block';
+                secBtn.innerText = "🚀 ЛЕТЕТЬ ДАЛЬШЕ (РИСК)";
                 actionBtn.disabled = false;
 
                 actionBtn.onclick = function() {
+                    if(!chopperState.active) return;
                     clearInterval(activeInterval);
-                    let reward = Math.floor(bet * chMult);
+                    chopperState.active = false;
+                    let reward = Math.floor(bet * chopperState.mult);
                     balance += reward; saveState(); updateDisplay();
-                    initChopperCanvas(cx, cy, chMult, false, `ЭВАКУАЦИЯ УСПЕШНА! +${reward}`);
+                    initChopperCanvas(chopperState.x, chopperState.y, chopperState.mult, false, `УСПЕШНАЯ ЭВАКУАЦИЯ! +${reward}`);
+                    secBtn.style.display = 'none';
                     actionBtn.innerText = "Запустить вертолет";
-                    actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
                     actionBtn.onclick = executeGame;
                     tg.HapticFeedback.notificationOccurred('success');
                 };
 
-                activeInterval = setInterval(() => {
-                    chMult = parseFloat((chMult + 0.12).toFixed(2));
-                    cx += 4; cy += (Math.random() - 0.5) * 15;
-                    if(cy < 20) cy = 20; if(cy > 110) cy = 110;
-                    initChopperCanvas(cx, cy, chMult, false);
-
-                    if(Math.random() < 0.08 || cx > 280) {
+                secBtn.onclick = function() {
+                    if(!chopperState.active) return;
+                    chopperState.mult = parseFloat((chopperState.mult + 0.15).toFixed(2));
+                    chopperState.x += 12; chopperState.y += (Math.random() - 0.5) * 15;
+                    if(chopperState.y < 20) chopperState.y = 20; if(chopperState.y > 110) chopperState.y = 110;
+                    
+                    if(Math.random() < 0.25 || chopperState.x > 280) {
                         clearInterval(activeInterval);
-                        initChopperCanvas(cx, cy, chMult, true, "АВАРИЯ В КАНЬОНЕ! Ставка сгорела.");
+                        chopperState.active = false;
+                        initChopperCanvas(chopperState.x, chopperState.y, chopperState.mult, true, "АВАРИЯ В КАНЬОНЕ! Ставка сгорела.");
+                        secBtn.style.display = 'none';
                         actionBtn.innerText = "Запустить вертолет";
-                        actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
                         actionBtn.onclick = executeGame;
-                        actionBtn.disabled = false;
                         tg.HapticFeedback.notificationOccurred('error');
+                    } else {
+                        initChopperCanvas(chopperState.x, chopperState.y, chopperState.mult, false);
+                        actionBtn.innerText = `🛬 ЗАБРАТЬ (${Math.floor(bet * chopperState.mult)} 🪙)`;
                     }
-                }, 150);
+                };
+
+                activeInterval = setInterval(() => {
+                    if(!chopperState.active) return;
+                    chopperState.mult = parseFloat((chopperState.mult + 0.05).toFixed(2));
+                    chopperState.x += 3;
+                    initChopperCanvas(chopperState.x, chopperState.y, chopperState.mult, false);
+                }, 300);
                 return;
             }
 
-            // БЛЕКДЖЕК 21
+            // 8. БЛЕКДЖЕК 21
             if (currentGame === 'blackjack') {
                 balance -= bet; saveState(); updateDisplay();
                 let pCard1 = Math.floor(Math.random() * 8) + 2;
@@ -731,6 +780,7 @@
                         document.getElementById('bjArea').innerHTML = `Карта: ${extra}. Перебор! Сумма: ${bjState.playerSum}. Проигрыш.`;
                         actionBtn.innerText = "Раздать карты";
                         actionBtn.onclick = executeGame;
+                        secBtn.style.display = 'none';
                         tg.HapticFeedback.notificationOccurred('error');
                     } else {
                         document.getElementById('bjArea').innerHTML = `Вытянули: ${extra}. Сумма очков: <b style="color:#facc15;">${bjState.playerSum}</b>`;
@@ -741,6 +791,7 @@
                             document.getElementById('bjArea').innerHTML += `<br>${won ? '🎉 Победа! +' + reward : '❌ Дилер выиграл.'} (У дилера: ${bjState.dealerSum})`;
                             actionBtn.innerText = "Раздать карты";
                             actionBtn.onclick = executeGame;
+                            secBtn.style.display = 'none';
                             tg.HapticFeedback.notificationOccurred(won ? 'success' : 'error');
                         }
                     }
@@ -748,16 +799,36 @@
                 return;
             }
 
-            // ЛУННЫЙ ПРЫЖОК
+            // 9. ЛУННЫЙ ПРЫЖОК (Две кнопки: Забрать / Прыгнуть выше)
             if (currentGame === 'moonjump') {
                 balance -= bet; saveState(); updateDisplay();
                 moonState = { active: true, floor: 0, bet: bet };
-                actionBtn.innerText = "СДЕЛАТЬ ПРЫЖОК ВВЕРХ";
+                
+                actionBtn.innerText = "💰 ЗАБРАТЬ ВЫИГРЫШ";
+                actionBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+                
+                secBtn.style.display = 'block';
+                secBtn.innerText = "🚀 ПРЫГНУТЬ ВВЕРХ (РИСК)";
+                
                 actionBtn.onclick = function() {
-                    if(!moonState.active) { openGame('moonjump'); return; }
+                    if(!moonState.active) return;
+                    moonState.active = false;
+                    let mults = [1.0, 1.5, 2.3, 3.6, 5.5, 8.5];
+                    let reward = Math.floor(bet * mults[moonState.floor]);
+                    balance += reward; saveState(); updateDisplay();
+                    alert(`🎉 Вы забрали ${reward} монет!`);
+                    secBtn.style.display = 'none';
+                    actionBtn.innerText = "Играть снова";
+                    actionBtn.onclick = function() { openGame('moonjump'); };
+                    tg.HapticFeedback.notificationOccurred('success');
+                };
+
+                secBtn.onclick = function() {
+                    if(!moonState.active) return;
                     if(Math.random() < 0.28) {
                         moonState.active = false;
                         document.getElementById('moonArea').innerHTML = `💥 Космонавт сорвался в открытый космос на ${moonState.floor + 1} этаже! Ставка сгорела.`;
+                        secBtn.style.display = 'none';
                         actionBtn.innerText = "Играть снова";
                         actionBtn.onclick = function() { openGame('moonjump'); };
                         tg.HapticFeedback.notificationOccurred('error');
@@ -766,13 +837,14 @@
                     moonState.floor++;
                     let mults = [1.0, 1.5, 2.3, 3.6, 5.5, 8.5];
                     let curM = mults[moonState.floor];
-                    document.getElementById('moonArea').innerHTML = `Этаж: <b>${moonState.floor} / 5</b><br>Текущий множитель: <b style="color:#facc15;">x${curM}</b><br>Выигрыш: ${Math.floor(bet * curM)} 🪙`;
+                    document.getElementById('moonArea').innerHTML = `Этаж: <b>${moonState.floor} / 5</b><br>Множитель: <b style="color:#facc15;">x${curM}</b><br>Выигрыш: ${Math.floor(bet * curM)} 🪙`;
                     
                     if(moonState.floor >= 5) {
                         moonState.active = false;
                         let reward = Math.floor(bet * curM);
                         balance += reward; saveState(); updateDisplay();
                         alert(`🏆 КОСМИЧЕСКИЙ ДЖЕКПОТ! Вы забрали ${reward} монет!`);
+                        secBtn.style.display = 'none';
                         actionBtn.innerText = "Играть снова";
                         actionBtn.onclick = function() { openGame('moonjump'); };
                     }
