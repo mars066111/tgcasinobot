@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #090a0f 0%, #1a1c29 100%);
+            background: radial-gradient(circle at center, #131722 0%, #07090f 100%);
             color: #ffffff;
             margin: 0;
             padding: 12px;
@@ -18,39 +18,42 @@
             min-height: 100vh;
         }
         .casino-header {
-            background: linear-gradient(135deg, #1e2230, #2c163b);
-            border-radius: 20px;
-            padding: 18px;
+            background: linear-gradient(135deg, #202638, #3b1d4a);
+            border-radius: 22px;
+            padding: 20px;
             width: 100%;
             max-width: 400px;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(241, 196, 15, 0.15);
+            box-shadow: 0 10px 30px rgba(241, 196, 15, 0.25);
             margin-bottom: 18px;
-            border: 1px solid #f1c40f55;
+            border: 2px solid #f1c40f88;
         }
-        h1 { margin: 0 0 6px 0; font-size: 24px; color: #f1c40f; text-shadow: 0 2px 8px rgba(241, 196, 15, 0.4); }
-        .balance-container { font-size: 28px; font-weight: 800; color: #2ecc71; margin-bottom: 6px; text-shadow: 0 2px 6px rgba(46, 204, 113, 0.3); }
-        .bonus-info { font-size: 13px; color: #e74c3c; margin-bottom: 12px; font-weight: 600; }
+        h1 { margin: 0 0 6px 0; font-size: 24px; color: #f1c40f; text-shadow: 0 0 12px rgba(241, 196, 15, 0.6); }
+        .balance-container { font-size: 30px; font-weight: 900; color: #2ecc71; margin-bottom: 6px; text-shadow: 0 0 10px rgba(46, 204, 113, 0.4); }
+        .bonus-info { font-size: 13px; color: #ff6b6b; margin-bottom: 12px; font-weight: 700; }
         .btn-bonus {
             background: linear-gradient(135deg, #27ae60, #2ecc71);
             color: white;
             border: none;
-            border-radius: 12px;
-            padding: 11px;
+            border-radius: 14px;
+            padding: 12px;
             font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+            box-shadow: 0 5px 18px rgba(39, 174, 96, 0.5);
+            transition: 0.2s;
         }
         .section-title {
             width: 100%;
             max-width: 400px;
             font-size: 16px;
             font-weight: bold;
-            color: #d4ac0d;
+            color: #f1c40f;
             margin-bottom: 12px;
             padding-left: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         .games-grid {
             display: grid;
@@ -61,72 +64,75 @@
             margin-bottom: 25px;
         }
         .game-card {
-            background: linear-gradient(145deg, #161922, #1f2330);
-            border-radius: 16px;
+            background: linear-gradient(145deg, #181c29, #23293d);
+            border-radius: 18px;
             padding: 16px 12px;
             text-align: center;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border: 1px solid #2d3446;
+            border: 1px solid #363e59;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .game-card h3 { margin: 0 0 4px 0; font-size: 14px; color: #fff; }
-        .game-desc { font-size: 11px; color: #a4b0be; margin-bottom: 10px; }
+        .game-card:active { transform: scale(0.96); }
+        .game-card h3 { margin: 0 0 4px 0; font-size: 15px; color: #fff; }
+        .game-desc { font-size: 11px; color: #b2bec3; margin-bottom: 12px; }
         .btn-game {
             background: linear-gradient(135deg, #2980b9, #3498db);
             color: #ffffff;
             border: none;
-            border-radius: 10px;
-            padding: 9px;
+            border-radius: 12px;
+            padding: 10px;
             font-size: 12px;
             font-weight: bold;
             cursor: pointer;
             width: 100%;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
         }
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 6, 9, 0.88);
+            background: rgba(4, 5, 8, 0.9);
             justify-content: center;
             align-items: center;
             z-index: 100;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
         }
         .modal-content {
-            background: linear-gradient(135deg, #1b1e29, #252a3a);
-            border-radius: 22px;
-            padding: 22px;
-            width: 85%;
-            max-width: 340px;
+            background: linear-gradient(135deg, #1c2030, #2a314a);
+            border-radius: 24px;
+            padding: 24px;
+            width: 88%;
+            max-width: 350px;
             text-align: center;
-            border: 1px solid #f1c40f44;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            border: 2px solid #f1c40f55;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
         }
-        .modal-title { font-size: 18px; font-weight: bold; color: #f1c40f; margin-bottom: 12px; }
+        .modal-title { font-size: 19px; font-weight: bold; color: #f1c40f; margin-bottom: 12px; }
         .animation-box {
             font-size: 45px;
             margin: 15px 0;
-            min-height: 60px;
+            min-height: 70px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
         .controls-group { margin-bottom: 14px; text-align: left; font-size: 13px; }
-        .controls-group label { display: block; color: #b2bec3; margin-bottom: 5px; font-weight: 500; }
+        .controls-group label { display: block; color: #dcdde1; margin-bottom: 5px; font-weight: 600; }
         .controls-group select, .controls-group input {
-            width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #485460;
-            background: #11131a; color: #fff; font-size: 14px; box-sizing: border-box; outline: none;
+            width: 100%; padding: 11px; border-radius: 12px; border: 1px solid #57606f;
+            background: #11141d; color: #fff; font-size: 14px; box-sizing: border-box; outline: none;
         }
         .btn-action {
-            background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; border-radius: 12px;
-            padding: 12px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%;
-            margin-top: 5px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; border-radius: 14px;
+            padding: 13px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            margin-top: 5px; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
         }
         .btn-close {
-            background: transparent; border: none; color: #718093; font-size: 13px;
-            margin-top: 12px; cursor: pointer; text-decoration: underline;
+            background: transparent; border: none; color: #a4b0be; font-size: 13px;
+            margin-top: 14px; cursor: pointer; text-decoration: underline;
         }
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
@@ -148,51 +154,52 @@
         <button class="btn-bonus" id="bonusBtn" onclick="claimBonus()">🎁 Забрать бонус (+200 монет)</button>
     </div>
 
-    <div class="section-title">🔥 Игровой зал (8 игр)</div>
+    <div class="section-title">🚀 Игровой зал (Премиум)</div>
 
     <div class="games-grid">
+        <div class="game-card" style="border-color: #e74c3c;">
+            <h3>✈️ Самолётик (Crash)</h3>
+            <div class="game-desc">Успей забрать до взрыва!</div>
+            <button class="btn-game" style="background: linear-gradient(135deg, #c0392b, #e74c3c);" onclick="openGame('crash')">Играть</button>
+        </div>
+        <div class="game-card" style="border-color: #f1c40f;">
+            <h3>🎰 Слоты 777</h3>
+            <div class="game-desc">Повышенный шанс (x8)</div>
+            <button class="btn-game" style="background: linear-gradient(135deg, #f39c12, #f1c40f); color:#000;" onclick="openGame('slots')">Играть</button>
+        </div>
         <div class="game-card">
             <h3>🎲 Кости</h3>
-            <div class="game-desc">Угадай грань (x5)</div>
+            <div class="game-desc">Угадай число (x4)</div>
             <button class="btn-game" onclick="openGame('dice')">Играть</button>
         </div>
         <div class="game-card">
             <h3>🔴 Черное / Красное</h3>
-            <div class="game-desc">Выбор цвета (x2 / x10)</div>
-            <button class="btn-game" style="background: linear-gradient(135deg, #c0392b, #e74c3c);" onclick="openGame('redblack')">Играть</button>
+            <div class="game-desc">Цвет рулетки (x2)</div>
+            <button class="btn-game" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);" onclick="openGame('redblack')">Играть</button>
         </div>
         <div class="game-card">
-            <h3>📊 Больше / Меньше</h3>
-            <div class="game-desc">Порог 50 (x2)</div>
-            <button class="btn-game" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);" onclick="openGame('highlow')">Играть</button>
-        </div>
-        <div class="game-card">
-            <h3>🎰 Слоты</h3>
-            <div class="game-desc">Джекпот (x6)</div>
-            <button class="btn-game" style="background: linear-gradient(135deg, #f39c12, #f1c40f); color:#000;" onclick="openGame('slots')">Играть</button>
-        </div>
-        <div class="game-card">
-            <h3>🎡 Рулетка</h3>
-            <div class="game-desc">Секторы 0-5 (x5)</div>
+            <h3>🎡 Колесо Фортуны</h3>
+            <div class="game-desc">Секторы (x4)</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #d35400, #e67e22);" onclick="openGame('roulette')">Играть</button>
         </div>
         <div class="game-card">
             <h3>🪙 Орёл и Решка</h3>
-            <div class="game-desc">Классика (x2)</div>
+            <div class="game-desc">Монетка (x2)</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #16a085, #1abc9c);" onclick="openGame('coin')">Играть</button>
         </div>
         <div class="game-card">
             <h3>💣 Сапёр</h3>
-            <div class="game-desc">Найди алмаз (x2)</div>
-            <button class="btn-game" style="background: linear-gradient(135deg, #2980b9, #2980b9);" onclick="openGame('mines')">Играть</button>
+            <div class="game-desc">Найди кристалл (x2)</div>
+            <button class="btn-game" style="background: linear-gradient(135deg, #2980b9, #3498db);" onclick="openGame('mines')">Играть</button>
         </div>
         <div class="game-card">
-            <h3>✂️️ КНБ</h3>
-            <div class="game-desc">Дуэль с ботом (x2)</div>
+            <h3>✂️ КНБ Дуэль</h3>
+            <div class="game-desc">Камень-ножницы (x2)</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #7f8c8d, #95a5a6);" onclick="openGame('rps')">Играть</button>
         </div>
     </div>
 
+    <!-- Модальное окно -->
     <div class="modal" id="gameModal">
         <div class="modal-content">
             <div class="modal-title" id="modalTitle">Игра</div>
@@ -208,25 +215,15 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Загрузка сохраненного баланса или установка 1000 по умолчанию
         let balance = localStorage.getItem('casino_balance');
-        if (balance === null) {
-            balance = 1000;
-        } else {
-            balance = parseInt(balance);
-        }
+        balance = balance === null ? 1000 : parseInt(balance);
 
-        // Загрузка таймера бонуса
         let nextBonusTime = localStorage.getItem('casino_bonus');
-        if (nextBonusTime === null) {
-            nextBonusTime = Date.now();
-        } else {
-            nextBonusTime = parseInt(nextBonusTime);
-        }
+        nextBonusTime = nextBonusTime === null ? Date.now() : parseInt(nextBonusTime);
 
         updateDisplay();
-
         let currentGame = '';
+        let crashInterval = null;
 
         setInterval(() => {
             let now = Date.now();
@@ -267,112 +264,155 @@
             let title = document.getElementById('modalTitle');
             let body = document.getElementById('modalBody');
             let anim = document.getElementById('animBox');
+            let actionBtn = document.getElementById('actionBtn');
             
-            anim.innerText = game === 'dice' ? '🎲' : game === 'redblack' ? '🔴' : game === 'highlow' ? '📊' : game === 'slots' ? '🎰' : game === 'roulette' ? '🎡' : game === 'coin' ? '🪙' : game === 'mines' ? '💣' : '✂️';
+            actionBtn.style.display = 'block';
+            anim.innerText = game === 'crash' ? '✈️' : game === 'slots' ? '🎰' : game === 'dice' ? '🎲' : game === 'redblack' ? '🔴' : game === 'roulette' ? '🎡' : game === 'coin' ? '🪙' : game === 'mines' ? '💣' : '✂️';
 
-            if (game === 'dice') {
-                title.innerText = "🎲 Игра в Кости";
+            if (game === 'crash') {
+                title.innerText = "✈️ Самолётик (Crash)";
+                body.innerHTML = `
+                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
+                    <div id="crashStatus" style="font-size: 16px; font-weight: bold; color: #f1c40f; margin: 10px 0;">Нажмите старт и следите за полётом!</div>`;
+                actionBtn.innerText = "Запустить полёт";
+            } else if (game === 'slots') {
+                title.innerText = "🎰 Слоты (Повышенный шанс)";
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>`;
+                actionBtn.innerText = "Крутить слоты";
+            } else if (game === 'dice') {
+                title.innerText = "🎲 Кости";
                 body.innerHTML = `
                     <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50"></div>
-                    <div class="controls-group"><label>Ваш прогноз (1-6):</label>
+                    <div class="controls-group"><label>Прогноз (1-6):</label>
                         <select id="diceChoice">
                             <option value="1">1</option><option value="2">2</option><option value="3">3</option>
                             <option value="4">4</option><option value="5">5</option><option value="6" selected>6</option>
                         </select>
                     </div>`;
+                actionBtn.innerText = "Бросить кости";
             } else if (game === 'redblack') {
                 title.innerText = "🔴 Черное / Красное";
                 body.innerHTML = `
                     <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
-                    <div class="controls-group"><label>Выбор цвета:</label>
+                    <div class="controls-group"><label>Цвет:</label>
                         <select id="rbChoice">
                             <option value="red">🔴 Красное (x2)</option>
                             <option value="black">⚫ Черное (x2)</option>
-                            <option value="zero">🟢 Зеро (x10)</option>
                         </select>
                     </div>`;
-            } else if (game === 'highlow') {
-                title.innerText = "📊 Больше / Меньше (Порог: 50)";
-                body.innerHTML = `
-                    <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="75"></div>
-                    <div class="controls-group"><label>Ваш прогноз:</label>
-                        <select id="hlChoice">
-                            <option value="high">Больше 50 (51-99)</option>
-                            <option value="low">Меньше или равно 50 (1-50)</option>
-                        </select>
-                    </div>`;
-            } else if (game === 'slots') {
-                title.innerText = "🎰 Слот-машина";
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>`;
+                actionBtn.innerText = "Сделать ставку";
             } else if (game === 'roulette') {
-                title.innerText = "🎡 Мини-рулетка (0-5)";
+                title.innerText = "🎡 Колесо Фортуны";
                 body.innerHTML = `
                     <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
-                    <div class="controls-group"><label>Выберите сектор:</label>
+                    <div class="controls-group"><label>Сектор (0-4):</label>
                         <select id="rouletteChoice">
-                            <option value="0">0 (Зеро)</option><option value="1">1</option><option value="2">2</option>
-                            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                            <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+                            <option value="3">3</option><option value="4">4</option>
                         </select>
                     </div>`;
+                actionBtn.innerText = "Крутить колесо";
             } else if (game === 'coin') {
                 title.innerText = "🪙 Орёл и Решка";
                 body.innerHTML = `
                     <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50"></div>
                     <div class="controls-group"><label>Сторона:</label>
-                        <select id="coinChoice">
-                            <option value="eagle">🦅 Орёл</option>
-                            <option value="tail">🪙 Решка</option>
-                        </select>
+                        <select id="coinChoice"><option value="eagle">🦅 Орёл</option><option value="tail">🪙 Решка</option></select>
                     </div>`;
+                actionBtn.innerText = "Подбросить";
             } else if (game === 'mines') {
                 title.innerText = "💣 Сапёр";
                 body.innerHTML = `
                     <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100"></div>
-                    <div class="controls-group"><label>Тайник (1 из 3):</label>
-                        <select id="mineChoice">
-                            <option value="1">Тайник №1</option>
-                            <option value="2">Тайник №2</option>
-                            <option value="3">Тайник №3</option>
-                        </select>
+                    <div class="controls-group"><label>Ячейка (1 из 3):</label>
+                        <select id="mineChoice"><option value="1">Ячейка №1</option><option value="2">Ячейка №2</option><option value="3">Ячейка №3</option></select>
                     </div>`;
+                actionBtn.innerText = "Открыть";
             } else if (game === 'rps') {
-                title.innerText = "✂️ Камень, ножницы, бумага";
+                title.innerText = "✂️ КНБ Дуэль";
                 body.innerHTML = `
                     <div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50"></div>
-                    <div class="controls-group"><label>Ваш ход:</label>
-                        <select id="rpsChoice">
-                            <option value="rock">🪨 Камень</option>
-                            <option value="scissors">✂️ Ножницы</option>
-                            <option value="paper">📄 Бумага</option>
-                        </select>
+                    <div class="controls-group"><label>Ход:</label>
+                        <select id="rpsChoice"><option value="rock">🪨 Камень</option><option value="scissors">✂️ Ножницы</option><option value="paper">📄 Бумага</option></select>
                     </div>`;
+                actionBtn.innerText = "Сыграть";
             }
 
             document.getElementById('gameModal').style.display = 'flex';
         }
 
         function closeModal() {
+            if (crashInterval) { clearInterval(crashInterval); crashInterval = null; }
             document.getElementById('gameModal').style.display = 'none';
         }
 
         async function executeGame() {
             let bet = parseInt(document.getElementById('bet').value);
             if (isNaN(bet) || bet <= 0) { alert('Введите корректную ставку!'); return; }
-            if (balance < bet) { alert('❌ Недостаточно средств на балансе!'); return; }
+            if (balance < bet) { alert('❌ Недостаточно средств!'); return; }
+
+            let animBox = document.getElementById('animBox');
+            let actionBtn = document.getElementById('actionBtn');
+
+            // Особая логика для игры "Краш / Самолётик" (Интерактивный забор денег)
+            if (currentGame === 'crash') {
+                balance -= bet;
+                saveState();
+                updateDisplay();
+                
+                actionBtn.disabled = true;
+                let multiplier = 1.00;
+                let crashPoint = (1.1 + Math.random() * 2.5).toFixed(2); // Рандомный краш от 1.1x до 3.6x
+                
+                animBox.innerText = '🛫 1.00x';
+                actionBtn.innerText = "ЗАБРАТЬ ДЕНЬГИ";
+                actionBtn.style.background = "linear-gradient(135deg, #e74c3c, #c0392b)";
+                actionBtn.disabled = false;
+
+                // Меняем действие кнопки на "Забрать" во время полета
+                actionBtn.onclick = function() {
+                    clearInterval(crashInterval);
+                    let winSum = Math.floor(bet * multiplier);
+                    balance += winSum;
+                    saveState();
+                    updateDisplay();
+                    animBox.innerText = `💰 УСПЕХ! ${multiplier}x`;
+                    document.getElementById('crashStatus').innerText = `Вы забрали ${winSum} монет!`;
+                    actionBtn.innerText = "Запустить полёт";
+                    actionBtn.style.background = "linear-gradient(135deg, #27ae60, #2ecc71)";
+                    actionBtn.onclick = executeGame;
+                    tg.HapticFeedback.notificationOccurred('success');
+                };
+
+                crashInterval = setInterval(() => {
+                    multiplier = (parseFloat(multiplier) + 0.08).toFixed(2);
+                    animBox.innerText = `✈️ ${multiplier}x`;
+
+                    if (parseFloat(multiplier) >= parseFloat(crashPoint)) {
+                        clearInterval(crashInterval);
+                        animBox.innerText = `💥 ВЗРЫВ (${crashPoint}x)`;
+                        document.getElementById('crashStatus').innerText = `Самолёт улетел! Вы потеряли ставку.`;
+                        actionBtn.innerText = "Запустить полёт";
+                        actionBtn.style.background = "linear-gradient(135deg, #27ae60, #2ecc71)";
+                        actionBtn.onclick = executeGame;
+                        actionBtn.disabled = false;
+                        tg.HapticFeedback.notificationOccurred('error');
+                    }
+                }, 200);
+                return;
+            }
 
             balance -= bet;
             saveState();
             updateDisplay();
 
-            let animBox = document.getElementById('animBox');
             animBox.classList.add('shake');
-            let actionBtn = document.getElementById('actionBtn');
             actionBtn.disabled = true;
 
-            let frames = ['🔄', '⟳', '⏳', '🎲', '✨'];
+            let frames = ['🔄', '⟳', '⏳', '✨'];
             let interval = setInterval(() => {
                 animBox.innerText = frames[Math.floor(Math.random() * frames.length)];
-            }, 150);
+            }, 120);
 
             setTimeout(() => {
                 clearInterval(interval);
@@ -382,131 +422,124 @@
                 let win = false;
                 let msg = '';
 
-                if (currentGame === 'dice') {
-                    let choice = parseInt(document.getElementById('diceChoice').value);
-                    let roll = Math.floor(Math.random() * 6) + 1;
-                    animBox.innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][roll-1];
-                    if (roll === choice) {
-                        win = true;
-                        let reward = bet * 5;
-                        balance += reward;
-                        msg = `🎉 Ура! Выпало ${roll}! Вы выиграли ${reward} монет!`;
+                if (currentGame === 'slots') {
+                    // Увеличенный шанс на победу (почти каждый 2-3 раз выпадают счастливые комбинации)
+                    let symbols = ['🍒', '🍋', '🔔', '7️⃣', '7️⃣', '💎'];
+                    let rollCheck = Math.random();
+                    let s1, s2, s3;
+                    
+                    if (rollCheck < 0.45) { // 45% шанс на выигрышный джекпот 777
+                        s1 = '7️⃣'; s2 = '7️⃣'; s3 = '7️⃣';
                     } else {
-                        msg = `😢 Выпало ${roll}. Вы проиграли ставку.`;
+                        s1 = symbols[Math.floor(Math.random() * symbols.length)];
+                        s2 = symbols[Math.floor(Math.random() * symbols.length)];
+                        s3 = symbols[Math.floor(Math.random() * symbols.length)];
                     }
-                } 
-                else if (currentGame === 'redblack') {
-                    let choice = document.getElementById('rbChoice').value;
-                    let rand = Math.random();
-                    let result = rand < 0.48 ? 'red' : rand < 0.96 ? 'black' : 'zero';
-                    animBox.innerText = result === 'red' ? '🔴' : result === 'black' ? '⚫' : '🟢';
-
-                    if (result === choice) {
-                        win = true;
-                        let mult = result === 'zero' ? 10 : 2;
-                        let reward = bet * mult;
-                        balance += reward;
-                        msg = `🎉 Выпало ${result.toUpperCase()}! Вы выиграли ${reward} монет!`;
-                    } else {
-                        msg = `😢 Выпало ${result.toUpperCase()}. Вы проиграли.`;
-                    }
-                }
-                else if (currentGame === 'highlow') {
-                    let choice = document.getElementById('hlChoice').value;
-                    let number = Math.floor(Math.random() * 99) + 1;
-                    animBox.innerText = `📊 ${number}`;
-
-                    let isHigh = number > 50;
-                    let guessed = (choice === 'high' && isHigh) || (choice === 'low' && !isHigh);
-
-                    if (guessed) {
-                        win = true;
-                        let reward = bet * 2;
-                        balance += reward;
-                        msg = `🎉 Число было ${number} (порог 50). Вы выиграли ${reward} монет!`;
-                    } else {
-                        msg = `😢 Число выпало ${number}. Вы проиграли.`;
-                    }
-                }
-                else if (currentGame === 'slots') {
-                    let symbols = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
-                    let s1 = symbols[Math.floor(Math.random() * symbols.length)];
-                    let s2 = symbols[Math.floor(Math.random() * symbols.length)];
-                    let s3 = symbols[Math.floor(Math.random() * symbols.length)];
                     animBox.innerText = `${s1} ${s2} ${s3}`;
 
                     if (s1 === s2 && s2 === s3) {
                         win = true;
-                        let reward = bet * 6;
+                        let reward = bet * 8;
                         balance += reward;
-                        msg = `🔥 ДЖЕКПОТ (${s1}${s2}${s3})! Вы выиграли ${reward} монет!`;
+                        msg = `🔥 СУПЕР ДЖЕКПОТ (${s1}${s2}${s3})! Вы выиграли ${reward} монет!`;
                     } else {
-                        msg = `🎰 Комбинация: ${s1} ${s2} ${s3}. Мимо!`;
+                        // утешительный бонус при выпадении двух одинаковых
+                        if (s1 === s2 || s2 === s3 || s1 === s3) {
+                            win = true;
+                            let reward = bet * 2;
+                            balance += reward;
+                            msg = `✨ Почти джекпот! 2 совпадения. Награда: ${reward} монет!`;
+                        } else {
+                            msg = `🎰 Комбинация: ${s1} ${s2} ${s3}. В следующий повезет!`;
+                        }
+                    }
+                }
+                else if (currentGame === 'dice') {
+                    let choice = parseInt(document.getElementById('diceChoice').value);
+                    let roll = Math.random() < 0.45 ? choice : (Math.floor(Math.random() * 6) + 1); // Повышенный шанс
+                    animBox.innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][roll-1];
+                    if (roll === choice) {
+                        win = true;
+                        let reward = bet * 4;
+                        balance += reward;
+                        msg = `🎉 Отлично! Выпало ${roll}! Вы выиграли ${reward} монет!`;
+                    } else {
+                        msg = `😢 Выпало ${roll}. Вы проиграли.`;
+                    }
+                } 
+                else if (currentGame === 'redblack') {
+                    let choice = document.getElementById('rbChoice').value;
+                    let result = Math.random() < 0.52 ? choice : (choice === 'red' ? 'black' : 'red'); // Повышенный шанс
+                    animBox.innerText = result === 'red' ? '🔴' : '⚫';
+
+                    if (result === choice) {
+                        win = true;
+                        let reward = bet * 2;
+                        balance += reward;
+                        msg = `🎉 Выпало ${result.toUpperCase()}! Вы выиграли ${reward} монет!`;
+                    } else {
+                        msg = `😢 Выпал другой цвет. Вы проиграли.`;
                     }
                 }
                 else if (currentGame === 'roulette') {
                     let choice = parseInt(document.getElementById('rouletteChoice').value);
-                    let sector = Math.floor(Math.random() * 6);
+                    let sector = Math.random() < 0.4 ? choice : Math.floor(Math.random() * 5); // Повышенный шанс
                     animBox.innerText = `🎡 [${sector}]`;
 
                     if (sector === choice) {
                         win = true;
-                        let reward = bet * 5;
+                        let reward = bet * 4;
                         balance += reward;
                         msg = `🎉 Сектор ${sector}! Вы выиграли ${reward} монет!`;
                     } else {
-                        msg = `😢 Выпал сектор ${sector} (а вы ставили на ${choice}).`;
+                        msg = `😢 Выпал сектор ${sector}. Мимо.`;
                     }
                 }
                 else if (currentGame === 'coin') {
                     let choice = document.getElementById('coinChoice').value;
-                    let res = Math.random() < 0.5 ? 'eagle' : 'tail';
+                    let res = Math.random() < 0.55 ? choice : (choice === 'eagle' ? 'tail' : 'eagle'); // Повышенный шанс
                     animBox.innerText = res === 'eagle' ? '🦅' : '🪙';
 
                     if (res === choice) {
                         win = true;
                         let reward = bet * 2;
                         balance += reward;
-                        msg = `🎉 Выпал ${res === 'eagle' ? 'Орёл' : 'Решка'}! Вы выиграли ${reward} монет!`;
+                        msg = `🎉 Угадали! Вы выиграли ${reward} монет!`;
                     } else {
-                        msg = `😢 Не угадали сторону. Вы проиграли.`;
+                        msg = `😢 Не угадали сторону.`;
                     }
                 }
                 else if (currentGame === 'mines') {
                     let choice = parseInt(document.getElementById('mineChoice').value);
-                    let safeMine = Math.floor(Math.random() * 3) + 1;
+                    let safeMine = Math.random() < 0.5 ? choice : (choice % 3 + 1); // Повышенный шанс
                     animBox.innerText = choice === safeMine ? '💎' : '💣';
 
                     if (choice === safeMine) {
                         win = true;
                         let reward = bet * 2;
                         balance += reward;
-                        msg = `🎉 Вы нашли алмаз в тайнике №${safeMine}! Вы выиграли ${reward} монет!`;
+                        msg = `🎉 Кристалл найден в тайнике №${safeMine}! Вы выиграли ${reward} монет!`;
                     } else {
-                        msg = `💥 БУМ! В тайнике №${choice} была мина (алмаз был в №${safeMine}). Вы проиграли.`;
+                        msg = `💥 Мина! Вы проиграли ставку.`;
                     }
                 }
                 else if (currentGame === 'rps') {
                     let choice = document.getElementById('rpsChoice').value;
-                    let botChoices = ['rock', 'scissors', 'paper'];
-                    let botChoice = botChoices[Math.floor(Math.random() * botChoices.length)];
+                    let winMap = { rock: 'scissors', scissors: 'paper', paper: 'rock' };
+                    let botChoice = Math.random() < 0.5 ? winMap[choice] : choice; // Повышенный шанс победы/ничьей
                     let emojis = { rock: '🪨', scissors: '✂️', paper: '📄' };
                     animBox.innerText = `${emojis[choice]} vs ${emojis[botChoice]}`;
 
                     if (choice === botChoice) {
                         balance += bet; 
                         msg = `🤝 Ничья! Ставка возвращена.`;
-                    } else if (
-                        (choice === 'rock' && botChoice === 'scissors') ||
-                        (choice === 'scissors' && botChoice === 'paper') ||
-                        (choice === 'paper' && botChoice === 'rock')
-                    ) {
+                    } else if (winMap[choice] === botChoice) {
                         win = true;
                         let reward = bet * 2;
                         balance += reward;
-                        msg = `🎉 Вы победили ботовский ход (${emojis[botChoice]})! Вы выиграли ${reward} монет!`;
+                        msg = `🎉 Победа над ботом (${emojis[botChoice]})! Вы выиграли ${reward} монет!`;
                     } else {
-                        msg = `😢 Бот выбрал ${emojis[botChoice]}. Вы проиграли.`;
+                        msg = `😢 Бот победил (${emojis[botChoice]}).`;
                     }
                 }
 
