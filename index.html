@@ -78,10 +78,11 @@
             background: linear-gradient(135deg, #0284c7, #0369a1);
             border-radius: var(--radius); padding: 20px; text-align: center;
             margin-bottom: 20px; color: white; box-shadow: 0 10px 25px rgba(2, 132, 199, 0.3);
+            text-decoration: none; display: block;
         }
 
-        .promo-banner h2 { font-size: 1.3rem; margin-bottom: 4px; }
-        .promo-banner p { font-size: 0.85rem; opacity: 0.9; }
+        .promo-banner h2 { font-size: 1.4rem; margin-bottom: 4px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .promo-banner p { font-size: 0.9rem; opacity: 0.95; font-weight: 500; }
 
         .section-title {
             font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;
@@ -154,7 +155,6 @@
             border: 1px solid rgba(56, 189, 248, 0.2); color: var(--text-main); gap: 6px;
         }
 
-        /* Слоты 777 кабинет */
         .slot-machine-cabinet {
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: 4px solid #334155; border-radius: 16px; padding: 15px;
@@ -170,7 +170,6 @@
             overflow: hidden; box-shadow: inset 0 0 8px rgba(0,0,0,0.4);
         }
 
-        /* Самолетик (Aviator) с Canvas графиком */
         .aviator-box {
             position: relative; width: 100%; height: 180px; background: #090d16;
             border-radius: 12px; overflow: hidden; border: 1px solid rgba(56,189,248,0.2);
@@ -182,7 +181,6 @@
             text-shadow: 0 2px 10px rgba(56,189,248,0.4);
         }
 
-        /* Мины сетка */
         .mines-grid-25 {
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin: 6px 0;
         }
@@ -223,10 +221,10 @@
     </header>
 
     <div class="container">
-        <div class="promo-banner">
-            <h2>💎 Casino Hub</h2>
-            <p>Ваши любимые игры с честным балансом и графикой!</p>
-        </div>
+        <a href="https://t.me/Larp333you" target="_blank" class="promo-banner">
+            <h2>@Larp333you</h2>
+            <p>Владелец: @Larp333you — Нажми, чтобы написать!</p>
+        </a>
 
         <div class="section-title"><span>Игры</span><span>⚡️ Top</span></div>
 
@@ -254,19 +252,38 @@
     <div id="toast">Уведомление</div>
 
     <script>
-        // Обнуление и автосохранение баланса
+        // Сброс баланса у всех до 1000 при первом запуске новой версии
+        if (!localStorage.getItem('balance_reset_v2')) {
+            localStorage.setItem('casino_balance', '1000');
+            localStorage.setItem('balance_reset_v2', 'true');
+        }
+
         let balance = localStorage.getItem('casino_balance') !== null ? parseInt(localStorage.getItem('casino_balance')) : 1000;
         const balanceEl = document.getElementById('user-balance');
         
-        window.addEventListener('DOMContentLoaded', () => { updateBalance(); });
+        window.addEventListener('DOMContentLoaded', () => { 
+            updateBalance(); 
+            startBonusTimer();
+        });
+
         function updateBalance() { 
             balanceEl.innerText = balance; 
             localStorage.setItem('casino_balance', balance);
         }
+
         function showToast(text) {
             const toast = document.getElementById('toast');
             toast.innerText = text; toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        // Бонус каждые 3 минуты (180 000 миллисекунд)
+        function startBonusTimer() {
+            setInterval(() => {
+                balance += 1000;
+                updateBalance();
+                showToast("🎁 Бонус! Вам начислено +1000 монет!");
+            }, 180000);
         }
 
         function openGame(gameKey) {
@@ -290,7 +307,7 @@
                     </div><button class="btn" onclick="playSlots()">Крутить автомат</button>`;
                     break;
                 case 'plane':
-                    titleEl.innerText = "✈️ Самолетик (Aviator)";
+                    titleEl.innerText = "✈️️ Самолетик (Aviator)";
                     area.innerHTML = `<div>
                         <div class="aviator-box">
                             <div class="aviator-mult-display" id="plane-mult">1.00x</div>
@@ -373,7 +390,7 @@
             }, 70);
         }
 
-        // Самолетик (Aviator) с нарисованным графиком и истребителем
+        // Самолетик (Aviator)
         let planeInterval = null, currentPlaneMult = 1.00;
         let planeCanvas, planeCtx;
 
@@ -389,11 +406,8 @@
         function drawPlaneScene(progress, multProgress) {
             if(!planeCtx) return;
             planeCtx.clearRect(0, 0, planeCanvas.width, planeCanvas.height);
-            
-            let w = planeCanvas.width;
-            let h = planeCanvas.height;
+            let w = planeCanvas.width, h = planeCanvas.height;
 
-            // Рисуем сетку фона
             planeCtx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
             planeCtx.lineWidth = 1;
             for(let i=0; i<w; i+=30) {
@@ -405,12 +419,10 @@
 
             if(progress <= 0) return;
 
-            // Кривая графика
             planeCtx.strokeStyle = '#38bdf8';
             planeCtx.lineWidth = 3;
             planeCtx.beginPath();
             planeCtx.moveTo(0, h);
-            
             let currentX = progress * w;
             let currentY = h - (multProgress * (h * 0.7));
             if(currentY < 15) currentY = 15;
@@ -418,36 +430,24 @@
             planeCtx.quadraticCurveTo(currentX * 0.5, h - 10, currentX, currentY);
             planeCtx.stroke();
 
-            // Заливка под графиком
             planeCtx.lineTo(currentX, h);
             planeCtx.lineTo(0, h);
             planeCtx.fillStyle = 'rgba(56, 189, 248, 0.12)';
             planeCtx.fill();
 
-            // Рисуем нарисованный самолетик
             planeCtx.save();
             planeCtx.translate(currentX, currentY);
             planeCtx.rotate(-0.2);
             
-            // Корпус самолета
             planeCtx.fillStyle = '#f8fafc';
             planeCtx.beginPath();
-            planeCtx.moveTo(12, 0);
-            planeCtx.lineTo(-12, -6);
-            planeCtx.lineTo(-8, 0);
-            planeCtx.lineTo(-12, 6);
-            planeCtx.closePath();
-            planeCtx.fill();
+            planeCtx.moveTo(12, 0); planeCtx.lineTo(-12, -6); planeCtx.lineTo(-8, 0); planeCtx.lineTo(-12, 6);
+            planeCtx.closePath(); planeCtx.fill();
 
-            // Крыло
             planeCtx.fillStyle = '#38bdf8';
             planeCtx.beginPath();
-            planeCtx.moveTo(0, 0);
-            planeCtx.lineTo(-6, -10);
-            planeCtx.lineTo(-2, 0);
-            planeCtx.closePath();
-            planeCtx.fill();
-
+            planeCtx.moveTo(0, 0); planeCtx.lineTo(-6, -10); planeCtx.lineTo(-2, 0);
+            planeCtx.closePath(); planeCtx.fill();
             planeCtx.restore();
         }
 
@@ -496,7 +496,7 @@
             updateBalance();
         }
 
-        // Мины (Сапер) с выбором бомб снизу
+        // Мины (Сапер) с защитой от мгновенного забора денег
         let minesActive = false, minePositions = [], currentMinesMult = 1, openedMinesCount = 0, totalBombsCount = 3;
 
         function startMines() {
@@ -515,8 +515,12 @@
                 if(!minePositions.includes(r)) minePositions.push(r);
             }
 
-            document.getElementById('mines-start-btn').innerText = "Забрать выигрыш";
-            document.getElementById('mines-start-btn').onclick = cashOutMines;
+            // Кнопка изначально говорит «Сыграйте в поле» и неактивна для вывода
+            const mainBtn = document.getElementById('mines-start-btn');
+            mainBtn.innerText = "Сделайте ход в поле!";
+            mainBtn.disabled = true;
+            mainBtn.style.opacity = "0.5";
+            mainBtn.onclick = null;
             
             const grid = document.getElementById('mines-grid');
             grid.innerHTML = '';
@@ -539,13 +543,23 @@
             } else {
                 cells[index].innerText = '💎'; cells[index].style.background = '#059669';
                 currentMinesMult += (0.3 * (totalBombsCount / 2)); openedMinesCount++;
+                
+                // Активируем кнопку забора только после первого успешного клика
+                if (openedMinesCount === 1) {
+                    const mainBtn = document.getElementById('mines-start-btn');
+                    mainBtn.innerText = "Забрать выигрыш";
+                    mainBtn.disabled = false;
+                    mainBtn.style.opacity = "1";
+                    mainBtn.onclick = cashOutMines;
+                }
+
                 showToast(`💎 Алмаз! x${currentMinesMult.toFixed(2)}`);
                 if(openedMinesCount >= (25 - totalBombsCount)) { cashOutMines(); }
             }
         }
 
         function cashOutMines() {
-            if (!minesActive) return;
+            if (!minesActive || openedMinesCount === 0) return;
             let bet = parseInt(document.getElementById('mines-bet').value);
             let win = Math.floor(bet * currentMinesMult);
             balance += win; updateBalance();
@@ -555,8 +569,11 @@
         function endMines25() {
             minesActive = false;
             document.getElementById('mines-count-select').disabled = false;
-            document.getElementById('mines-start-btn').innerText = "Начать игру";
-            document.getElementById('mines-start-btn').onclick = startMines;
+            const mainBtn = document.getElementById('mines-start-btn');
+            mainBtn.innerText = "Начать игру";
+            mainBtn.disabled = false;
+            mainBtn.style.opacity = "1";
+            mainBtn.onclick = startMines;
             const cells = document.getElementsByClassName('mine-cell-25');
             minePositions.forEach(pos => {
                 if(cells[pos]) { cells[pos].innerText = '💣'; cells[pos].style.background = '#f87171'; }
