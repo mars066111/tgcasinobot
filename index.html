@@ -126,38 +126,38 @@
         <button class="btn-save-global" onclick="manualSave()">💾 Сохранить прогресс</button>
     </div>
 
-    <div class="section-title">🔥 Премиум Мини-Игры</div>
+    <div class="section-title">🔥 Все Мини-Игры</div>
 
     <div class="games-grid">
-        <div class="game-card" style="border-color: #fb7185;">
-            <h3>✈ Самолётик</h3>
-            <div class="game-desc">Крэш полет (без лимитов)</div>
-            <button class="btn-game" style="background: linear-gradient(135deg, #f43f5e, #e11d48);" onclick="openGame('crash')">Играть</button>
-        </div>
         <div class="game-card" style="border-color: #34d399;">
             <h3>💣 Мины</h3>
             <div class="game-desc">Динамический кэф мин</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="openGame('mines')">Играть</button>
         </div>
-        <div class="game-card" style="border-color: #facc15;">
-            <h3>🪜 Лесенка</h3>
-            <div class="game-desc">Выше шаг — выше риск</div>
-            <button class="btn-game" style="background: linear-gradient(135deg, #eab308, #ca8a04);" onclick="openGame('ladder')">Играть</button>
+        <div class="game-card" style="border-color: #fb7185;">
+            <h3>✈ Самолётик</h3>
+            <div class="game-desc">Крэш полет (без лимитов)</div>
+            <button class="btn-game" style="background: linear-gradient(135deg, #f43f5e, #e11d48);" onclick="openGame('crash')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #facc15;">
-            <h3>🎰 Слоты 777</h3>
-            <div class="game-desc">Настоящий авто-слот</div>
-            <button class="btn-game" style="background: linear-gradient(135deg, #ca8a04, #a16207);" onclick="openGame('slots')">Играть</button>
-        </div>
-        <div class="game-card" style="border-color: #f472b6;">
             <h3>🎡 Колесо Фортуны</h3>
             <div class="game-desc">Случайный множитель</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #ec4899, #db2777);" onclick="openGame('wheel')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #fb923c;">
-            <h3>🥊 Ночной Нокаут</h3>
-            <div class="game-desc">Больше выбор ударов</div>
+            <h3>🥊 Ночной Бой</h3>
+            <div class="game-desc">Много вариантов ударов</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #f97316, #ea580c);" onclick="openGame('knockout')">Играть</button>
+        </div>
+        <div class="game-card" style="border-color: #facc15;">
+            <h3>🎰 Слоты 777</h3>
+            <div class="game-desc">Реальные комбинации</div>
+            <button class="btn-game" style="background: linear-gradient(135deg, #ca8a04, #a16207);" onclick="openGame('slots')">Играть</button>
+        </div>
+        <div class="game-card" style="border-color: #38bdf8;">
+            <h3>🪜 Лесенка</h3>
+            <div class="game-desc">Рискуй ради высоты</div>
+            <button class="btn-game" style="background: linear-gradient(135deg, #0284c7, #0369a1);" onclick="openGame('ladder')">Играть</button>
         </div>
     </div>
 
@@ -178,19 +178,12 @@
         let tg = window.Telegram.WebApp;
         if (tg && tg.expand) tg.expand();
 
-        let balance = localStorage.getItem('casino_balance');
-        if (balance === null) {
-            balance = 1000;
-        } else {
-            balance = parseInt(balance);
-        }
+        // СБРОС БАЛАНСОВ ДО 1000
+        let balance = 1000;
+        localStorage.setItem('casino_balance', balance);
 
-        let bonusEndTime = localStorage.getItem('casino_bonus_end');
-        let nowSec = Math.floor(Date.now() / 1000);
-        if (!bonusEndTime || parseInt(bonusEndTime) < nowSec) {
-            bonusEndTime = nowSec + 60; // 1 минута таймер бонуса
-            localStorage.setItem('casino_bonus_end', bonusEndTime);
-        }
+        let bonusEndTime = Math.floor(Date.now() / 1000) + 60;
+        localStorage.setItem('casino_bonus_end', bonusEndTime);
 
         let activeInterval = null;
         let currentGame = '';
@@ -267,19 +260,37 @@
             
             resetButtons();
 
-            if (game === 'crash') {
+            if (game === 'mines') {
+                title.innerText = "💣 Поле Мин";
+                anim.innerHTML = `<div class="mines-grid" id="minesGrid"></div><div class="mines-footer"><span style="font-size:11px; color:#38bdf8;">💎 Ячейки</span><span style="font-size:11px; color:#ef4444;" id="mineRiskInfo">Динамический кэф</span></div>`;
+                body.innerHTML = `<div class="controls-group" style="margin-top:6px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Количество мин:</label><select id="mineCountSel" onchange="updateMineRisk()"><option value="1">1 мина (Легко)</option><option value="3" selected>3 мины (Средне)</option><option value="5">5 мин (Рискованно)</option><option value="10">10 мин (Хардкор)</option></select></div>`;
+                actionBtn.innerText = "Начать игру";
+                renderMinesPreview(3);
+            }
+            else if (game === 'crash') {
                 title.innerText = "✈ Самолётик";
                 anim.innerHTML = `<canvas id="crashCanvas" width="340" height="140" style="background:#090714; border-radius:14px; border: 2px solid #6366f1;"></canvas>`;
                 body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
                 actionBtn.innerText = "Запустить полёт";
                 initCrashCanvas(1.00, false);
             } 
-            else if (game === 'mines') {
-                title.innerText = "💣 Поле Мин";
-                anim.innerHTML = `<div class="mines-grid" id="minesGrid"></div><div class="mines-footer"><span style="font-size:11px; color:#38bdf8;">💎 Ячейки</span><span style="font-size:11px; color:#ef4444;" id="mineRiskInfo">Динамический кэф</span></div>`;
-                body.innerHTML = `<div class="controls-group" style="margin-top:6px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Количество мин:</label><select id="mineCountSel" onchange="updateMineRisk()"><option value="1">1 мина (Легко)</option><option value="3" selected>3 мины (Средне)</option><option value="5">5 мин (Рискованно)</option><option value="10">10 мин (Хардкор)</option></select></div>`;
-                actionBtn.innerText = "Начать игру";
-                renderMinesPreview(3);
+            else if (game === 'wheel') {
+                title.innerText = "🎡 Колесо Фортуны";
+                anim.innerHTML = `<div id="wheelBox" style="font-size:28px; font-weight:bold; color:#fde047; padding:20px;">🎡 Случайный множитель</div>`;
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
+                actionBtn.innerText = "Крутить колесо";
+            }
+            else if (game === 'knockout') {
+                title.innerText = "🥊 Ночной Бой";
+                anim.innerHTML = `<div style="font-size:36px;" id="knockoutBox">🥊 vs 🤖</div>`;
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Выбор удара:</label><select id="knockoutRisk"><option value="jab">Быстрый джеб (x1.2 / 70%)</option><option value="cross" selected>Прямой удар (x1.5 / 50%)</option><option value="hook">Нокаут хук (x2.5 / 30%)</option><option value="uppercut">Апперкот (x4.0 / 15%)</option><option value="ultimate">Тайный удар (x7.5 / 5%)</option></select></div>`;
+                actionBtn.innerText = "Нанести удар";
+            }
+            else if (game === 'slots') {
+                title.innerText = "🎰 Слоты 777";
+                anim.innerHTML = `<div style="font-size:30px; background:#0f0c1b; border-radius:14px; padding:16px; border:2px solid #eab308; letter-spacing:6px;" id="slotBox">🍒 🍋 🔔</div>`;
+                body.innerHTML = `<div class="controls-group" style="margin-top:8px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
+                actionBtn.innerText = "Крутить слоты";
             }
             else if (game === 'ladder') {
                 title.innerText = "🪜 Лесенка Удачи";
@@ -292,24 +303,6 @@
                 </div>`;
                 body.innerHTML = `<div class="controls-group" style="margin-top:8px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
                 actionBtn.innerText = "Сделать шаг вверх";
-            }
-            else if (game === 'slots') {
-                title.innerText = "🎰 Слоты 777";
-                anim.innerHTML = `<div style="font-size:30px; background:#0f0c1b; border-radius:14px; padding:16px; border:2px solid #eab308; letter-spacing:6px;" id="slotBox">🍒 🍋 🔔</div>`;
-                body.innerHTML = `<div class="controls-group" style="margin-top:8px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
-                actionBtn.innerText = "Крутить слоты";
-            }
-            else if (game === 'wheel') {
-                title.innerText = "🎡 Колесо Фортуны";
-                anim.innerHTML = `<div id="wheelBox" style="font-size:28px; font-weight:bold; color:#fde047; padding:20px;">🎡 Случайный множитель</div>`;
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
-                actionBtn.innerText = "Крутить колесо";
-            }
-            else if (game === 'knockout') {
-                title.innerText = "🥊 Ночной Нокаут";
-                anim.innerHTML = `<div style="font-size:36px;" id="knockoutBox">🥊 vs 🤖</div>`;
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Выбор удара:</label><select id="knockoutRisk"><option value="jab">Быстрый джеб (x1.2 / 70%)</option><option value="cross" selected>Прямой удар (x1.5 / 50%)</option><option value="hook">Нокаут хук (x2.5 / 30%)</option><option value="uppercut">Апперкот (x4.0 / 15%)</option><option value="ultimate">Тайный удар (x7.5 / 5%)</option></select></div>`;
-                actionBtn.innerText = "Нанести удар";
             }
 
             document.getElementById('gameModal').style.display = 'flex';
@@ -364,46 +357,7 @@
             balance -= bet; saveState(); updateDisplay();
             gameActive = true; 
 
-            // 1. САМОЛЕТИК (Краш)
-            if (currentGame === 'crash') {
-                actionBtn.disabled = true;
-                let mult = 1.0;
-                let targetCrash = parseFloat((1.01 + Math.random() * Math.random() * 7).toFixed(2));
-
-                actionBtn.innerText = "💰 ЗАБРАТЬ ДЕНЬГИ";
-                actionBtn.disabled = false;
-                actionBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
-
-                activeInterval = setInterval(() => {
-                    if (!gameActive) return;
-                    mult = parseFloat((mult + 0.05).toFixed(2));
-                    initCrashCanvas(mult, false);
-
-                    if (mult >= targetCrash) {
-                        clearInterval(activeInterval);
-                        gameActive = false;
-                        initCrashCanvas(targetCrash, true, `КРУШЕНИЕ на ${targetCrash}x! Ставка сгорела.`);
-                        actionBtn.disabled = true;
-                        actionBtn.style.opacity = '0.4';
-                        setTimeout(() => resetButtons(), 1500);
-                    }
-                }, 90);
-
-                actionBtn.onclick = function() {
-                    if (!gameActive) return;
-                    clearInterval(activeInterval);
-                    gameActive = false;
-                    let winSum = Math.floor(bet * mult);
-                    balance += winSum; saveState(); updateDisplay();
-                    initCrashCanvas(mult, false, `ВЫИГРАНО: +${winSum} 🪙 (x${mult})`);
-                    actionBtn.disabled = true;
-                    actionBtn.style.opacity = '0.4';
-                    setTimeout(() => resetButtons(), 1500);
-                };
-                return;
-            }
-
-            // 2. МИНЫ (Динамический кэф)
+            // 1. МИНЫ
             if (currentGame === 'mines') {
                 let mCount = parseInt(document.getElementById('mineCountSel').value);
                 let mines = [];
@@ -468,56 +422,95 @@
                 return;
             }
 
-            // 3. ЛЕСЕНКА
-            if (currentGame === 'ladder') {
+            // 2. САМОЛЕТИК
+            if (currentGame === 'crash') {
                 actionBtn.disabled = true;
-                let currentStep = 1;
-                let multipliers = { 1: 1.2, 2: 1.5, 3: 2.0, 4: 3.0, 5: 5.0 };
-                let chances = { 1: 0.85, 2: 0.70, 3: 0.55, 4: 0.40, 5: 0.25 };
+                let mult = 1.0;
+                let targetCrash = parseFloat((1.01 + Math.random() * Math.random() * 7).toFixed(2));
 
-                actionBtn.innerText = "ШАГНУТЬ НА ШАГ 2 (x1.5)";
-                secBtn.style.display = 'block';
-                secBtn.style.background = "linear-gradient(135deg, #22c55e, #16a34a)";
-                secBtn.innerText = "ЗАБРАТЬ ВЫИГРЫШ";
+                actionBtn.innerText = "💰 ЗАБРАТЬ ДЕНЬГИ";
+                actionBtn.disabled = false;
+                actionBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+
+                activeInterval = setInterval(() => {
+                    if (!gameActive) return;
+                    mult = parseFloat((mult + 0.05).toFixed(2));
+                    initCrashCanvas(mult, false);
+
+                    if (mult >= targetCrash) {
+                        clearInterval(activeInterval);
+                        gameActive = false;
+                        initCrashCanvas(targetCrash, true, `КРУШЕНИЕ на ${targetCrash}x! Ставка сгорела.`);
+                        actionBtn.disabled = true;
+                        actionBtn.style.opacity = '0.4';
+                        setTimeout(() => resetButtons(), 1500);
+                    }
+                }, 90);
 
                 actionBtn.onclick = function() {
-                    if(!gameActive) return;
-                    let chance = chances[currentStep];
-                    if (Math.random() > chance) {
-                        gameActive = false;
-                        alert(`💥 Промах на шаге ${currentStep}! Вы сорвались с лестницы.`);
-                        resetButtons();
-                        return;
-                    }
-
-                    currentStep++;
-                    if (currentStep > 5) {
-                        gameActive = false;
-                        let reward = Math.floor(bet * 5.0);
-                        balance += reward; saveState(); updateDisplay();
-                        alert(`🏆 ПОБЕДА! Вы прошли всю лестницу и забрали ${reward} монет (x5.0)!`);
-                        resetButtons();
-                        return;
-                    }
-
-                    let nextMult = multipliers[currentStep];
-                    actionBtn.innerText = `ШАГНУТЬ НА ШАГ ${currentStep} (x${nextMult})`;
-                    alert(`✅ Шаг ${currentStep - 1} пройден! Идем дальше.`);
-                };
-
-                secBtn.onclick = function() {
-                    if(!gameActive) return;
+                    if (!gameActive) return;
+                    clearInterval(activeInterval);
                     gameActive = false;
-                    let lastMult = multipliers[currentStep - 1];
-                    let reward = Math.floor(bet * lastMult);
-                    balance += reward; saveState(); updateDisplay();
-                    alert(`🎉 Вы забрали ${reward} монет на шаге ${currentStep - 1}!`);
-                    resetButtons();
+                    let winSum = Math.floor(bet * mult);
+                    balance += winSum; saveState(); updateDisplay();
+                    initCrashCanvas(mult, false, `ВЫИГРАНО: +${winSum} 🪙 (x${mult})`);
+                    actionBtn.disabled = true;
+                    actionBtn.style.opacity = '0.4';
+                    setTimeout(() => resetButtons(), 1500);
                 };
                 return;
             }
 
-            // 4. СЛОТЫ 777
+            // 3. КОЛЕСО ФОРТУНЫ
+            if (currentGame === 'wheel') {
+                actionBtn.disabled = true;
+                let wheelBox = document.getElementById('wheelBox');
+                let steps = 0;
+                activeInterval = setInterval(() => {
+                    if(!gameActive) return;
+                    steps++;
+                    let randM = parseFloat((Math.random() * 4.9 + 0.1).toFixed(2));
+                    wheelBox.innerHTML = `🎡 [ x${randM} ]`;
+                    if(steps > 10) {
+                        clearInterval(activeInterval);
+                        gameActive = false;
+                        let finalM = parseFloat((Math.random() * 4.9 + 0.1).toFixed(2));
+                        let reward = Math.floor(bet * finalM);
+                        balance += reward; saveState(); updateDisplay();
+                        wheelBox.innerHTML = `🎡 [ x${finalM} ]<br><span style="font-size:12px; color:#fff;">Выигрыш: ${reward} 🪙</span>`;
+                        resetButtons();
+                    }
+                }, 80);
+                return;
+            }
+
+            // 4. НОЧНОЙ БОЙ
+            if (currentGame === 'knockout') {
+                actionBtn.disabled = true;
+                let moveKey = document.getElementById('knockoutRisk').value;
+                let movesData = {
+                    jab: { name: 'Быстрый джеб', mult: 1.2, chance: 0.7 },
+                    cross: { name: 'Прямой удар', mult: 1.5, chance: 0.5 },
+                    hook: { name: 'Нокаут хук', mult: 2.5, chance: 0.3 },
+                    uppercut: { name: 'Апперкот', mult: 4.0, chance: 0.15 },
+                    ultimate: { name: 'Тайный удар', mult: 7.5, chance: 0.05 }
+                };
+                let move = movesData[moveKey];
+
+                setTimeout(() => {
+                    if(!gameActive) return;
+                    let success = Math.random() <= move.chance;
+                    let reward = success ? Math.floor(bet * move.mult) : 0;
+                    
+                    if(success) { balance += reward; saveState(); updateDisplay(); }
+                    document.getElementById('knockoutBox').innerText = success ? `🏆 НОКАУТ! +${reward} 🪙 (x${move.mult})` : `❌ МИМО! Соперник увернулся.`;
+                    gameActive = false;
+                    resetButtons();
+                }, 1000);
+                return;
+            }
+
+            // 5. СЛОТЫ
             if (currentGame === 'slots') {
                 actionBtn.disabled = true;
                 let slotBox = document.getElementById('slotBox');
@@ -569,52 +562,52 @@
                 return;
             }
 
-            // 5. КОЛЕСО ФОРТУНЫ
-            if (currentGame === 'wheel') {
+            // 6. ЛЕСЕНКА
+            if (currentGame === 'ladder') {
                 actionBtn.disabled = true;
-                let wheelBox = document.getElementById('wheelBox');
-                let steps = 0;
-                activeInterval = setInterval(() => {
+                let currentStep = 1;
+                let multipliers = { 1: 1.2, 2: 1.5, 3: 2.0, 4: 3.0, 5: 5.0 };
+                let chances = { 1: 0.85, 2: 0.70, 3: 0.55, 4: 0.40, 5: 0.25 };
+
+                actionBtn.innerText = "ШАГНУТЬ НА ШАГ 2 (x1.5)";
+                secBtn.style.display = 'block';
+                secBtn.style.background = "linear-gradient(135deg, #22c55e, #16a34a)";
+                secBtn.innerText = "ЗАБРАТЬ ВЫИГРЫШ";
+
+                actionBtn.onclick = function() {
                     if(!gameActive) return;
-                    steps++;
-                    let randM = parseFloat((Math.random() * 4.9 + 0.1).toFixed(2));
-                    wheelBox.innerHTML = `🎡 [ x${randM} ]`;
-                    if(steps > 10) {
-                        clearInterval(activeInterval);
+                    let chance = chances[currentStep];
+                    if (Math.random() > chance) {
                         gameActive = false;
-                        let finalM = parseFloat((Math.random() * 4.9 + 0.1).toFixed(2));
-                        let reward = Math.floor(bet * finalM);
-                        balance += reward; saveState(); updateDisplay();
-                        wheelBox.innerHTML = `🎡 [ x${finalM} ]<br><span style="font-size:12px; color:#fff;">Выигрыш: ${reward} 🪙</span>`;
+                        alert(`💥 Промах на шаге ${currentStep}! Вы сорвались с лестницы.`);
                         resetButtons();
+                        return;
                     }
-                }, 80);
-                return;
-            }
 
-            // 6. НОЧНОЙ НОКАУТ
-            if (currentGame === 'knockout') {
-                actionBtn.disabled = true;
-                let moveKey = document.getElementById('knockoutRisk').value;
-                let movesData = {
-                    jab: { name: 'Быстрый джеб', mult: 1.2, chance: 0.7 },
-                    cross: { name: 'Прямой удар', mult: 1.5, chance: 0.5 },
-                    hook: { name: 'Нокаут хук', mult: 2.5, chance: 0.3 },
-                    uppercut: { name: 'Апперкот', mult: 4.0, chance: 0.15 },
-                    ultimate: { name: 'Тайный удар', mult: 7.5, chance: 0.05 }
+                    currentStep++;
+                    if (currentStep > 5) {
+                        gameActive = false;
+                        let reward = Math.floor(bet * 5.0);
+                        balance += reward; saveState(); updateDisplay();
+                        alert(`🏆 ПОБЕДА! Вы прошли всю лестницу и забрали ${reward} монет (x5.0)!`);
+                        resetButtons();
+                        return;
+                    }
+
+                    let nextMult = multipliers[currentStep];
+                    actionBtn.innerText = `ШАГНУТЬ НА ШАГ ${currentStep} (x${nextMult})`;
+                    alert(`✅ Шаг ${currentStep - 1} пройден! Идем дальше.`);
                 };
-                let move = movesData[moveKey];
 
-                setTimeout(() => {
+                secBtn.onclick = function() {
                     if(!gameActive) return;
-                    let success = Math.random() <= move.chance;
-                    let reward = success ? Math.floor(bet * move.mult) : 0;
-                    
-                    if(success) { balance += reward; saveState(); updateDisplay(); }
-                    document.getElementById('knockoutBox').innerText = success ? `🏆 НОКАУТ! +${reward} 🪙 (x${move.mult})` : `❌ МИМО! Соперник увернулся.`;
                     gameActive = false;
+                    let lastMult = multipliers[currentStep - 1];
+                    let reward = Math.floor(bet * lastMult);
+                    balance += reward; saveState(); updateDisplay();
+                    alert(`🎉 Вы забрали ${reward} монет на шаге ${currentStep - 1}!`);
                     resetButtons();
-                }, 1000);
+                };
                 return;
             }
         }
