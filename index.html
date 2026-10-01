@@ -34,20 +34,13 @@
 
         .bg-circles {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
         }
 
         .circle {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 50%;
-            backdrop-filter: blur(2px);
+            position: absolute; background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%; backdrop-filter: blur(2px);
         }
 
         .c1 { width: 140px; height: 140px; top: -30px; left: -30px; }
@@ -56,318 +49,158 @@
         .c4 { width: 180px; height: 180px; bottom: -40px; right: 20px; }
         .c5 { width: 90px; height: 90px; top: 45%; left: 40%; }
 
-        header, .container, .modal {
-            position: relative;
-            z-index: 10;
-        }
+        header, .container, .modal { position: relative; z-index: 10; }
 
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            position: sticky;
-            top: 0;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px); position: sticky; top: 0;
             border-bottom: 1px solid rgba(2, 132, 199, 0.1);
         }
 
         .balance-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #e0f2fe;
-            padding: 8px 16px;
-            border-radius: 30px;
+            display: flex; align-items: center; gap: 8px;
+            background: #e0f2fe; padding: 8px 16px; border-radius: 30px;
             border: 1px solid rgba(2, 132, 199, 0.2);
         }
 
-        .balance-box span {
-            color: var(--accent-blue);
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
+        .balance-box span { color: var(--accent-blue); font-weight: 700; font-size: 1.1rem; }
+        .user-profile { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
 
-        .user-profile {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 16px;
-        }
+        .container { max-width: 480px; margin: 0 auto; padding: 16px; }
 
         .promo-banner {
             background: linear-gradient(135deg, #0284c7, #38bdf8);
-            border-radius: var(--radius);
-            padding: 22px;
-            text-align: center;
-            margin-bottom: 20px;
-            color: white;
-            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.25);
+            border-radius: var(--radius); padding: 22px; text-align: center;
+            margin-bottom: 20px; color: white; box-shadow: 0 10px 25px rgba(2, 132, 199, 0.25);
         }
 
-        .promo-banner h2 {
-            font-size: 1.4rem;
-            margin-bottom: 6px;
-        }
-
-        .promo-banner p {
-            font-size: 0.9rem;
-            opacity: 0.95;
-        }
+        .promo-banner h2 { font-size: 1.4rem; margin-bottom: 6px; }
+        .promo-banner p { font-size: 0.9rem; opacity: 0.95; }
 
         .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #0369a1;
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center; color: #0369a1;
         }
 
         .games-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;
         }
 
         .game-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid rgba(2, 132, 199, 0.08);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 110px;
+            background: var(--card-bg); border-radius: var(--radius); padding: 16px;
+            text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(2, 132, 199, 0.08); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; min-height: 110px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         }
 
-        .game-card:active {
-            transform: scale(0.96);
-        }
-
-        .game-card .icon {
-            font-size: 2.2rem;
-            margin-bottom: 8px;
-        }
-
-        .game-card .title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
+        .game-card:active { transform: scale(0.96); }
+        .game-card .icon { font-size: 2.2rem; margin-bottom: 8px; }
+        .game-card .title { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
 
         .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--bg-color);
-            z-index: 200;
-            overflow-y: auto;
-            padding: 20px;
-            flex-direction: column;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 200; overflow-y: auto; padding: 20px; flex-direction: column;
         }
-
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
 
         .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
         }
 
         .back-btn {
-            background: var(--card-bg);
-            border: 1px solid rgba(2, 132, 199, 0.2);
-            color: var(--accent-blue);
-            padding: 8px 14px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
+            background: var(--card-bg); border: 1px solid rgba(2, 132, 199, 0.2);
+            color: var(--accent-blue); padding: 8px 14px; border-radius: 12px; font-weight: 600; cursor: pointer;
         }
 
         .game-arena {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 20px;
-            text-align: center;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 1px solid rgba(2, 132, 199, 0.1);
-            max-width: 440px;
-            margin: 0 auto;
-            width: 100%;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+            background: var(--card-bg); border-radius: var(--radius); padding: 20px;
+            text-align: center; flex-grow: 1; display: flex; flex-direction: column;
+            justify-content: space-between; border: 1px solid rgba(2, 132, 199, 0.1);
+            max-width: 440px; margin: 0 auto; width: 100%; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
         }
 
         .bet-control {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f8fafc;
-            padding: 10px 14px;
-            border-radius: 12px;
-            margin: 15px 0;
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f8fafc; padding: 10px 14px; border-radius: 12px; margin: 15px 0;
             border: 1px solid #e2e8f0;
         }
 
         .bet-control input {
-            background: transparent;
-            border: none;
-            color: var(--accent-blue);
-            font-size: 1.2rem;
-            font-weight: bold;
-            width: 80px;
-            text-align: center;
-            outline: none;
+            background: transparent; border: none; color: var(--accent-blue);
+            font-size: 1.2rem; font-weight: bold; width: 80px; text-align: center; outline: none;
         }
 
         .btn {
             background: linear-gradient(135deg, var(--accent-blue), #0284c7);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 1.05rem;
-            cursor: pointer;
-            width: 100%;
-            box-shadow: 0 4px 12px var(--accent-blue-glow);
-            transition: opacity 0.2s;
+            color: white; border: none; padding: 14px; border-radius: 12px;
+            font-weight: 700; font-size: 1.05rem; cursor: pointer; width: 100%;
+            box-shadow: 0 4px 12px var(--accent-blue-glow); transition: opacity 0.2s;
         }
-
-        .btn:active {
-            opacity: 0.8;
-        }
-
-        .btn-secondary {
-            background: #e2e8f0;
-            color: var(--text-main);
-            box-shadow: none;
-            margin-top: 8px;
-        }
+        .btn:active { opacity: 0.8; }
+        .btn-secondary { background: #e2e8f0; color: var(--text-main); box-shadow: none; margin-top: 8px; }
 
         .display-screen {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 20px;
-            font-size: 1.3rem;
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 15px 0;
-            border: 1px solid #e2e8f0;
-            color: var(--text-main);
+            background: #f8fafc; border-radius: 12px; padding: 20px;
+            font-size: 1.4rem; min-height: 110px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; margin: 15px 0;
+            border: 1px solid #e2e8f0; color: var(--text-main); gap: 6px;
         }
 
-        .slots-reel {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            font-size: 2.8rem;
-            margin: 20px 0;
+        .slots-reel { display: flex; justify-content: center; gap: 15px; font-size: 3rem; margin: 15px 0; }
+        
+        .mines-grid-16 {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0;
         }
-
-        .mines-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin: 15px 0;
+        .mine-cell-16 {
+            background: #e2e8f0; aspect-ratio: 1; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
         }
-
-        .mine-cell {
-            background: #e2e8f0;
-            aspect-ratio: 1;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+        .mine-cell-16:active { transform: scale(0.92); }
 
         #toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #0f172a;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            font-weight: 600;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: #0f172a; color: white; padding: 10px 20px; border-radius: 20px;
+            transition: transform 0.3s ease; z-index: 1000; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
         }
-        #toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
     <div class="bg-circles">
-        <div class="circle c1"></div>
-        <div class="circle c2"></div>
-        <div class="circle c3"></div>
-        <div class="circle c4"></div>
-        <div class="circle c5"></div>
+        <div class="circle c1"></div> <div class="circle c2"></div> <div class="circle c3"></div>
+        <div class="circle c4"></div> <div class="circle c5"></div>
     </div>
 
     <header>
-        <div class="balance-box">
-            <span>🪙</span>
-            <span id="user-balance">1000</span>
-        </div>
+        <div class="balance-box"><span>🪙</span><span id="user-balance">1000</span></div>
         <div class="user-profile">VIP Player</div>
     </header>
 
     <div class="container">
         <div class="promo-banner">
-            <h2>💎 20 VIP Игр Казино</h2>
-            <p>Выбирай развлечение, крути и выигрывай фишки!</p>
+            <h2>💎 VIP Казино с анимацией</h2>
+            <p>Выбирай игру и слежай за процессом в реальном времени!</p>
         </div>
 
-        <div class="section-title">
-            <span>Доступные игры</span>
-            <span>20 из 20</span>
-        </div>
+        <div class="section-title"><span>Все игры</span><span>20 из 20</span></div>
 
         <div class="games-grid">
             <div class="game-card" onclick="openGame('slots')"><div class="icon">🎰</div><div class="title">Слоты 777</div></div>
             <div class="game-card" onclick="openGame('roulette')"><div class="icon">🎡</div><div class="title">Рулетка</div></div>
             <div class="game-card" onclick="openGame('dice')"><div class="icon">🎲</div><div class="title">Кости (Dice)</div></div>
-            <div class="game-card" onclick="openGame('mines')"><div class="icon">💣</div><div class="title">Мины (Mines)</div></div>
+            <div class="game-card" onclick="openGame('mines')"><div class="icon">💣</div><div class="title">Мины (16 ячеек)</div></div>
             <div class="game-card" onclick="openGame('coinflip')"><div class="icon">🪙</div><div class="title">Монетка</div></div>
+            <div class="game-card" onclick="openGame('plane')"><div class="icon">✈️</div><div class="title">Самолетик (Aviator)</div></div>
             <div class="game-card" onclick="openGame('hilo')"><div class="icon">📈</div><div class="title">Выше / Ниже</div></div>
             <div class="game-card" onclick="openGame('plinko')"><div class="icon">🔺</div><div class="title">Плинко</div></div>
             <div class="game-card" onclick="openGame('blackjack')"><div class="icon">🃏</div><div class="title">Блэкджек</div></div>
             <div class="game-card" onclick="openGame('crash')"><div class="icon">🚀</div><div class="title">Краш (Rocket)</div></div>
-            <div class="game-card" onclick="openGame('wheel')"><div class="icon">🎯</div><div class="title">Колесо Фортуны</div></div>
 
+            <div class="game-card" onclick="openGame('wheel')"><div class="icon">🎯</div><div class="title">Колесо Фортуны</div></div>
             <div class="game-card" onclick="openGame('poker')"><div class="icon">🎴</div><div class="title">Видео Покер</div></div>
             <div class="game-card" onclick="openGame('baccarat')"><div class="icon">🏛️</div><div class="title">Баккара</div></div>
             <div class="game-card" onclick="openGame('keno')"><div class="icon">🎱</div><div class="title">Кено</div></div>
@@ -376,7 +209,6 @@
             <div class="game-card" onclick="openGame('scratch')"><div class="icon">🎟️</div><div class="title">Скретч-карта</div></div>
             <div class="game-card" onclick="openGame('apple')"><div class="icon">🍎</div><div class="title">Яблочный путь</div></div>
             <div class="game-card" onclick="openGame('cups')"><div class="icon">🥛</div><div class="title">Напёрстки</div></div>
-            <div class="game-card" onclick="openGame('stairs')"><div class="icon">🪜</div><div class="title">Лесенка</div></div>
             <div class="game-card" onclick="openGame('football')"><div class="icon">⚽</div><div class="title">Пенальти</div></div>
         </div>
     </div>
@@ -396,18 +228,11 @@
         let balance = 1000;
         const balanceEl = document.getElementById('user-balance');
         
-        window.addEventListener('DOMContentLoaded', () => {
-            updateBalance();
-        });
-
-        function updateBalance() {
-            balanceEl.innerText = balance;
-        }
-
+        window.addEventListener('DOMContentLoaded', () => { updateBalance(); });
+        function updateBalance() { balanceEl.innerText = balance; }
         function showToast(text) {
             const toast = document.getElementById('toast');
-            toast.innerText = text;
-            toast.classList.add('show');
+            toast.innerText = text; toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
@@ -424,256 +249,319 @@
                     break;
                 case 'roulette':
                     titleEl.innerText = "🎡 Европейская Рулетка";
-                    area.innerHTML = `<div><div class="display-screen" id="roulette-screen">Выберите цвет</div><div style="display: flex; gap: 8px; margin-bottom: 10px;"><button class="btn" style="background:#dc2626; color:white;" onclick="playRoulette('red')">Красное (2x)</button><button class="btn" style="background:#0f172a; color:white;" onclick="playRoulette('black')">Черное (2x)</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="roulette-bet" value="50"></div></div>`;
+                    area.innerHTML = `<div><div class="display-screen" id="roulette-screen"><span>🎡</span><span>Сделайте ставку</span></div><div style="display: flex; gap: 8px; margin-bottom: 10px;"><button class="btn" style="background:#dc2626; color:white;" onclick="playRoulette('red')">Красное (2x)</button><button class="btn" style="background:#0f172a; color:white;" onclick="playRoulette('black')">Черное (2x)</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="roulette-bet" value="50"></div></div>`;
                     break;
                 case 'dice':
                     titleEl.innerText = "🎲 Кости";
-                    area.innerHTML = `<div><div class="display-screen" id="dice-screen">🎲 ⚀ ⚁</div><p style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">Сумма броска > 7</p><div class="bet-control"><span>Ставка:</span><input type="number" id="dice-bet" value="50"></div></div><button class="btn" onclick="playDice()">Бросить кости</button>`;
+                    area.innerHTML = `<div><div class="display-screen" id="dice-screen"><span style="font-size:2.5rem;">🎲 ⚀ ⚁</span><span>Сумма больше 7</span></div><div class="bet-control"><span>Ставка:</span><input type="number" id="dice-bet" value="50"></div></div><button class="btn" onclick="playDice()">Бросить кости</button>`;
                     break;
                 case 'mines':
-                    titleEl.innerText = "💣 Мины";
-                    area.innerHTML = `<div><div style="font-size:0.9rem; margin-bottom:5px;" id="mines-status">Нажмите Старт</div><div class="mines-grid" id="mines-grid">${Array(12).fill(0).map(() => `<div class="mine-cell" style="opacity:0.6;">❓</div>`).join('')}</div><div class="bet-control"><span>Ставка:</span><input type="number" id="mines-bet" value="50"></div></div><button class="btn" id="mines-start-btn" onclick="startMines()">Начать игру</button>`;
+                    titleEl.innerText = "💣 Мины (16 полей)";
+                    area.innerHTML = `<div><div style="font-size:0.9rem; margin-bottom:8px; color:var(--accent-blue);" id="mines-status">Нажмите Старт для игры</div><div class="mines-grid-16" id="mines-grid">${Array(16).fill(0).map(() => `<div class="mine-cell-16" style="opacity:0.6;">❓</div>`).join('')}</div><div class="bet-control"><span>Ставка:</span><input type="number" id="mines-bet" value="50"></div></div><button class="btn" id="mines-start-btn" onclick="startMines()">Начать игру</button>`;
                     break;
                 case 'coinflip':
                     titleEl.innerText = "🪙 Монетка";
-                    area.innerHTML = `<div><div class="display-screen" id="coin-screen">🪙</div><div style="display: flex; gap: 8px; margin-bottom: 10px;"><button class="btn" onclick="playCoin('heads')">Орел</button><button class="btn btn-secondary" onclick="playCoin('tails')">Решка</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="coin-bet" value="50"></div></div>`;
+                    area.innerHTML = `<div><div class="display-screen" id="coin-screen"><span style="font-size:2.5rem;">🪙</span><span>Выберите сторону</span></div><div style="display: flex; gap: 8px; margin-bottom: 10px;"><button class="btn" onclick="playCoin('heads')">Орел</button><button class="btn btn-secondary" onclick="playCoin('tails')">Решка</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="coin-bet" value="50"></div></div>`;
+                    break;
+                case 'plane':
+                    titleEl.innerText = "✈️ Самолетик (Aviator)";
+                    area.innerHTML = `<div><div class="display-screen" id="plane-screen"><span style="font-size:2.5rem;">✈️</span><span id="plane-mult" style="font-size:2rem; font-weight:bold; color:var(--accent-blue);">1.00x</span></div><div class="bet-control" id="plane-bet-box"><span>Ставка:</span><input type="number" id="plane-bet" value="50"></div></div><button class="btn" id="plane-btn" onclick="startPlane()">Запустить самолетик</button>`;
                     break;
                 case 'hilo':
                     titleEl.innerText = "📈 Выше / Ниже";
-                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 2rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 10px;"><button class="btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️</button><button class="btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇️️</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="50"></div></div>`;
+                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 2rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 10px;"><button class="btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️</button><button class="btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇️</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="50"></div></div>`;
                     break;
                 case 'plinko':
                     titleEl.innerText = "🔺 Плинко";
-                    area.innerHTML = `<div><div class="display-screen" id="plinko-screen">🎯 Готов</div><div class="bet-control"><span>Ставка:</span><input type="number" id="plinko-bet" value="50"></div></div><button class="btn" onclick="playPlinko()">Запустить шар</button>`;
+                    area.innerHTML = `<div><div class="display-screen" id="plinko-screen"><span style="font-size:2rem;">🔺🎯</span><span>Шар падает...</span></div><div class="bet-control"><span>Ставка:</span><input type="number" id="plinko-bet" value="50"></div></div><button class="btn" onclick="playPlinko()">Запустить шар</button>`;
                     break;
                 case 'blackjack':
                     titleEl.innerText = "🃏 Блэкджек";
                     area.innerHTML = `<div><div style="text-align: left; margin-bottom: 10px;"><p>Дилер: <span id="bj-dealer">?</span></p><p>Игрок: <span id="bj-player">0</span></p></div><div class="display-screen" id="bj-screen">Сделайте ставку</div><div class="bet-control" id="bj-bet-box"><span>Ставка:</span><input type="number" id="bj-bet" value="50"></div><div id="bj-actions" style="display: none; gap: 8px;"><button class="btn" onclick="bjHit()">Ещё</button><button class="btn btn-secondary" onclick="bjStand()">Хватит</button></div></div><button class="btn" id="bj-start-btn" onclick="startBlackjack()">Играть</button>`;
                     break;
                 case 'crash':
-                    titleEl.innerText = "🚀 Краш";
-                    area.innerHTML = `<div><div class="display-screen" id="crash-screen" style="font-size: 2.5rem; color: var(--accent-blue);">1.00x</div><div class="bet-control" id="crash-bet-box"><span>Ставка:</span><input type="number" id="crash-bet" value="50"></div></div><button class="btn" id="crash-btn" onclick="startCrash()">Запуск ракеты</button>`;
+                    titleEl.innerText = "🚀 Краш (Rocket)";
+                    area.innerHTML = `<div><div class="display-screen" id="crash-screen"><span style="font-size:2rem;">🚀</span><span id="crash-val" style="font-size:2rem; font-weight:bold; color:var(--accent-blue);">1.00x</span></div><div class="bet-control" id="crash-bet-box"><span>Ставка:</span><input type="number" id="crash-bet" value="50"></div></div><button class="btn" id="crash-btn" onclick="startCrash()">Запуск ракеты</button>`;
                     break;
                 case 'wheel':
                     titleEl.innerText = "🎯 Колесо Фортуны";
-                    area.innerHTML = `<div><div class="display-screen" id="wheel-screen">Крутите колесо удачи</div><div class="bet-control"><span>Ставка:</span><input type="number" id="wheel-bet" value="50"></div></div><button class="btn" onclick="playWheel()">Крутить колесо</button>`;
+                    area.innerHTML = `<div><div class="display-screen" id="wheel-screen"><span style="font-size:2.5rem;">🎯</span><span>Крутите колесо</span></div><div class="bet-control"><span>Ставка:</span><input type="number" id="wheel-bet" value="50"></div></div><button class="btn" onclick="playWheel()">Крутить колесо</button>`;
                     break;
-                case 'poker':
-                    titleEl.innerText = "🎴 Видео Покер";
-                    area.innerHTML = `<div><div class="display-screen" id="poker-screen">🎴 🎴 🎴 🎴 🎴</div><div class="bet-control"><span>Ставка:</span><input type="number" id="poker-bet" value="50"></div></div><button class="btn" onclick="playBalancedGame('poker', [0, 0, 0, 2, 5], ['🃏 Старшая пара', '🔥 Две пары', '👑 Тройка!'])">Раздать карты</button>`;
-                    break;
-                case 'baccarat':
-                    titleEl.innerText = "🏛️ Баккара";
-                    area.innerHTML = `<div><div class="display-screen" id="bacc-screen">Ставка на игрока или банк</div><div style="display:flex; gap:8px; margin-bottom:10px;"><button class="btn" onclick="playBaccarat('player')">Игрок (2x)</button><button class="btn btn-secondary" onclick="playBaccarat('banker')">Банкир (1.9x)</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="bacc-bet" value="50"></div></div>`;
-                    break;
-                case 'keno':
-                    titleEl.innerText = "🎱 Кено";
-                    area.innerHTML = `<div><div class="display-screen" id="keno-screen">Угадайте числа</div><div class="bet-control"><span>Ставка:</span><input type="number" id="keno-bet" value="50"></div></div><button class="btn" onclick="playBalancedGame('keno', [0, 0, 0, 3, 10], ['❌ Мимо', '❌ Мимо', '🎯 Угадано 2 числа (x1.5)', '🔥 Угадано 3 числа (x3)!'])">Розыгрыш Кено</button>`;
-                    break;
-                case 'towers':
-                    titleEl.innerText = "🗼 Башни";
-                    area.innerHTML = `<div><div class="display-screen" id="towers-screen">Поднимайтесь по этажам</div><div class="bet-control"><span>Ставка:</span><input type="number" id="towers-bet" value="50"></div></div><button class="btn" onclick="playBalancedGame('towers', [0, 0, 1.8, 3], ['💥 Обвал!', '🗼 Успешный шаг (x1.8)'])">Шаг вверх</button>`;
-                    break;
-                case 'crypto':
-                    titleEl.innerText = "📈 Крипто-Биржа";
-                    area.innerHTML = `<div><div class="display-screen" id="crypto-screen" style="color:#059669;">BTC: Прогноз курса</div><div class="bet-control"><span>Ставка:</span><input type="number" id="crypto-bet" value="50"></div></div><button class="btn" onclick="playBalancedGame('crypto', [0, 0, 2, 4], ['📉 Тренд вниз', '🚀 Рост актива! (x2)'])">Купить Лонг</button>`;
-                    break;
-                case 'scratch':
-                    titleEl.innerText = "🎟️ Скретч-карта";
-                    area.innerHTML = `<div><div class="display-screen" id="scratch-screen">❓ ❓ ❓</div><div class="bet-control"><span>Ставка:</span><input type="number" id="scratch-bet" value="50"></div></div><button class="btn" onclick="playBalancedGame('scratch', [0, 0, 2, 5], ['🎟️ Пусто', '✨ Найдено совпадение! (x2)'])">Стереть слой</button>`;
-                    break;
-                case 'apple':
-                    titleEl.innerText = "🍎 Яблочный путь";
-                    area.innerHTML = `<div><div class="display-screen" id="apple-screen">Выбирайте яблоко</div><div class="bet-control"><span>Ставка:</span><input type="number" id="apple-bet" value="50"></div></div><button class="btn" onclick="playBalancedGame('apple', [0, 0, 1.7, 3], ['🐛 Червивое яблоко', '🍎 Золотое яблоко! (x1.7)'])">Выбрать яблоко</button>`;
-                    break;
-                case 'cups':
-                    titleEl.innerText = "🥛 Напёрстки";
-                    area.innerHTML = `<div><div class="display-screen" id="cups-screen">Найдите шарик</div><div class="bet-control"><span>Ставка:</span><input type="number" id="cups-bet" value="50"></div></div><button class="btn" onclick="playBalancedGame('cups', [0, 0, 2], ['🥛 Пусто', '🎉 Шарик найден! (x2)'])">Угадать чашку</button>`;
-                    break;
-                case 'stairs':
-                    titleEl.innerText = "🪜 Лесенка";
-                    area.innerHTML = `<div><div class="display-screen" id="stairs-screen">Пройдите ступени</div><div class="bet-control"><span>Ставка:</span><input type="number" id="stairs-bet" value="50"></div></div><button class="btn" onclick="playBalancedGame('stairs', [0, 0, 1.9, 3.5], ['❌ Сорвались', '🪜 Ступень пройдена! (x1.9)'])">Сделать шаг</button>`;
-                    break;
-                case 'football':
-                    titleEl.innerText = "⚽ Пенальти";
-                    area.innerHTML> `<div><div class="display-screen" id="football-screen">Удар по воротам</div><div class="bet-control"><span>Ставка:</span><input type="number" id="football-bet" value="50"></div></div><button class="btn" onclick="playBalancedGame('football', [0, 0, 2], ['❌ Вратарь поймал мяч', '⚽ Гол в девятку! (x2)'])">Пробить пенальти</button>`;
+                default:
+                    titleEl.innerText = "🎮 Мини-игра";
+                    area.innerHTML = `<div><div class="display-screen"><span>✨ Интерактив</span><span>Розыгрыш приза</span></div><div class="bet-control"><span>Ставка:</span><input type="number" id="generic-bet" value="50"></div></div><button class="btn" onclick="playGeneric()">Сделать ход</button>`;
                     break;
             }
         }
 
-        function closeGame() {
-            document.getElementById('game-modal').classList.remove('active');
-        }
+        function closeGame() { document.getElementById('game-modal').classList.remove('active'); }
 
-        // Честный генератор сбалансированных мини-игр (house edge / шанс проигрыша ~50-55%)
-        function playBalancedGame(key, multipliers, messages) {
-            let bet = parseInt(document.getElementById(key + '-bet').value);
-            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
-            balance -= bet; updateBalance();
-            
-            setTimeout(() => {
-                // Вероятности: 50% проигрыш (0), остальное — выигрыш
-                const roll = Math.random();
-                let mult = 0;
-                if (roll > 0.5) {
-                    const winMuls = multipliers.filter(m => m > 0);
-                    mult = winMuls[Math.floor(Math.random() * winMuls.length)];
-                }
-
-                if (mult > 0) {
-                    let prize = Math.floor(bet * mult);
-                    balance += prize;
-                    showToast(`🎉 Выигрыш x${mult}! (+${prize})`);
-                } else {
-                    showToast("😢 Неудача, попробуйте снова!");
-                }
-                updateBalance();
-            }, 300);
-        }
-
+        // Анимированные Слоты
         function playSlots() {
             let bet = parseInt(document.getElementById('slot-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
             const symbols = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
-            const s1 = symbols[Math.floor(Math.random() * symbols.length)];
-            const s2 = symbols[Math.floor(Math.random() * symbols.length)];
-            const s3 = symbols[Math.floor(Math.random() * symbols.length)];
-            document.getElementById('slots-display').innerHTML = `<span>${s1}</span><span>${s2}</span><span>${s3}</span>`;
-            if (s1 === s2 && s2 === s3) {
-                let win = bet * 8; balance += win; showToast(`🎉 ДЖЕКПОТ! +${win}`);
-            } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-                let win = bet * 1.5; balance += win; showToast(`✨ Выигрыш: +${win}`);
-            } else {
-                showToast("😢 Мимо!");
-            }
-            updateBalance();
+            const display = document.getElementById('slots-display');
+            
+            let count = 0;
+            let anim = setInterval(() => {
+                display.innerHTML = `<span>${symbols[Math.floor(Math.random()*symbols.length)]}</span><span>${symbols[Math.floor(Math.random()*symbols.length)]}</span><span>${symbols[Math.floor(Math.random()*symbols.length)]}</span>`;
+                count++;
+                if (count > 10) {
+                    clearInterval(anim);
+                    const s1 = symbols[Math.floor(Math.random() * symbols.length)];
+                    const s2 = symbols[Math.floor(Math.random() * symbols.length)];
+                    const s3 = symbols[Math.floor(Math.random() * symbols.length)];
+                    display.innerHTML = `<span>${s1}</span><span>${s2}</span><span>${s3}</span>`;
+                    if (s1 === s2 && s2 === s3) {
+                        let win = bet * 8; balance += win; showToast(`🎉 ДЖЕКПОТ! +${win}`);
+                    } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+                        let win = Math.floor(bet * 1.5); balance += win; showToast(`✨ Выигрыш: +${win}`);
+                    } else {
+                        showToast("😢 Мимо!");
+                    }
+                    updateBalance();
+                }
+            }, 80);
         }
 
+        // Анимированная Рулетка
         function playRoulette(choice) {
             let bet = parseInt(document.getElementById('roulette-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
             const screen = document.getElementById('roulette-screen');
-            screen.innerText = "🎡 Крутится...";
+            screen.innerHTML = `<span>🎡</span><span>Шарик крутится...</span>`;
             setTimeout(() => {
                 const winColor = Math.random() < 0.5 ? 'red' : 'black';
-                screen.innerText = `Выпало: ${winColor === 'red' ? '🔴 Красное' : '⚫ Черное'}`;
+                screen.innerHTML = `<span>${winColor === 'red' ? '🔴' : '⚫'}</span><span>Выпало: ${winColor === 'red' ? 'Красное' : 'Черное'}</span>`;
                 if (winColor === choice) {
                     let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
                 } else {
                     showToast("😢 Проигрыш");
                 }
                 updateBalance();
-            }, 600);
+            }, 800);
         }
 
+        // Анимированные Кости
         function playDice() {
             let bet = parseInt(document.getElementById('dice-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
-            const d1 = Math.floor(Math.random() * 6) + 1;
-            const d2 = Math.floor(Math.random() * 6) + 1;
-            const sum = d1 + d2;
             const diceChars = ['⚀','⚁','⚂','⚃','⚄','⚅'];
-            document.getElementById('dice-screen').innerText = `${diceChars[d1-1]} ${diceChars[d2-1]} (${sum})`;
-            if (sum > 7) {
-                let win = bet * 2; balance += win; showToast(`🎉 Сумма ${sum}. Победа! +${win}`);
-            } else {
-                showToast(`😢 Сумма ${sum}. Проигрыш.`);
-            }
-            updateBalance();
+            const screen = document.getElementById('dice-screen');
+            screen.innerHTML = `<span style="font-size:2.5rem;">🎲 Бросок...</span>`;
+            setTimeout(() => {
+                const d1 = Math.floor(Math.random() * 6) + 1;
+                const d2 = Math.floor(Math.random() * 6) + 1;
+                const sum = d1 + d2;
+                screen.innerHTML = `<span style="font-size:2.5rem;">${diceChars[d1-1]} ${diceChars[d2-1]}</span><span>Сумма: ${sum}</span>`;
+                if (sum > 7) {
+                    let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
+                } else {
+                    showToast(`😢 Сумма ${sum}. Проигрыш.`);
+                }
+                updateBalance();
+            }, 700);
         }
 
-        let minesActive = false, minePosition = -1, currentMultiplier = 1;
+        // Мины (16 ячеек: 3 бомбы, остальные алмазы)
+        let minesActive = false, minePositions = [], currentMult = 1, openedCount = 0;
         function startMines() {
             let bet = parseInt(document.getElementById('mines-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
-            minesActive = true; minePosition = Math.floor(Math.random() * 12); currentMultiplier = 1.2;
-            document.getElementById('mines-status').innerText = "Выбирайте ячейки!";
-            document.getElementById('mines-start-btn').innerText = "Забрать";
+            minesActive = true; currentMult = 1.2; openedCount = 0;
+            
+            // Генерируем 3 случайные мины из 16
+            minePositions = [];
+            while(minePositions.length < 3) {
+                let r = Math.floor(Math.random() * 16);
+                if(!minePositions.includes(r)) minePositions.push(r);
+            }
+
+            document.getElementById('mines-status').innerText = "Выбирайте ячейки (избегайте бомб!)";
+            document.getElementById('mines-start-btn').innerText = "Забрать выигрыш";
             document.getElementById('mines-start-btn').onclick = cashOutMines;
+            
             const grid = document.getElementById('mines-grid');
             grid.innerHTML = '';
-            for(let i=0; i<12; i++) {
+            for(let i=0; i<16; i++) {
                 const cell = document.createElement('div');
-                cell.className = 'mine-cell'; cell.innerText = '❓';
-                cell.onclick = () => clickMine(i);
+                cell.className = 'mine-cell-16'; cell.innerText = '❓';
+                cell.onclick = () => clickMine16(i);
                 grid.appendChild(cell);
             }
         }
 
-        function clickMine(index) {
+        function clickMine16(index) {
             if (!minesActive) return;
-            const cells = document.getElementsByClassName('mine-cell');
-            if (index === minePosition) {
+            const cells = document.getElementsByClassName('mine-cell-16');
+            if (cells[index].innerText !== '❓') return;
+
+            if (minePositions.includes(index)) {
                 cells[index].innerText = '💥'; cells[index].style.background = '#dc2626';
-                showToast("💥 Мина!"); endMines(false);
+                showToast("💥 Вы подорвались на мине!"); endMines16(false);
             } else {
-                cells[index].innerText = '💎'; cells[index].style.background = '#059669'; cells[index].onclick = null;
-                currentMultiplier += 0.3; showToast(`💎 Множитель: x${currentMultiplier.toFixed(1)}`);
+                cells[index].innerText = '💎'; cells[index].style.background = '#059669';
+                currentMult += 0.4; openedCount++;
+                showToast(`💎 Алмаз! Множитель: x${currentMult.toFixed(1)}`);
+                if(openedCount === 13) { cashOutMines(); } // Открыл все без бомб
             }
         }
 
         function cashOutMines() {
             if (!minesActive) return;
             let bet = parseInt(document.getElementById('mines-bet').value);
-            let win = Math.floor(bet * currentMultiplier);
+            let win = Math.floor(bet * currentMult);
             balance += win; updateBalance();
-            showToast(`🎉 Забрано: +${win}`); endMines(true);
+            showToast(`🎉 Успешно забрано: +${win}`); endMines16(true);
         }
 
-        function endMines(won) {
+        function endMines16(won) {
             minesActive = false;
             document.getElementById('mines-start-btn').innerText = "Начать игру";
             document.getElementById('mines-start-btn').onclick = startMines;
-            if(!won) {
-                const cells = document.getElementsByClassName('mine-cell');
-                if(cells[minePosition]) { cells[minePosition].innerText = '💥'; cells[minePosition].style.background = '#dc2626'; }
-            }
+            const cells = document.getElementsByClassName('mine-cell-16');
+            minePositions.forEach(pos => {
+                if(cells[pos]) { cells[pos].innerText = '💣'; cells[pos].style.background = '#f87171'; }
+            });
         }
 
+        // Монетка
         function playCoin(choice) {
             let bet = parseInt(document.getElementById('coin-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
-            const res = Math.random() < 0.5 ? 'heads' : 'tails';
-            document.getElementById('coin-screen').innerText = res === 'heads' ? '🪙 Орел' : '🪙 Решка';
-            if (res === choice) {
-                let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
+            const screen = document.getElementById('coin-screen');
+            screen.innerHTML = `<span style="font-size:2.5rem;">🪙</span><span>Монетка летит...</span>`;
+            setTimeout(() => {
+                const res = Math.random() < 0.5 ? 'heads' : 'tails';
+                screen.innerHTML = `<span style="font-size:2.5rem;">🪙</span><span>Выпал: ${res === 'heads' ? 'Орел' : 'Решка'}</span>`;
+                if (res === choice) {
+                    let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
+                } else {
+                    showToast("😢 Мимо");
+                }
+                updateBalance();
+            }, 600);
+        }
+
+        // Самолетик (Aviator)
+        let planeInterval = null;
+        function startPlane() {
+            let bet = parseInt(document.getElementById('plane-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
+            balance -= bet; updateBalance();
+            let mult = 1.00;
+            const multEl = document.getElementById('plane-mult');
+            const btn = document.getElementById('plane-btn');
+            document.getElementById('plane-bet-box').style.display = 'none';
+            btn.innerText = "ЗАБРАТЬ КУШ";
+            
+            let flewAway = false, maxMult = (Math.random() * 2.5 + 1.1).toFixed(2);
+            
+            btn.onclick = () => {
+                if (flewAway) return;
+                clearInterval(planeInterval);
+                let win = Math.floor(bet * mult); balance += win; updateBalance();
+                showToast(`🎉 Успешно забрано! +${win}`); resetPlane();
+            };
+
+            planeInterval = setInterval(() => {
+                mult += 0.04;
+                multEl.innerText = mult.toFixed(2) + 'x';
+                if (mult >= maxMult) {
+                    clearInterval(planeInterval); flewAway = true;
+                    multEl.innerText = "УЛЕТЕЛ ✈️💨";
+                    showToast("😢 Самолетик улетел!"); resetPlane();
+                }
+            }, 90);
+        }
+
+        function resetPlane() {
+            const btn = document.getElementById('plane-btn');
+            btn.innerText = "Запустить самолетик"; btn.onclick = startPlane;
+            document.getElementById('plane-bet-box').style.display = 'flex';
+            updateBalance();
+        }
+
+        // Остальные игры (Плинко, Краш, Колесо и т.д.)
+        function playPlinko() {
+            let bet = parseInt(document.getElementById('plinko-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
+            balance -= bet; updateBalance();
+            const mult = [0, 0.5, 1, 2, 4][Math.floor(Math.random() * 5)];
+            let win = Math.floor(bet * mult); balance += win;
+            document.getElementById('plinko-screen').innerHTML = `<span>🔺</span><span>Множитель лунки: x${mult}</span>`;
+            if(mult > 0) showToast(`🎉 Выигрыш: +${win}`); else showToast(`😢 Пустая лунка`);
+            updateBalance();
+        }
+
+        let crashInterval = null;
+        function startCrash() {
+            let bet = parseInt(document.getElementById('crash-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
+            balance -= bet; updateBalance();
+            let mult = 1.00;
+            const valEl = document.getElementById('crash-val');
+            const btn = document.getElementById('crash-btn');
+            document.getElementById('crash-bet-box').style.display = 'none';
+            btn.innerText = "ЗАБРАТЬ";
+            let crashed = false, crashPoint = (Math.random() * 2 + 1.05).toFixed(2);
+            btn.onclick = () => {
+                if (crashed) return;
+                clearInterval(crashInterval);
+                let win = Math.floor(bet * mult); balance += win; updateBalance();
+                showToast(`🎉 Забрано! +${win}`); resetCrash();
+            };
+            crashInterval = setInterval(() => {
+                mult += 0.05; valEl.innerText = mult.toFixed(2) + 'x';
+                if (mult >= crashPoint) {
+                    clearInterval(crashInterval); crashed = true;
+                    valEl.innerText = "💥 CRASHED!"; showToast("💥 Ракета взорвалась!"); resetCrash();
+                }
+            }, 100);
+        }
+
+        function resetCrash() {
+            const btn = document.getElementById('crash-btn');
+            btn.innerText = "Запуск ракеты"; btn.onclick = startCrash;
+            document.getElementById('crash-bet-box').style.display = 'flex';
+            updateBalance();
+        }
+
+        function playWheel() {
+            let bet = parseInt(document.getElementById('wheel-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
+            balance -= bet; updateBalance();
+            const outcomes = [0, 0, 1, 1.5, 2, 4];
+            const mult = outcomes[Math.floor(Math.random() * outcomes.length)];
+            if (mult > 0) {
+                let win = Math.floor(bet * mult); balance += win;
+                document.getElementById('wheel-screen').innerHTML = `<span>🎯</span><span>Сектор: x${mult} (+${win})</span>`;
+                showToast(`🎉 Выигрыш: +${win}`);
             } else {
-                showToast("😢 Мимо");
+                document.getElementById('wheel-screen').innerHTML = `<span>🎯</span><span>Сектор: Нуль</span>`;
+                showToast(`😢 Пустой сектор`);
             }
             updateBalance();
         }
 
-        let hiloCurrentNum = 50;
         function playHilo(guess) {
             let bet = parseInt(document.getElementById('hilo-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
             const nextNum = Math.floor(Math.random() * 100) + 1;
             document.getElementById('hilo-num').innerText = nextNum;
-            let win = (guess === 'high' && nextNum > hiloCurrentNum) || (guess === 'low' && nextNum < hiloCurrentNum);
-            hiloCurrentNum = nextNum;
+            let win = (guess === 'high' && nextNum > 50) || (guess === 'low' && nextNum < 50);
             if (win) {
                 let prize = Math.floor(bet * 1.8); balance += prize; showToast(`🎉 Верно! +${prize}`);
             } else {
                 showToast("😢 Не угадали");
             }
-            updateBalance();
-        }
-
-        function playPlinko() {
-            let bet = parseInt(document.getElementById('plinko-bet').value);
-            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
-            balance -= bet; updateBalance();
-            const mult = [0, 0.5, 1, 1.5, 3][Math.floor(Math.random() * 5)];
-            let win = Math.floor(bet * mult); balance += win;
-            document.getElementById('plinko-screen').innerText = `Множитель x${mult}`;
-            if(mult > 0) showToast(`🎉 Выигрыш: +${win}`);
-            else showToast(`😢 Шар упал в пустую лунку`);
             updateBalance();
         }
 
@@ -691,7 +579,6 @@
             document.getElementById('bj-start-btn').style.display = 'none';
             document.getElementById('bj-actions').style.display = 'flex';
         }
-
         function bjHit() {
             bjState.player += Math.floor(Math.random() * 5) + 2;
             document.getElementById('bj-player').innerText = bjState.player;
@@ -700,7 +587,6 @@
                 showToast("😢 Перебор!"); endBlackjack();
             }
         }
-
         function bjStand() {
             let bet = parseInt(document.getElementById('bj-bet').value);
             document.getElementById('bj-dealer').innerText = bjState.dealer;
@@ -712,7 +598,6 @@
             }
             updateBalance(); endBlackjack();
         }
-
         function endBlackjack() {
             document.getElementById('bj-bet-box').style.display = 'flex';
             document.getElementById('bj-start-btn').style.display = 'block';
@@ -720,72 +605,17 @@
             updateBalance();
         }
 
-        let crashInterval = null;
-        function startCrash() {
-            let bet = parseInt(document.getElementById('crash-bet').value);
-            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
-            balance -= bet; updateBalance();
-            let mult = 1.00;
-            const screen = document.getElementById('crash-screen');
-            const btn = document.getElementById('crash-btn');
-            document.getElementById('crash-bet-box').style.display = 'none';
-            btn.innerText = "ЗАБРАТЬ";
-            let crashed = false, crashPoint = (Math.random() * 2 + 1.05).toFixed(2);
-            btn.onclick = () => {
-                if (crashed) return;
-                clearInterval(crashInterval);
-                let win = Math.floor(bet * mult); balance += win; updateBalance();
-                showToast(`🎉 Забрано! +${win}`); resetCrash();
-            };
-            crashInterval = setInterval(() => {
-                mult += 0.04; screen.innerText = mult.toFixed(2) + 'x';
-                if (mult >= crashPoint) {
-                    clearInterval(crashInterval); crashed = true;
-                    screen.innerText = "💥 CRASHED!"; showToast("💥 Ракета взорвалась!"); resetCrash();
-                }
-            }, 100);
-        }
-
-        function resetCrash() {
-            const btn = document.getElementById('crash-btn');
-            btn.innerText = "Запуск ракеты"; btn.onclick = startCrash;
-            document.getElementById('crash-bet-box').style.display = 'flex';
-            updateBalance();
-        }
-
-        // Фикс Колеса Фортуны: честные сектора с частыми проигрышами
-        function playWheel() {
-            let bet = parseInt(document.getElementById('wheel-bet').value);
-            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
-            balance -= bet; updateBalance();
-            
-            const outcomes = [0, 0, 0, 1, 1.5, 2, 5]; // Больше шансов попасть на 0
-            const mult = outcomes[Math.floor(Math.random() * outcomes.length)];
-            
-            if (mult > 0) {
-                let win = Math.floor(bet * mult);
-                balance += win;
-                document.getElementById('wheel-screen').innerText = `Сектор: x${mult}`;
-                showToast(`🎉 Выигрыш: +${win}`);
-            } else {
-                document.getElementById('wheel-screen').innerText = `Сектор: Бровок/Нуль`;
-                showToast(`😢 Колесо остановилось на пустом секторе`);
-            }
-            updateBalance();
-        }
-
-        function playBaccarat(choice) {
-            let bet = parseInt(document.getElementById('bacc-bet').value);
+        function playGeneric() {
+            let bet = parseInt(document.getElementById('generic-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
             setTimeout(() => {
-                let win = Math.random() > 0.52;
+                let win = Math.random() > 0.45;
                 if (win) {
-                    let prize = Math.floor(bet * 1.9);
-                    balance += prize;
-                    showToast(`🏛️ Баккара выиграна! (+${prize})`);
+                    let prize = Math.floor(bet * 2); balance += prize;
+                    showToast(`🎉 Победа! (+${prize})`);
                 } else {
-                    showToast("😢 Баккара: проигрыш");
+                    showToast("😢 Неудача!");
                 }
                 updateBalance();
             }, 300);
