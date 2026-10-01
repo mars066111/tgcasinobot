@@ -108,7 +108,7 @@
             display: flex; justify-content: space-between; align-items: center; background: #0f0c1b; border-radius: 12px; padding: 8px 12px; margin-top: 10px; border: 2px solid #a855f7;
         }
         .ladder-steps {
-            display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 280px; margin: 0 auto;
+            display: flex; flex-direction: column-reverse; gap: 5px; width: 100%; max-width: 280px; margin: 0 auto;
         }
         .ladder-step {
             background: #231942; border: 1.5px solid #6366f1; border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between;
@@ -180,7 +180,7 @@
         let tg = window.Telegram.WebApp;
         if (tg && tg.expand) tg.expand();
 
-        // СТРОГОЕ ОБНУЛЕНИЕ И ЗАЩИТА БАЛАНСА ДО 1000 ДЛЯ ВСЕХ
+        // СБРОС И ЖЕСТКАЯ ФИКСАЦИЯ БАЛАНСА НА 1000
         let balance = 1000;
         localStorage.setItem('casino_balance', balance);
 
@@ -191,9 +191,9 @@
         let currentGame = '';
         let gameActive = false;
         
-        // Спец-переменные для лесенки
-        let ladderStep = 1;
-        let ladderBet = 0;
+        // Переменные для лесенки
+        let currentLadderStep = 1;
+        let activeLadderBet = 50;
 
         function saveState() {
             localStorage.setItem('casino_balance', balance);
@@ -300,6 +300,7 @@
             }
             else if (game === 'ladder') {
                 title.innerText = "🪜 Лесенка Удачи";
+                currentLadderStep = 1;
                 anim.innerHTML = `<div class="ladder-steps" id="ladderBox">
                     <div class="ladder-step" id="lstep5"><span>Шаг 5 (x5.0)</span><span>Шанс: 25%</span></div>
                     <div class="ladder-step" id="lstep4"><span>Шаг 4 (x3.0)</span><span>Шанс: 40%</span></div>
@@ -356,8 +357,8 @@
                 let el = document.getElementById('lstep' + i);
                 if(!el) continue;
                 el.className = 'ladder-step';
-                if(i < ladderStep) el.classList.add('passed');
-                if(i === ladderStep && gameActive) el.classList.add('current');
+                if(i < currentLadderStep) el.classList.add('passed');
+                if(i === currentLadderStep && gameActive) el.classList.add('current');
             }
         }
 
@@ -578,10 +579,10 @@
                 return;
             }
 
-            // 6. ЛЕСЕНКА (ИСПРАВЛЕНАЯ)
+            // 6. ИСПРАВЛЕННАЯ ЛЕСЕНКА УДАЧИ
             if (currentGame === 'ladder') {
-                ladderStep = 1;
-                ladderBet = bet;
+                currentLadderStep = 1;
+                activeLadderBet = bet;
                 updateLadderView();
 
                 actionBtn.innerText = "ШАГНУТЬ НА ШАГ 2 (x1.5)";
@@ -592,45 +593,46 @@
                 let multipliers = { 1: 1.2, 2: 1.5, 3: 2.0, 4: 3.0, 5: 5.0 };
                 let chances = { 1: 0.85, 2: 0.70, 3: 0.55, 4: 0.40, 5: 0.25 };
 
-                // Кнопка следующего шага
+                // Кнопка шага вверх
                 actionBtn.onclick = function() {
                     if (!gameActive) return;
                     
-                    let chance = chances[ladderStep];
+                    let chance = chances[currentLadderStep];
                     if (Math.random() > chance) {
                         gameActive = false;
-                        alert(`💥 Промах на шаге ${ladderStep}! Вы сорвались с лестницы.`);
+                        alert(`💥 Промах на шаге ${currentLadderStep}! Вы сорвались с лестницы.`);
                         resetButtons();
                         return;
                     }
 
-                    ladderStep++;
+                    currentLadderStep++;
                     updateLadderView();
 
-                    if (ladderStep > 5) {
+                    if (currentLadderStep > 5) {
                         gameActive = false;
-                        let reward = Math.floor(ladderBet * 5.0);
+                        let reward = Math.floor(activeLadderBet * 5.0);
                         balance += reward; saveState(); updateDisplay();
                         alert(`🏆 ПОБЕДА! Вы прошли всю лесенку и сорвали куш: ${reward} монет (x5.0)!`);
                         resetButtons();
                         return;
                     }
 
-                    let nextMult = multipliers[ladderStep];
-                    let prevMult = multipliers[ladderStep - 1];
-                    actionBtn.innerText = ladderStep === 5 ? "СДЕЛАТЬ ФИНАЛЬНЫЙ ШАГ 5 (x5.0)" : `ШАГНУТЬ НА ШАГ ${ladderStep} (x${nextMult})`;
+                    let nextMult = multipliers[currentLadderStep];
+                    let prevMult = multipliers[currentLadderStep - 1];
+                    actionBtn.innerText = currentLadderStep === 5 ? "СДЕЛАТЬ ФИНАЛЬНЫЙ ШАГ 5 (x5.0)" : `ШАГНУТЬ НА ШАГ ${currentLadderStep} (x${nextMult})`;
                     secBtn.innerText = `ЗАБРАТЬ ВЫИГРЫШ (x${prevMult})`;
-                    alert(`✅ Шаг ${ladderStep - 1} успешно пройден! Идем выше.`);
+                    alert(`✅ Шаг ${currentLadderStep - 1} успешно пройден! Идем выше.`);
                 };
 
-                // Кнопка забора накопленного выигрыша
+                // Кнопка забора накопленного выигрыша (исправлен баг с NaN)
                 secBtn.onclick = function() {
                     if (!gameActive) return;
                     gameActive = false;
-                    let currentMult = multipliers[ladderStep - 1];
-                    let reward = Math.floor(ladderBet * currentMult);
+                    let targetStep = currentLadderStep - 1;
+                    let currentMult = multipliers[targetStep] || 1.2;
+                    let reward = Math.floor(activeLadderBet * currentMult);
                     balance += reward; saveState(); updateDisplay();
-                    alert(`🎉 Вы вовремя забрали ${reward} монет на шаге ${ladderStep - 1} (x${currentMult})!`);
+                    alert(`🎉 Вы вовремя забрали ${reward} монет на шаге ${targetStep} (x${currentMult})!`);
                     resetButtons();
                 };
                 return;
