@@ -191,12 +191,6 @@
 
         let savedBalance = localStorage.getItem('casino_balance');
         let balance = savedBalance !== null ? parseInt(savedBalance) : 1000;
-            <script>
-        let tg = window.Telegram.WebApp;
-        if (tg && tg.expand) tg.expand();
-
-        let savedBalance = localStorage.getItem('casino_balance');
-        let balance = savedBalance !== null ? parseInt(savedBalance) : 1000;
 
         const urlParams = new URLSearchParams(window.location.search);
         const bonusAmount = urlParams.get('bonus');
@@ -214,7 +208,6 @@
         }
 
         let bonusEndTime = localStorage.getItem('casino_bonus_end');
-
 
         if (!bonusEndTime) {
             bonusEndTime = Math.floor(Date.now() / 1000) + 60;
