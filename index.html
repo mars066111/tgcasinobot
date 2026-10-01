@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Clash Royale Casino</title>
+    <title>Clash Royale Casino - Full 18 Games Edition</title>
     <style>
         :root {
             --cr-bg: #0b1426;
@@ -213,7 +213,7 @@
             <p>Владелец: @Larp333you — Нажми для связи!</p>
         </a>
 
-        <div class="section-title"><span>Боевая арена (Игры)</span><span>⚔️️ Royale</span></div>
+        <div class="section-title"><span>Боевая арена (Игры)</span><span>⚔ Royale</span></div>
 
         <div class="games-grid">
             <div class="game-card" onclick="openGame('plane')"><div class="icon">✈️</div><div class="title">Самолет</div></div>
@@ -231,7 +231,7 @@
             <div class="game-card" onclick="openGame('goblin_run')"><div class="icon">🏃</div><div class="title">Побег Гоблина</div></div>
             <div class="game-card" onclick="openGame('clash_climb')"><div class="icon">🧗</div><div class="title">Королевский Подъем</div></div>
             <div class="game-card" onclick="openGame('king_coin')"><div class="icon">🪙</div><div class="title">Монета Короля</div></div>
-            <div class="game-card" onclick="openGame('arena_crash')"><div class="icon">🛡️</div><div class="title">Защита Арены</div></div>
+            <div class="game-card" onclick="openGame('arena_crash')"><div class="icon">🛡️️</div><div class="title">Защита Арены</div></div>
             <div class="game-card" onclick="openGame('royal_poker')"><div class="icon">🃏</div><div class="title">Королевский Покер</div></div>
             <div class="game-card" onclick="openGame('magic_portal')"><div class="icon">🌀</div><div class="title">Магический Портал</div></div>
         </div>
@@ -249,17 +249,15 @@
     <div id="toast">Уведомление</div>
 
     <script>
-        if (!localStorage.getItem('balance_reset_royale_v18')) {
+        if (!localStorage.getItem('balance_reset_royale_v20')) {
             localStorage.setItem('casino_balance', '1000');
-            localStorage.setItem('balance_reset_royale_v18', 'true');
+            localStorage.setItem('balance_reset_royale_v20', 'true');
         }
 
         let balance = localStorage.getItem('casino_balance') !== null ? parseInt(localStorage.getItem('casino_balance')) : 1000;
         const balanceEl = document.getElementById('user-balance');
         
-        window.addEventListener('DOMContentLoaded', () => { 
-            updateBalance(); 
-        });
+        window.addEventListener('DOMContentLoaded', () => { updateBalance(); });
 
         function updateBalance() { 
             balanceEl.innerText = balance; 
@@ -294,41 +292,356 @@
             if (gameKey === 'night_battle') {
                 titleEl.innerText = "🌙 Ночной Бой";
                 area.innerHTML = `<div>
-                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; color:var(--text-muted);">Сражайтесь под покровом ночи на арене!</div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; color:var(--text-muted);">Сражайтесь под покровом ночи на ночной арене короля!</div>
                     <div class="bet-control"><span>Ставка:</span><input type="number" id="night-bet" value="50"></div>
-                </div><button class="btn btn-red" onclick="showToast('🌙 Победа в ночном бою! +100 фишек')">В бой</button>`;
+                </div><button class="btn btn-red" onclick="playNightBattleLogic()">Вступить в бой</button>`;
                 return;
             }
 
-            // Стандартные и новые игры (16 штук)
-            const gameTitles = {
-                'cases': '📦 Сундуки',
-                'towers': '🗼 Башни',
-                'mines': '💣 Мины',
-                'slots': '🎰 Слоты 777',
-                'dice': '🎲 Кубики Судьбы',
-                'wheel': '🎡 Колесо Фортуны',
-                'duel': '⚔️ Дуэль Башен',
-                'archery': '🏹 Лучный Тир',
-                'spell': '⚡ Заклинание Молнии',
-                'dragon': '🐉 Логово Дракона',
-                'goblin_run': '🏃 Побег Гоблина',
-                'clash_climb': '🧗 Королевский Подъем',
-                'king_coin': '🪙 Монета Короля',
-                'arena_crash': '🛡️ Защита Арены',
-                'royal_poker': '🃏 Королевский Покер',
-                'magic_portal': '🌀 Магический Портал'
-            };
+            if (gameKey === 'cases') {
+                titleEl.innerText = "📦 Сундуки";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:25px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:3rem;" id="case-box-view">🎁</div>
+                    <div class="bet-control"><span>Цена:</span><input type="number" id="cases-bet" value="50"></div>
+                </div><button class="btn" onclick="playCasesLogic()">Открыть сундук</button>`;
+                return;
+            }
 
-            titleEl.innerText = gameTitles[gameKey] || 'Игра';
-            area.innerHTML = `<div>
-                <div style="background:#050b14; border-radius:12px; padding:25px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.5rem;">🎮</div>
-                <div class="bet-control"><span>Ставка:</span><input type="number" id="generic-bet" value="50"></div>
-            </div><button class="btn" onclick="showToast('Игра успешно завершена!')">Играть</button>`;
+            if (gameKey === 'towers') {
+                titleEl.innerText = "🗼 Башни";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; color:var(--text-muted);" id="tower-status">Этаж: 1 (Множитель: 1.5x)</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="towers-bet" value="50"></div>
+                </div><button class="btn btn-red" onclick="playTowersLogic()">Шагнуть наверх</button>`;
+                return;
+            }
+
+            if (gameKey === 'mines') {
+                titleEl.innerText = "💣 Мины";
+                area.innerHTML = `<div>
+                    <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; margin:6px 0;" id="mines-grid">
+                        ${Array(25).fill(0).map(() => `<div style="background:#1e293b; border:1px solid #334155; aspect-ratio:1; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:0.8rem;">🛡️</div>`).join('')}
+                    </div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="mines-bet" value="50"></div>
+                </div><button class="btn btn-red" onclick="playMinesLogic()">Подорвать поле</button>`;
+                return;
+            }
+
+            if (gameKey === 'slots') {
+                titleEl.innerText = "🎰 Слоты 777";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2rem;" id="slot-reels">👑 | 🪙 | 💎</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="slots-bet" value="50"></div>
+                </div><button class="btn" onclick="playSlotsLogic()">Крутить слот</button>`;
+                return;
+            }
+
+            if (gameKey === 'dice') {
+                titleEl.innerText = "🎲 Кубики Судьбы";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.2rem;" id="dice-view">🎲 ⚅ : ⚂</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="dice-bet" value="50"></div>
+                </div><button class="btn" onclick="playDiceLogic()">Бросить кости</button>`;
+                return;
+            }
+
+            if (gameKey === 'wheel') {
+                titleEl.innerText = "🎡 Колесо Фортуны";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.5rem;" id="wheel-view">🎡</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="wheel-bet" value="50"></div>
+                </div><button class="btn" onclick="playWheelLogic()">Вращать колесо</button>`;
+                return;
+            }
+
+            if (gameKey === 'duel') {
+                titleEl.innerText = "⚔️ Дуэль Башен";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.2rem;">🛡️ VS 👺</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="duel-bet" value="50"></div>
+                </div><button class="btn btn-red" onclick="playDuelLogic()">Начать дуэль</button>`;
+                return;
+            }
+
+            if (gameKey === 'archery') {
+                titleEl.innerText = "🏹 Лучный Тир";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.2rem;">🎯</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="archery-bet" value="50"></div>
+                </div><button class="btn" onclick="playArcheryLogic()">Стрельнуть</button>`;
+                return;
+            }
+
+            if (gameKey === 'spell') {
+                titleEl.innerText = "⚡ Заклинание Молнии";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.2rem;">⚡🌩️</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="spell-bet" value="50"></div>
+                </div><button class="btn" onclick="playSpellLogic()">Ударить молнией</button>`;
+                return;
+            }
+
+            if (gameKey === 'dragon') {
+                titleEl.innerText = "🐉 Логово Дракона";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.2rem;">🐉🔥</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="dragon-bet" value="50"></div>
+                </div><button class="btn btn-red" onclick="playDragonLogic()">Взглянуть дракону в глаза</button>`;
+                return;
+            }
+
+            if (gameKey === 'goblin_run') {
+                titleEl.innerText = "🏃 Побег Гоблина";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.2rem;">🏃💨</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="goblin_run-bet" value="50"></div>
+                </div><button class="btn" onclick="playGoblinRunLogic()">Бежать!</button>`;
+                return;
+            }
+
+            if (gameKey === 'clash_climb') {
+                titleEl.innerText = "🧗 Королевский Подъем";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.2rem;">🧗‍♂️️</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="clash_climb-bet" value="50"></div>
+                </div><button class="btn" onclick="playClimbLogic()">Карабкаться</button>`;
+                return;
+            }
+
+            if (gameKey === 'king_coin') {
+                titleEl.innerText = "🪙 Монета Короля";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.5rem;" id="coin-view">🪙</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="king_coin-bet" value="50"></div>
+                </div><button class="btn" onclick="playCoinLogic()">Подбросить монету</button>`;
+                return;
+            }
+
+            if (gameKey === 'arena_crash') {
+                titleEl.innerText = "🛡️ Защита Арены";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.2rem;">🏰⚔️</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="arena_crash-bet" value="50"></div>
+                </div><button class="btn btn-red" onclick="playArenaCrashLogic()">Отразить волну</button>`;
+                return;
+            }
+
+            if (gameKey === 'royal_poker') {
+                titleEl.innerText = "🃏 Королевский Покер";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2rem;">🂡 🂮 🂭 🂫 🂪</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="royal_poker-bet" value="50"></div>
+                </div><button class="btn" onclick="playPokerLogic()">Сдать карты</button>`;
+                return;
+            }
+
+            if (gameKey === 'magic_portal') {
+                titleEl.innerText = "🌀 Магический Портал";
+                area.innerHTML = `<div>
+                    <div style="background:#050b14; border-radius:12px; padding:20px; border:2px solid #7f1d1d; margin-bottom:8px; text-align:center; font-size:2.2rem;">🌀✨</div>
+                    <div class="bet-control"><span>Ставка:</span><input type="number" id="magic_portal-bet" value="50"></div>
+                </div><button class="btn" onclick="playPortalLogic()">Войти в портал</button>`;
+                return;
+            }
         }
 
         function closeGame() { document.getElementById('game-modal').classList.remove('active'); }
 
+        // Индивидуальная уникальная логика для каждой игры
+        function playNightBattleLogic() {
+            let bet = parseInt(document.getElementById('night-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.1);
+                balance += win; updateBalance();
+                showToast(`🌙 Победа в ночном бою! +${win}`);
+            }, 500);
+        }
+
+        function playCasesLogic() {
+            let bet = parseInt(document.getElementById('cases-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
+            balance -= bet; updateBalance();
+            document.getElementById('case-box-view').innerText = "✨📦✨";
+            setTimeout(() => {
+                let win = Math.floor(bet * (Math.random() > 0.4 ? 2.0 : 0.5));
+                balance += win; updateBalance();
+                document.getElementById('case-box-view').innerText = "🎁";
+                showToast(`📦 Сундук открыт! Выигрыш: +${win}`);
+            }, 600);
+        }
+
+        function playTowersLogic() {
+            let bet = parseInt(document.getElementById('towers-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 1.8);
+                balance += win; updateBalance();
+                showToast(`🗼 Этаж пройден! +${win}`);
+            }, 400);
+        }
+
+        function playMinesLogic() {
+            let bet = parseInt(document.getElementById('mines-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.2);
+                balance += win; updateBalance();
+                showToast(`💣 Успешный сапер! +${win}`);
+            }, 500);
+        }
+
+        function playSlotsLogic() {
+            let bet = parseInt(document.getElementById('slots-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            let symbols = ['👑', '🪙', '💎', '⚔️', '🛡️'];
+            document.getElementById('slot-reels').innerText = `${symbols[Math.floor(Math.random()*symbols.length)]} | ${symbols[Math.floor(Math.random()*symbols.length)]} | ${symbols[Math.floor(Math.random()*symbols.length)]}`;
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.5);
+                balance += win; updateBalance();
+                showToast(`🎰 Джекпот слотов! +${win}`);
+            }, 500);
+        }
+
+        function playDiceLogic() {
+            let bet = parseInt(document.getElementById('dice-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.0);
+                balance += win; updateBalance();
+                showToast(`🎲 Бросок успешен! +${win}`);
+            }, 400);
+        }
+
+        function playWheelLogic() {
+            let bet = parseInt(document.getElementById('wheel-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.0);
+                balance += win; updateBalance();
+                showToast(`🎡 Колесо принесло: +${win}`);
+            }, 500);
+        }
+
+        function playDuelLogic() {
+            let bet = parseInt(document.getElementById('duel-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.0);
+                balance += win; updateBalance();
+                showToast(`⚔️ Дуэль выиграна! +${win}`);
+            }, 500);
+        }
+
+        function playArcheryLogic() {
+            let bet = parseInt(document.getElementById('archery-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 1.9);
+                balance += win; updateBalance();
+                showToast(`🏹 Точно в яблочко! +${win}`);
+            }, 400);
+        }
+
+        function playSpellLogic() {
+            let bet = parseInt(document.getElementById('spell-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.1);
+                balance += win; updateBalance();
+                showToast(`⚡ Молния поразила цель! +${win}`);
+            }, 400);
+        }
+
+        function playDragonLogic() {
+            let bet = parseInt(document.getElementById('dragon-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.4);
+                balance += win; updateBalance();
+                showToast(`🐉 Клад дракона ваш! +${win}`);
+            }, 500);
+        }
+
+        function playGoblinRunLogic() {
+            let bet = parseInt(document.getElementById('goblin_run-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 1.8);
+                balance += win; updateBalance();
+                showToast(`🏃 Побег удался! +${win}`);
+            }, 400);
+        }
+
+        function playClimbLogic() {
+            let bet = parseInt(document.getElementById('clash_climb-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.0);
+                balance += win; updateBalance();
+                showToast(`🧗 Подъем завершен! +${win}`);
+            }, 400);
+        }
+
+        function playCoinLogic() {
+            let bet = parseInt(document.getElementById('king_coin-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            document.getElementById('coin-view').innerText = "🌀🪙🌀";
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.0);
+                balance += win; updateBalance();
+                document.getElementById('coin-view').innerText = "🪙";
+                showToast(`🪙 Орел! Выигрыш: +${win}`);
+            }, 500);
+        }
+
+        function playArenaCrashLogic() {
+            let bet = parseInt(document.getElementById('arena_crash-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.2);
+                balance += win; updateBalance();
+                showToast(`🛡️ Волна отражена! +${win}`);
+            }, 500);
+        }
+
+        function playPokerLogic() {
+            let bet = parseInt(document.getElementById('royal_poker-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.3);
+                balance += win; updateBalance();
+                showToast(`🃏 Отличная комбинация! +${win}`);
+            }, 500);
+        }
+
+        function playPortalLogic() {
+            let bet = parseInt(document.getElementById('magic_portal-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Ошибка ставки!"); return; }
+            balance -= bet; updateBalance();
+            setTimeout(() => {
+                let win = Math.floor(bet * 2.1);
+                balance += win; updateBalance();
+                showToast(`🌀 Портал покорен! +${win}`);
+            }, 500);
+        }
+
+        // Логика Авиатора (Самолета)
         let planeInterval = null, currentPlaneMult = 1.00;
         let planeCanvas, planeCtx;
 
