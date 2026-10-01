@@ -104,7 +104,7 @@
 
     <div class="casino-header">
         <h1>⚡ VIP CASINO ⚡</h1>
-        <div class="balance-container" id="balance">🪙 1019</div>
+        <div class="balance-container" id="balance">🪙 0</div>
         <div class="bonus-info" id="timerText">Загрузка бонуса...</div>
         <button class="btn-bonus" onclick="claimBonus()">🎁 ЗАБРАТЬ БОНУС (+200)</button>
     </div>
@@ -174,15 +174,15 @@
         let tg = window.Telegram.WebApp;
         if (tg && tg.expand) tg.expand();
 
+        // Обнулен дефолтный баланс до 0
         let balance = localStorage.getItem('casino_balance');
-        balance = balance === null ? 1019 : parseInt(balance);
+        balance = balance === null ? 0 : parseInt(balance);
 
-        // --- ИСПРАВЛЕНИЕ ТАЙМЕРА БОНУСА (не сбрасывается при обновлении) ---
+        // Таймер бонуса с защитой от сброса
         let bonusEndTime = localStorage.getItem('casino_bonus_end');
         let nowSec = Math.floor(Date.now() / 1000);
         
         if (!bonusEndTime || parseInt(bonusEndTime) < nowSec) {
-            // Если бонуса не было или время вышло
             bonusEndTime = nowSec + 474; // 7 минут 54 секунды
             localStorage.setItem('casino_bonus_end', bonusEndTime);
         }
@@ -191,9 +191,22 @@
         let currentGame = '';
         let playerActed = false; // Защита от дюпа денег
 
+        // Автосинхронизация интерфейса при изменении хранилища (автообновление)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'casino_balance') {
+                balance = event.newValue !== null ? parseInt(event.newValue) : 0;
+                updateDisplay();
+            }
+            if (event.key === 'casino_bonus_end') {
+                bonusEndTime = event.newValue;
+            }
+        });
+
+        // Главный тик таймера
         setInterval(() => {
             let currentSec = Math.floor(Date.now() / 1000);
-            let diff = parseInt(localStorage.getItem('casino_bonus_end')) - currentSec;
+            let storedEnd = localStorage.getItem('casino_bonus_end');
+            let diff = storedEnd ? parseInt(storedEnd) - currentSec : 0;
             let btn = document.querySelector('.btn-bonus');
             let timerTxt = document.getElementById('timerText');
 
@@ -216,7 +229,7 @@
             balance += 200;
             let newEnd = Math.floor(Date.now() / 1000) + 480; // 8 минут
             localStorage.setItem('casino_bonus_end', newEnd);
-            saveState();
+            localStorage.setItem('casino_balance', balance); // Триггерит storage event
             updateDisplay();
             alert('🎁 Бонус успешно получен (+200 монет)!');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
@@ -225,6 +238,9 @@
         function updateDisplay() {
             document.getElementById('balance').innerText = `🪙 ${balance}`;
         }
+
+        // Первичный вывод баланса при загрузке
+        updateDisplay();
 
         function resetButtons() {
             let actionBtn = document.getElementById('actionBtn');
@@ -239,7 +255,7 @@
 
         function openGame(game) {
             currentGame = game;
-            playerActed = false; // Сбрасываем флаг при открытии новой игры
+            playerActed = false;
             if (activeInterval) { clearInterval(activeInterval); activeInterval = null; }
 
             let title = document.getElementById('modalTitle');
@@ -250,58 +266,58 @@
             resetButtons();
 
             if (game === 'crash') {
-                title.innerText = "✈️️ Самолётик (Crash)";
+                title.innerText = "✈ Самолётик (Crash)";
                 anim.innerHTML = `<canvas id="crashCanvas" width="350" height="170" style="background:#090714; border-radius:16px; border: 2px solid #6366f1;"></canvas>`;
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100" min="1"></div><div id="crashStatus" style="font-size: 14px; color: #38bdf8; font-weight: bold; margin-bottom: 6px;">Нажмите старт для полёта</div>`;
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div id="crashStatus" style="font-size: 14px; color: #38bdf8; font-weight: bold; margin-bottom: 6px;">Нажмите старт для полёта</div>`;
                 actionBtn.innerText = "Запустить полёт";
                 initCrashCanvas(1.00, false);
             } 
             else if (game === 'mines') {
                 title.innerText = "💣 Поле Мин";
                 anim.innerHTML = `<div class="mines-grid" id="minesGrid"></div><div class="mines-footer"><span style="font-size:13px; color:#38bdf8;">💎 Кристаллы: <b id="gemCount">22</b></span><span style="font-size:13px; color:#ef4444;">💣 Мины: <b id="bombCountDisplay">3</b></span></div>`;
-                body.innerHTML = `<div class="controls-group" style="margin-top:10px;"><label>Ставка:</label><input type="number" id="bet" value="100" min="1"></div><div class="controls-group"><label>Количество мин:</label><select id="minesCountSelect" onchange="updateMinesCountLabel()"><option value="1">1 мина (x1.13)</option><option value="3" selected>3 мины (x1.64)</option><option value="5">5 мин (x2.48)</option></select></div>`;
+                body.innerHTML = `<div class="controls-group" style="margin-top:10px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Количество мин:</label><select id="minesCountSelect" onchange="updateMinesCountLabel()"><option value="1">1 мина (x1.13)</option><option value="3" selected>3 мины (x1.64)</option><option value="5">5 мин (x2.48)</option></select></div>`;
                 actionBtn.innerText = "Начать игру";
                 renderMinesPreview();
             }
             else if (game === 'racing') {
                 title.innerText = "🏎 Ночной Стритрейсинг";
                 anim.innerHTML = `<canvas id="racingCanvas" width="350" height="170" style="background:#090714; border-radius:16px; border: 2px solid #0284c7;"></canvas>`;
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100" min="1"></div><div class="controls-group"><label>Выбор болида:</label><select id="racerChoice"><option value="1">🔴 Красный (x2.0)</option><option value="2">🔵 Синий (x2.5)</option></select></div>`;
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Выбор болида:</label><select id="racerChoice"><option value="1">🔴 Красный (x2.0)</option><option value="2">🔵 Синий (x2.5)</option></select></div>`;
                 actionBtn.innerText = "Старт гонки";
                 initRacingCanvas(0, 0, 0, false);
             }
             else if (game === 'fishing') {
                 title.innerText = "🎣 Золотая Рыбалка";
                 anim.innerHTML = `<canvas id="fishingCanvas" width="350" height="170" style="background:#090714; border-radius:16px; border: 2px solid #eab308;"></canvas>`;
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100" min="1"></div>`;
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
                 actionBtn.innerText = "Забросить удочку";
                 initFishingCanvas("idle");
             }
             else if (game === 'balloon') {
                 title.innerText = "🎈 Воздушный Шар";
                 anim.innerHTML = `<canvas id="balloonCanvas" width="350" height="170" style="background:#090714; border-radius:16px; border: 2px solid #ec4899;"></canvas>`;
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100" min="1"></div>`;
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
                 actionBtn.innerText = "Начать надувать шар";
                 initBalloonCanvas(25, 1.00);
             }
             else if (game === 'knockout') {
                 title.innerText = "🥊 Ночной Нокаут";
                 anim.innerHTML = `<canvas id="knockoutCanvas" width="350" height="170" style="background:#090714; border-radius:16px; border: 2px solid #f97316;"></canvas>`;
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100" min="1"></div><div class="controls-group"><label>Тип удара:</label><select id="punchType"><option value="1">Быстрый джеб (x1.8)</option><option value="2">Мощный хук (x2.8)</option></select></div>`;
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Тип удара:</label><select id="punchType"><option value="1">Быстрый джеб (x1.8)</option><option value="2">Мощный хук (x2.8)</option></select></div>`;
                 actionBtn.innerText = "Нанести удар";
                 initKnockoutCanvas("idle");
             }
             else if (game === 'crypto') {
                 title.innerText = "📈 Крипто-Биржа";
                 anim.innerHTML = `<canvas id="cryptoCanvas" width="350" height="170" style="background:#090714; border-radius:16px; border: 2px solid #9333ea;"></canvas>`;
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100" min="1"></div>`;
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
                 actionBtn.innerText = "Открыть сделку";
                 initCryptoCanvas(1.00, false);
             }
             else if (game === 'wheel') {
                 title.innerText = "🎡 Колесо Фортуны";
                 anim.innerHTML = `<div id="wheelBox" style="font-size:38px; font-weight:bold; color:#fde047; padding:30px;">🎡 [ ? ]</div>`;
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="100" min="1"></div>`;
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
                 actionBtn.innerText = "Крутить колесо";
             }
 
@@ -340,7 +356,7 @@
             let endY = 140 - progress * 95;
             ctx.strokeStyle = isCrashed ? '#ef4444' : '#38bdf8'; ctx.lineWidth = 4;
             ctx.beginPath(); ctx.moveTo(20, 140); ctx.quadraticCurveTo(120, 140, endX, endY); ctx.stroke();
-            ctx.font = '26px Arial'; ctx.fillText(isCrashed ? '💥' : '✈️️', endX - 12, endY + 10);
+            ctx.font = '26px Arial'; ctx.fillText(isCrashed ? '💥' : '✈', endX - 12, endY + 10);
             ctx.fillStyle = isCrashed ? '#ef4444' : '#fde047'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center';
             ctx.fillText(mult.toFixed(2) + 'x', canvas.width / 2, 45);
             if (textStatus) { ctx.fillStyle = '#ffffff'; ctx.font = 'bold 13px Arial'; ctx.fillText(textStatus, canvas.width / 2, 155); }
@@ -405,18 +421,18 @@
             if(text) { ctx.fillStyle = '#fff'; ctx.font = 'bold 14px Arial'; ctx.fillText(text, canvas.width/2, 140); }
         }
 
-        // --- ГЛАВНАЯ ИГРОВАЯ ЛОГИКА И АНТИ-ДЮП ЗАЩИТА ---
+        // --- ИГРОВАЯ ЛОГИКА И ЗАЩИТА ОТ ДЮПА ---
         function executeGame() {
             let bet = parseInt(document.getElementById('bet').value);
             if (isNaN(bet) || bet <= 0) { alert('⚠️ Введите корректную ставку!'); return; }
-            if (balance < bet) { alert('❌ Недостаточно средств!'); return; }
+            if (balance < bet) { alert('❌ Недостаточно средств! Пополните баланс или заберите бонус.'); return; }
 
             let actionBtn = document.getElementById('actionBtn');
             let secBtn = document.getElementById('secondaryBtn');
 
-            // Списываем ставку
+            // Списываем ставку и обновляем хранилище (автообновление)
             balance -= bet; saveState(); updateDisplay();
-            playerActed = true; // Фиксируем, что игрок совершил реальное действие (сделал ставку и начал игру)
+            playerActed = true; 
 
             if (currentGame === 'crash') {
                 actionBtn.disabled = true;
@@ -428,7 +444,7 @@
                 actionBtn.disabled = false;
                 
                 actionBtn.onclick = function() {
-                    if (!playerActed) return; // Защита от моментального клика
+                    if (!playerActed) return;
                     clearInterval(activeInterval);
                     let winSum = Math.floor(bet * mult);
                     balance += winSum; saveState(); updateDisplay();
