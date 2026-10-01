@@ -108,12 +108,14 @@
             display: flex; justify-content: space-between; align-items: center; background: #0f0c1b; border-radius: 12px; padding: 8px 12px; margin-top: 10px; border: 2px solid #a855f7;
         }
         .ladder-steps {
-            display: flex; flex-direction: column-reverse; gap: 5px; width: 100%; max-width: 260px; margin: 0 auto;
+            display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 280px; margin: 0 auto;
         }
         .ladder-step {
-            background: #231942; border: 1.5px solid #6366f1; border-radius: 8px; padding: 8px; font-size: 12px; font-weight: bold; display: flex; justify-content: space-between;
+            background: #231942; border: 1.5px solid #6366f1; border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between;
+            color: #94a3b8;
         }
-        .ladder-step.active { background: #7c3aed; border-color: #fde047; box-shadow: 0 0 10px rgba(253,224,71,0.5); }
+        .ladder-step.current { background: #7c3aed; border-color: #fde047; color: #fff; box-shadow: 0 0 15px rgba(253,224,71,0.6); }
+        .ladder-step.passed { background: #10b981; border-color: #34d399; color: #fff; }
     </style>
 </head>
 <body>
@@ -178,7 +180,7 @@
         let tg = window.Telegram.WebApp;
         if (tg && tg.expand) tg.expand();
 
-        // СБРОС БАЛАНСОВ ДО 1000
+        // СТРОГОЕ ОБНУЛЕНИЕ И ЗАЩИТА БАЛАНСА ДО 1000 ДЛЯ ВСЕХ
         let balance = 1000;
         localStorage.setItem('casino_balance', balance);
 
@@ -188,6 +190,10 @@
         let activeInterval = null;
         let currentGame = '';
         let gameActive = false;
+        
+        // Спец-переменные для лесенки
+        let ladderStep = 1;
+        let ladderBet = 0;
 
         function saveState() {
             localStorage.setItem('casino_balance', balance);
@@ -295,14 +301,14 @@
             else if (game === 'ladder') {
                 title.innerText = "🪜 Лесенка Удачи";
                 anim.innerHTML = `<div class="ladder-steps" id="ladderBox">
-                    <div class="ladder-step" data-step="5"><span>Шаг 5 (x5.0)</span><span>Шанс: 25%</span></div>
-                    <div class="ladder-step" data-step="4"><span>Шаг 4 (x3.0)</span><span>Шанс: 40%</span></div>
-                    <div class="ladder-step" data-step="3"><span>Шаг 3 (x2.0)</span><span>Шанс: 55%</span></div>
-                    <div class="ladder-step" data-step="2"><span>Шаг 2 (x1.5)</span><span>Шанс: 70%</span></div>
-                    <div class="ladder-step active" data-step="1"><span>Шаг 1 (x1.2)</span><span>Шанс: 85%</span></div>
+                    <div class="ladder-step" id="lstep5"><span>Шаг 5 (x5.0)</span><span>Шанс: 25%</span></div>
+                    <div class="ladder-step" id="lstep4"><span>Шаг 4 (x3.0)</span><span>Шанс: 40%</span></div>
+                    <div class="ladder-step" id="lstep3"><span>Шаг 3 (x2.0)</span><span>Шанс: 55%</span></div>
+                    <div class="ladder-step" id="lstep2"><span>Шаг 2 (x1.5)</span><span>Шанс: 70%</span></div>
+                    <div class="ladder-step current" id="lstep1"><span>Шаг 1 (x1.2)</span><span>Шанс: 85%</span></div>
                 </div>`;
                 body.innerHTML = `<div class="controls-group" style="margin-top:8px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
-                actionBtn.innerText = "Сделать шаг вверх";
+                actionBtn.innerText = "Начать лесенку";
             }
 
             document.getElementById('gameModal').style.display = 'flex';
@@ -345,9 +351,20 @@
             if (textStatus) { ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px Arial'; ctx.fillText(textStatus, canvas.width / 2, 128); }
         }
 
+        function updateLadderView() {
+            for(let i=1; i<=5; i++) {
+                let el = document.getElementById('lstep' + i);
+                if(!el) continue;
+                el.className = 'ladder-step';
+                if(i < ladderStep) el.classList.add('passed');
+                if(i === ladderStep && gameActive) el.classList.add('current');
+            }
+        }
+
         // --- ИГРОВАЯ ЛОГИКА ---
         function executeGame() {
-            let bet = parseInt(document.getElementById('bet').value);
+            let betInput = document.getElementById('bet');
+            let bet = parseInt(betInput.value);
             if (isNaN(bet) || bet <= 0) { alert('⚠️ Введите корректную ставку!'); return; }
             if (balance < bet) { alert('❌ Недостаточно средств!'); return; }
 
@@ -368,7 +385,6 @@
                 let openedCount = 0;
                 let grid = document.getElementById('minesGrid');
                 grid.innerHTML = '';
-                
                 let baseMult = 1.0 + (mCount * 0.15);
 
                 for(let i = 0; i < 25; i++) {
@@ -562,50 +578,59 @@
                 return;
             }
 
-            // 6. ЛЕСЕНКА
+            // 6. ЛЕСЕНКА (ИСПРАВЛЕНАЯ)
             if (currentGame === 'ladder') {
-                actionBtn.disabled = true;
-                let currentStep = 1;
-                let multipliers = { 1: 1.2, 2: 1.5, 3: 2.0, 4: 3.0, 5: 5.0 };
-                let chances = { 1: 0.85, 2: 0.70, 3: 0.55, 4: 0.40, 5: 0.25 };
+                ladderStep = 1;
+                ladderBet = bet;
+                updateLadderView();
 
                 actionBtn.innerText = "ШАГНУТЬ НА ШАГ 2 (x1.5)";
                 secBtn.style.display = 'block';
-                secBtn.style.background = "linear-gradient(135deg, #22c55e, #16a34a)";
-                secBtn.innerText = "ЗАБРАТЬ ВЫИГРЫШ";
+                secBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+                secBtn.innerText = "ЗАБРАТЬ ВЫИГРЫШ (x1.2)";
 
+                let multipliers = { 1: 1.2, 2: 1.5, 3: 2.0, 4: 3.0, 5: 5.0 };
+                let chances = { 1: 0.85, 2: 0.70, 3: 0.55, 4: 0.40, 5: 0.25 };
+
+                // Кнопка следующего шага
                 actionBtn.onclick = function() {
-                    if(!gameActive) return;
-                    let chance = chances[currentStep];
+                    if (!gameActive) return;
+                    
+                    let chance = chances[ladderStep];
                     if (Math.random() > chance) {
                         gameActive = false;
-                        alert(`💥 Промах на шаге ${currentStep}! Вы сорвались с лестницы.`);
+                        alert(`💥 Промах на шаге ${ladderStep}! Вы сорвались с лестницы.`);
                         resetButtons();
                         return;
                     }
 
-                    currentStep++;
-                    if (currentStep > 5) {
+                    ladderStep++;
+                    updateLadderView();
+
+                    if (ladderStep > 5) {
                         gameActive = false;
-                        let reward = Math.floor(bet * 5.0);
+                        let reward = Math.floor(ladderBet * 5.0);
                         balance += reward; saveState(); updateDisplay();
-                        alert(`🏆 ПОБЕДА! Вы прошли всю лестницу и забрали ${reward} монет (x5.0)!`);
+                        alert(`🏆 ПОБЕДА! Вы прошли всю лесенку и сорвали куш: ${reward} монет (x5.0)!`);
                         resetButtons();
                         return;
                     }
 
-                    let nextMult = multipliers[currentStep];
-                    actionBtn.innerText = `ШАГНУТЬ НА ШАГ ${currentStep} (x${nextMult})`;
-                    alert(`✅ Шаг ${currentStep - 1} пройден! Идем дальше.`);
+                    let nextMult = multipliers[ladderStep];
+                    let prevMult = multipliers[ladderStep - 1];
+                    actionBtn.innerText = ladderStep === 5 ? "СДЕЛАТЬ ФИНАЛЬНЫЙ ШАГ 5 (x5.0)" : `ШАГНУТЬ НА ШАГ ${ladderStep} (x${nextMult})`;
+                    secBtn.innerText = `ЗАБРАТЬ ВЫИГРЫШ (x${prevMult})`;
+                    alert(`✅ Шаг ${ladderStep - 1} успешно пройден! Идем выше.`);
                 };
 
+                // Кнопка забора накопленного выигрыша
                 secBtn.onclick = function() {
-                    if(!gameActive) return;
+                    if (!gameActive) return;
                     gameActive = false;
-                    let lastMult = multipliers[currentStep - 1];
-                    let reward = Math.floor(bet * lastMult);
+                    let currentMult = multipliers[ladderStep - 1];
+                    let reward = Math.floor(ladderBet * currentMult);
                     balance += reward; saveState(); updateDisplay();
-                    alert(`🎉 Вы забрали ${reward} монет на шаге ${currentStep - 1}!`);
+                    alert(`🎉 Вы вовремя забрали ${reward} монет на шаге ${ladderStep - 1} (x${currentMult})!`);
                     resetButtons();
                 };
                 return;
