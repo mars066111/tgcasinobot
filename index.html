@@ -100,7 +100,6 @@
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); border: 1.5px solid rgba(255,255,255,0.3);
             user-select: none;
         }
-        .mine-cell:active { transform: scale(0.90); }
         .mine-cell.opened { background: #181230; border: 1.5px solid #6366f1; pointer-events: none; }
         .mine-cell.exploded { background: #ef4444 !important; border: 1.5px solid #f87171; pointer-events: none; }
         .mine-cell.disabled { pointer-events: none; opacity: 0.7; }
@@ -128,7 +127,7 @@
         <button class="btn-save-global" onclick="manualSave()">💾 Сохранить прогресс</button>
     </div>
 
-    <div class="section-title">🔥 Все Мини-Игры</div>
+    <div class="section-title">🔥 Все Мини-Игры (8 шт)</div>
 
     <div class="games-grid">
         <div class="game-card" style="border-color: #34d399;">
@@ -148,7 +147,7 @@
         </div>
         <div class="game-card" style="border-color: #fb923c;">
             <h3>🥊 Ночной Бой</h3>
-            <div class="game-desc">Много вариантов ударов</div>
+            <div class="game-desc">Рисковые удары</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #f97316, #ea580c);" onclick="openGame('knockout')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #facc15;">
@@ -157,9 +156,19 @@
             <button class="btn-game" style="background: linear-gradient(135deg, #ca8a04, #a16207);" onclick="openGame('slots')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #38bdf8;">
-            <h3>🪜 Лесенка</h3>
+            <h3>🪜 Лесенка Удачи</h3>
             <div class="game-desc">Рискуй ради высоты</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #0284c7, #0369a1);" onclick="openGame('ladder')">Играть</button>
+        </div>
+        <div class="game-card" style="border-color: #a855f7;">
+            <h3>🪙 Орёл и Решка</h3>
+            <div class="game-desc">Классика 50 / 50</div>
+            <button class="btn-game" style="background: linear-gradient(135deg, #9333ea, #7e22ce);" onclick="openGame('coinflip')">Играть</button>
+        </div>
+        <div class="game-card" style="border-color: #ec4899;">
+            <h3>🎯 Дартс Клуб</h3>
+            <div class="game-desc"><br>Точное попадание в цель</div>
+            <button class="btn-game" style="background: linear-gradient(135deg, #db2777, #be185d);" onclick="openGame('darts')">Играть</button>
         </div>
     </div>
 
@@ -191,7 +200,6 @@
         let currentGame = '';
         let gameActive = false;
         
-        // Переменные для лесенки
         let currentLadderStep = 1;
         let activeLadderBet = 50;
 
@@ -311,6 +319,18 @@
                 body.innerHTML = `<div class="controls-group" style="margin-top:8px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
                 actionBtn.innerText = "Начать лесенку";
             }
+            else if (game === 'coinflip') {
+                title.innerText = "🪙 Орёл и Решка";
+                anim.innerHTML = `<div style="font-size:48px;" id="coinBox">🪙</div>`;
+                body.innerHTML = `<div class="controls-group" style="margin-top:8px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Сторона:</label><select id="coinSide"><option value="heads">Орёл (x1.95)</option><option value="tails">Решка (x1.95)</option></select></div>`;
+                actionBtn.innerText = "Подбросить монету";
+            }
+            else if (game === 'darts') {
+                title.innerText = "🎯 Дартс Клуб";
+                anim.innerHTML = `<div style="font-size:38px;" id="dartsBox">🎯</div>`;
+                body.innerHTML = `<div class="controls-group" style="margin-top:8px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Зона броска:</label><select id="dartsZone"><option value="outer">Внешнее кольцо (x1.5 / 65%)</option><option value="inner" selected>Центр (x3.0 / 30%)</option><option value="bullseye">Яблочко (x10.0 / 8%)</option></select></div>`;
+                actionBtn.innerText = "Бросить дротик";
+            }
 
             document.getElementById('gameModal').style.display = 'flex';
         }
@@ -362,7 +382,7 @@
             }
         }
 
-        // --- ИГРОВАЯ ЛОГИКА ---
+        // --- УНИВЕРСАЛЬНАЯ ИГРОВАЯ ЛОГИКА ---
         function executeGame() {
             let betInput = document.getElementById('bet');
             let bet = parseInt(betInput.value);
@@ -579,7 +599,7 @@
                 return;
             }
 
-            // 6. ИСПРАВЛЕННАЯ ЛЕСЕНКА УДАЧИ
+            // 6. ИСПРАВЛЕННАЯ И ЗАЩИЩЕННАЯ ЛЕСЕНКА УДАЧИ
             if (currentGame === 'ladder') {
                 currentLadderStep = 1;
                 activeLadderBet = bet;
@@ -588,19 +608,19 @@
                 actionBtn.innerText = "ШАГНУТЬ НА ШАГ 2 (x1.5)";
                 secBtn.style.display = 'block';
                 secBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
-                secBtn.innerText = "ЗАБРАТЬ ВЫИГРЫШ (x1.2)";
+                secBtn.innerText = "ЗАБРАТЬ СТАРТОВЫЙ ВЫИГРЫШ (x1.2)";
 
                 let multipliers = { 1: 1.2, 2: 1.5, 3: 2.0, 4: 3.0, 5: 5.0 };
                 let chances = { 1: 0.85, 2: 0.70, 3: 0.55, 4: 0.40, 5: 0.25 };
 
-                // Кнопка шага вверх
+                // Кнопка шага вверх (теперь деньги дают ТОЛЬКО после реального успешного шага)
                 actionBtn.onclick = function() {
                     if (!gameActive) return;
                     
                     let chance = chances[currentLadderStep];
                     if (Math.random() > chance) {
                         gameActive = false;
-                        alert(`💥 Промах на шаге ${currentLadderStep}! Вы сорвались с лестницы.`);
+                        alert(`💥 Промах на шаге ${currentLadderStep}! Вы сорвались с лестницы, ставка сгорела.`);
                         resetButtons();
                         return;
                     }
@@ -618,13 +638,13 @@
                     }
 
                     let nextMult = multipliers[currentLadderStep];
-                    let prevMult = multipliers[currentLadderStep - 1];
+                    let curUnlockedMult = multipliers[currentLadderStep - 1];
                     actionBtn.innerText = currentLadderStep === 5 ? "СДЕЛАТЬ ФИНАЛЬНЫЙ ШАГ 5 (x5.0)" : `ШАГНУТЬ НА ШАГ ${currentLadderStep} (x${nextMult})`;
-                    secBtn.innerText = `ЗАБРАТЬ ВЫИГРЫШ (x${prevMult})`;
-                    alert(`✅ Шаг ${currentLadderStep - 1} успешно пройден! Идем выше.`);
+                    secBtn.innerText = `ЗАБРАТЬ (x${curUnlockedMult})`;
+                    alert(`✅ Шаг ${currentLadderStep - 1} успешно пройден! Множитель зафиксирован.`);
                 };
 
-                // Кнопка забора накопленного выигрыша (исправлен баг с NaN)
+                // Кнопка забора накопленного выигрыша
                 secBtn.onclick = function() {
                     if (!gameActive) return;
                     gameActive = false;
@@ -635,6 +655,54 @@
                     alert(`🎉 Вы вовремя забрали ${reward} монет на шаге ${targetStep} (x${currentMult})!`);
                     resetButtons();
                 };
+                return;
+            }
+
+            // 7. ОРЁЛ И РЕШКА
+            if (currentGame === 'coinflip') {
+                actionBtn.disabled = true;
+                let chosenSide = document.getElementById('coinSide').value;
+                let coinBox = document.getElementById('coinBox');
+                let spins = 0;
+                
+                activeInterval = setInterval(() => {
+                    spins++;
+                    coinBox.innerText = spins % 2 === 0 ? '🪙 (Орёл)' : '🪙 (Решка)';
+                    if(spins > 8) {
+                        clearInterval(activeInterval);
+                        gameActive = false;
+                        let resultSide = Math.random() < 0.5 ? 'heads' : 'tails';
+                        let win = (chosenSide === resultSide);
+                        let reward = win ? Math.floor(bet * 1.95) : 0;
+                        if(win) { balance += reward; saveState(); updateDisplay(); }
+                        coinBox.innerText = resultSide === 'heads' ? '🦅 Выпал Орёл!' : '🦁 Выпала Решка!';
+                        coinBox.innerHTML += `<br><span style="font-size:12px; color:#fff;">${win ? 'Выигрыш: +' + reward + ' 🪙 (x1.95)' : 'Проигрыш!'}</span>`;
+                        resetButtons();
+                    }
+                }, 80);
+                return;
+            }
+
+            // 8. ДАРТС КЛУБ
+            if (currentGame === 'darts') {
+                actionBtn.disabled = true;
+                let zoneKey = document.getElementById('dartsZone').value;
+                let zones = {
+                    outer: { mult: 1.5, chance: 0.65 },
+                    inner: { mult: 3.0, chance: 0.30 },
+                    bullseye: { mult: 10.0, chance: 0.08 }
+                };
+                let zone = zones[zoneKey];
+
+                setTimeout(() => {
+                    if(!gameActive) return;
+                    let success = Math.random() <= zone.chance;
+                    let reward = success ? Math.floor(bet * zone.mult) : 0;
+                    if(success) { balance += reward; saveState(); updateDisplay(); }
+                    document.getElementById('dartsBox').innerText = success ? `🎯 ПОПАДАНИЕ! +${reward} 🪙 (x${zone.mult})` : `💨 МИМО ЦЕЛИ!`;
+                    gameActive = false;
+                    resetButtons();
+                }, 1000);
                 return;
             }
         }
