@@ -8,15 +8,8 @@ bot = telebot.TeleBot(TOKEN)
 BASE_WEB_APP_URL = "https://mars066111.github.io/tgcasinobot/"
 OWNER_ID = 7126242568  
 
-# Словарь для хранения связки username -> user_id (чтобы бот знал, кому выдавать бонус)
-known_users = {}
-
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    # Запоминаем юзернейм и ID пользователя, когда он пишет /start
-    if message.from_user.username:
-        known_users[message.from_user.username.lower()] = message.from_user.id
-
     markup = InlineKeyboardMarkup()
     web_app_button = InlineKeyboardButton(
         text="🎰 Играть в Казино", 
@@ -39,31 +32,19 @@ def give_money(message):
     
     args = message.text.split()
     if len(args) < 3:
-        bot.reply_to(message, "⚠️ Использование: `/give @username сумма`", parse_mode="Markdown")
+        bot.reply_to(message, "⚠️ Использование: `/give ID_пользователя сумма`", parse_mode="Markdown")
         return
     
-    target_username = args[1].lstrip('@').lower()
-    
     try:
+        target_user_id = int(args[1]) # Принимаем чистый цифровой ID
         amount = int(args[2])
     except ValueError:
-        bot.reply_to(message, "❌ Сумма должна быть целым числом.")
+        bot.reply_to(message, "❌ Ошибка! ID и сумма должны быть числами.")
         return
     
     if amount <= 0:
         bot.reply_to(message, "❌ Сумма должна быть больше нуля.")
         return
-    
-    # Проверяем, запускал ли пользователь бота раньше
-    if target_username not in known_users:
-        bot.reply_to(
-            message, 
-            f"❌ Пользователь @{target_username} не найден в базе данных.\n"
-            "Он должен хотя бы один раз нажать `/start` в этом боте, прежде чем вы сможете выдать ему бонус."
-        )
-        return
-
-    target_user_id = known_users[target_username]
 
     # Создаем защищенную ссылку с бонусом и привязкой к ID игрока
     bonus_url = f"{BASE_WEB_APP_URL}?bonus={amount}&for_user={target_user_id}"
@@ -76,20 +57,20 @@ def give_money(message):
     markup.add(claim_button)
     
     try:
-        # Отправляем персональное сообщение НАПРЯМУЮ игроку в личные сообщения[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span)
+        # Отправляем персональное сообщение НАПРЯМУЮ игроку по его ID
         bot.send_message(
             target_user_id,
-            f"🎁 **Внимание, `@{target_username}`!**\n"
+            f"🎁 **Внимание!**\n"
             f"👑 Владелец выделил вам персональный бонус: **{amount} фишек**!\n"
             f"Нажмите кнопку ниже, чтобы зайти в казино и забрать их:",
             reply_markup=markup,
             parse_mode="Markdown"
         )
         # Отправляем вам подтверждение в чат
-        bot.reply_to(message, f"✅ Бонус в размере {amount} фишек успешно отправлен игроку @{target_username} в личные сообщения!")
+        bot.reply_to(message, f"✅ Бонус в размере {amount} фишек успешно отправлен игроку с ID `{target_user_id}` в личные сообщения!")
         
     except Exception as e:
-        bot.reply_to(message, f"❌ Не удалось отправить сообщение игроку. Возможно, он заблокировал бота.\nОшибка: {e}")
+        bot.reply_to(message, f"❌ Не удалось отправить сообщение игроку. Возможно, он еще не запустил бота или заблокировал его.\nОшибка: {e}")
 
 if __name__ == "__main__":
     print("Бот запущен...")
