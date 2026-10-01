@@ -92,9 +92,12 @@
             aspect-ratio: 1; background: linear-gradient(145deg, #3b82f6, #1d4ed8); border-radius: 12px;
             display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; cursor: pointer;
             box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4); border: 1.5px solid rgba(255,255,255,0.3);
+            user-select: none;
         }
         .mine-cell:active { transform: scale(0.90); }
-        .mine-cell.opened { background: #181230; border: 1.5px solid #6366f1; }
+        .mine-cell.opened { background: #181230; border: 1.5px solid #6366f1; pointer-events: none; }
+        .mine-cell.exploded { background: #ef4444 !important; border: 1.5px solid #f87171; pointer-events: none; }
+        .mine-cell.disabled { pointer-events: none; opacity: 0.7; }
         .mines-footer {
             display: flex; justify-content: space-between; align-items: center; background: #0f0c1b; border-radius: 14px; padding: 10px 14px; margin-top: 12px; border: 2px solid #a855f7;
         }
@@ -104,23 +107,22 @@
 
     <div class="casino-header">
         <h1>⚡ VIP CASINO ⚡</h1>
-        <div class="balance-container" id="balance">🪙 0</div>
+        <div class="balance-container" id="balance">🪙 1000</div>
         <div class="bonus-info" id="timerText">Загрузка бонуса...</div>
-        <button class="btn-bonus" onclick="claimBonus()">🎁 ЗАБРАТЬ БОНУС (+200)</button>
+        <button class="btn-bonus" onclick="claimBonus()">🎁 ЗАБРАТЬ БОНУС (+1000 ₽)</button>
     </div>
 
-    <div class="section-title">🔥 Каталог игр</div>
+    <div class="section-title">🔥 Каталог игр (до x100)</div>
 
     <div class="games-grid">
-        <!-- Оригинальные игры -->
         <div class="game-card" style="border-color: #fb7185;">
             <h3>✈ Самолётик</h3>
-            <div class="game-desc">Легендарный Crash</div>
+            <div class="game-desc">Crash до x100</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #f43f5e, #e11d48);" onclick="openGame('crash')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #34d399;">
             <h3>💣 Мины</h3>
-            <div class="game-desc">Настраивай мины</div>
+            <div class="game-desc">Иксы до x100</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="openGame('mines')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #38bdf8;">
@@ -135,7 +137,7 @@
         </div>
         <div class="game-card" style="border-color: #f472b6;">
             <h3>🎈 Воздушный Шар</h3>
-            <div class="game-desc">Надувай и забирай</div>
+            <div class="game-desc">Надувай до x100</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #ec4899, #db2777);" onclick="openGame('balloon')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #fb923c;">
@@ -143,11 +145,9 @@
             <div class="game-desc">Быстрый бой на ринге</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #f97316, #ea580c);" onclick="openGame('knockout')">Играть</button>
         </div>
-        
-        <!-- Новые азартные игры с высокой детализацией -->
         <div class="game-card" style="border-color: #c084fc;">
             <h3>📈 Крипто-Биржа</h3>
-            <div class="game-desc">График иксов онлайн</div>
+            <div class="game-desc">График иксов до x100</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #9333ea, #7e22ce);" onclick="openGame('crypto')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #38bdf8;">
@@ -174,27 +174,27 @@
         let tg = window.Telegram.WebApp;
         if (tg && tg.expand) tg.expand();
 
-        // Обнулен дефолтный баланс до 0
+        // Баланс по умолчанию = 1000 ровно
         let balance = localStorage.getItem('casino_balance');
-        balance = balance === null ? 0 : parseInt(balance);
+        balance = balance === null ? 1000 : parseInt(balance);
 
-        // Таймер бонуса с защитой от сброса
+        // Таймер бонуса 10 минут (600 секунд)
         let bonusEndTime = localStorage.getItem('casino_bonus_end');
         let nowSec = Math.floor(Date.now() / 1000);
         
         if (!bonusEndTime || parseInt(bonusEndTime) < nowSec) {
-            bonusEndTime = nowSec + 474; // 7 минут 54 секунды
+            bonusEndTime = nowSec + 600;
             localStorage.setItem('casino_bonus_end', bonusEndTime);
         }
 
         let activeInterval = null;
         let currentGame = '';
-        let playerActed = false; // Защита от дюпа денег
+        let gameActive = false; // Строгий флаг активности раунда
 
-        // Автосинхронизация интерфейса при изменении хранилища (автообновление)
+        // Автосинхронизация хранилища между вкладками
         window.addEventListener('storage', (event) => {
             if (event.key === 'casino_balance') {
-                balance = event.newValue !== null ? parseInt(event.newValue) : 0;
+                balance = event.newValue !== null ? parseInt(event.newValue) : 1000;
                 updateDisplay();
             }
             if (event.key === 'casino_bonus_end') {
@@ -202,7 +202,7 @@
             }
         });
 
-        // Главный тик таймера
+        // Тик таймера (10 минут)
         setInterval(() => {
             let currentSec = Math.floor(Date.now() / 1000);
             let storedEnd = localStorage.getItem('casino_bonus_end');
@@ -226,12 +226,12 @@
         }
 
         function claimBonus() {
-            balance += 200;
-            let newEnd = Math.floor(Date.now() / 1000) + 480; // 8 минут
+            balance += 1000; // Бонус 1000 рублей
+            let newEnd = Math.floor(Date.now() / 1000) + 600; // 10 минут
             localStorage.setItem('casino_bonus_end', newEnd);
-            localStorage.setItem('casino_balance', balance); // Триггерит storage event
+            localStorage.setItem('casino_balance', balance);
             updateDisplay();
-            alert('🎁 Бонус успешно получен (+200 монет)!');
+            alert('🎁 Бонус 1000 рублей успешно зачислен!');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }
 
@@ -239,10 +239,10 @@
             document.getElementById('balance').innerText = `🪙 ${balance}`;
         }
 
-        // Первичный вывод баланса при загрузке
         updateDisplay();
 
         function resetButtons() {
+            gameActive = false;
             let actionBtn = document.getElementById('actionBtn');
             let secBtn = document.getElementById('secondaryBtn');
             actionBtn.style.display = 'block';
@@ -255,7 +255,7 @@
 
         function openGame(game) {
             currentGame = game;
-            playerActed = false;
+            gameActive = false;
             if (activeInterval) { clearInterval(activeInterval); activeInterval = null; }
 
             let title = document.getElementById('modalTitle');
@@ -266,16 +266,16 @@
             resetButtons();
 
             if (game === 'crash') {
-                title.innerText = "✈ Самолётик (Crash)";
+                title.innerText = "✈ Самолётик (до x100)";
                 anim.innerHTML = `<canvas id="crashCanvas" width="350" height="170" style="background:#090714; border-radius:16px; border: 2px solid #6366f1;"></canvas>`;
                 body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div id="crashStatus" style="font-size: 14px; color: #38bdf8; font-weight: bold; margin-bottom: 6px;">Нажмите старт для полёта</div>`;
                 actionBtn.innerText = "Запустить полёт";
                 initCrashCanvas(1.00, false);
             } 
             else if (game === 'mines') {
-                title.innerText = "💣 Поле Мин";
+                title.innerText = "💣 Поле Мин (до x100)";
                 anim.innerHTML = `<div class="mines-grid" id="minesGrid"></div><div class="mines-footer"><span style="font-size:13px; color:#38bdf8;">💎 Кристаллы: <b id="gemCount">22</b></span><span style="font-size:13px; color:#ef4444;">💣 Мины: <b id="bombCountDisplay">3</b></span></div>`;
-                body.innerHTML = `<div class="controls-group" style="margin-top:10px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Количество мин:</label><select id="minesCountSelect" onchange="updateMinesCountLabel()"><option value="1">1 мина (x1.13)</option><option value="3" selected>3 мины (x1.64)</option><option value="5">5 мин (x2.48)</option></select></div>`;
+                body.innerHTML = `<div class="controls-group" style="margin-top:10px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Количество мин:</label><select id="minesCountSelect" onchange="updateMinesCountLabel()"><option value="1">1 мина</option><option value="3" selected>3 мины</option><option value="5">5 мин</option></select></div>`;
                 actionBtn.innerText = "Начать игру";
                 renderMinesPreview();
             }
@@ -294,7 +294,7 @@
                 initFishingCanvas("idle");
             }
             else if (game === 'balloon') {
-                title.innerText = "🎈 Воздушный Шар";
+                title.innerText = "🎈 Воздушный Шар (до x100)";
                 anim.innerHTML = `<canvas id="balloonCanvas" width="350" height="170" style="background:#090714; border-radius:16px; border: 2px solid #ec4899;"></canvas>`;
                 body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
                 actionBtn.innerText = "Начать надувать шар";
@@ -303,19 +303,19 @@
             else if (game === 'knockout') {
                 title.innerText = "🥊 Ночной Нокаут";
                 anim.innerHTML = `<canvas id="knockoutCanvas" width="350" height="170" style="background:#090714; border-radius:16px; border: 2px solid #f97316;"></canvas>`;
-                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Тип удара:</label><select id="punchType"><option value="1">Быстрый джеб (x1.8)</option><option value="2">Мощный хук (x2.8)</option></select></div>`;
+                body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div><div class="controls-group"><label>Тип удара:</label><select id="punchType"><option value="1">Быстрый джеб (x5.0)</option><option value="2">Мощный хук (x15.0)</option></select></div>`;
                 actionBtn.innerText = "Нанести удар";
                 initKnockoutCanvas("idle");
             }
             else if (game === 'crypto') {
-                title.innerText = "📈 Крипто-Биржа";
+                title.innerText = "📈 Крипто-Биржа (до x100)";
                 anim.innerHTML = `<canvas id="cryptoCanvas" width="350" height="170" style="background:#090714; border-radius:16px; border: 2px solid #9333ea;"></canvas>`;
                 body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
                 actionBtn.innerText = "Открыть сделку";
                 initCryptoCanvas(1.00, false);
             }
             else if (game === 'wheel') {
-                title.innerText = "🎡 Колесо Фортуны";
+                title.innerText = "🎡 Колесо Фортуны (до x100)";
                 anim.innerHTML = `<div id="wheelBox" style="font-size:38px; font-weight:bold; color:#fde047; padding:30px;">🎡 [ ? ]</div>`;
                 body.innerHTML = `<div class="controls-group"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
                 actionBtn.innerText = "Крутить колесо";
@@ -326,6 +326,7 @@
 
         function closeModal() {
             if (activeInterval) { clearInterval(activeInterval); activeInterval = null; }
+            gameActive = false;
             document.getElementById('gameModal').style.display = 'none';
         }
 
@@ -334,7 +335,7 @@
             grid.innerHTML = '';
             for(let i=0; i<25; i++) {
                 let cell = document.createElement('div');
-                cell.className = 'mine-cell';
+                cell.className = 'mine-cell disabled';
                 cell.innerText = '?';
                 grid.appendChild(cell);
             }
@@ -351,13 +352,13 @@
             if (!canvas) return;
             let ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let progress = Math.min((mult - 1.0) / 2.5, 1);
+            let progress = Math.min((mult - 1.0) / 99.0, 1);
             let endX = 50 + progress * 240;
             let endY = 140 - progress * 95;
             ctx.strokeStyle = isCrashed ? '#ef4444' : '#38bdf8'; ctx.lineWidth = 4;
             ctx.beginPath(); ctx.moveTo(20, 140); ctx.quadraticCurveTo(120, 140, endX, endY); ctx.stroke();
             ctx.font = '26px Arial'; ctx.fillText(isCrashed ? '💥' : '✈', endX - 12, endY + 10);
-            ctx.fillStyle = isCrashed ? '#ef4444' : '#fde047'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center';
+            ctx.fillStyle = isCrashed ? '#ef4444' : '#fde047'; ctx.font = 'bold 26px Arial'; ctx.textAlign = 'center';
             ctx.fillText(mult.toFixed(2) + 'x', canvas.width / 2, 45);
             if (textStatus) { ctx.fillStyle = '#ffffff'; ctx.font = 'bold 13px Arial'; ctx.fillText(textStatus, canvas.width / 2, 155); }
         }
@@ -421,7 +422,7 @@
             if(text) { ctx.fillStyle = '#fff'; ctx.font = 'bold 14px Arial'; ctx.fillText(text, canvas.width/2, 140); }
         }
 
-        // --- ИГРОВАЯ ЛОГИКА И ЗАЩИТА ОТ ДЮПА ---
+        // --- ИГРОВАЯ ЛОГИКА С ИСПРАВЛЕННЫМИ БАГАМИ ---
         function executeGame() {
             let bet = parseInt(document.getElementById('bet').value);
             if (isNaN(bet) || bet <= 0) { alert('⚠️ Введите корректную ставку!'); return; }
@@ -430,22 +431,22 @@
             let actionBtn = document.getElementById('actionBtn');
             let secBtn = document.getElementById('secondaryBtn');
 
-            // Списываем ставку и обновляем хранилище (автообновление)
             balance -= bet; saveState(); updateDisplay();
-            playerActed = true; 
+            gameActive = true; 
 
             if (currentGame === 'crash') {
                 actionBtn.disabled = true;
                 let mult = 1.0;
-                let crashPoint = parseFloat((1.2 + Math.random() * 2.5).toFixed(2));
+                let crashPoint = parseFloat((1.1 + Math.random() * 98.9).toFixed(2));
                 
                 actionBtn.innerText = "ЗАБРАТЬ ВЫИГРЫШ";
                 actionBtn.style.background = "linear-gradient(135deg, #ef4444, #dc2626)";
                 actionBtn.disabled = false;
                 
                 actionBtn.onclick = function() {
-                    if (!playerActed) return;
+                    if (!gameActive) return;
                     clearInterval(activeInterval);
+                    gameActive = false;
                     let winSum = Math.floor(bet * mult);
                     balance += winSum; saveState(); updateDisplay();
                     initCrashCanvas(mult, false, `УСПЕХ! +${winSum} 🪙`);
@@ -454,15 +455,17 @@
                 };
 
                 activeInterval = setInterval(() => {
-                    mult = parseFloat((mult + 0.08).toFixed(2));
+                    if (!gameActive) return;
+                    mult = parseFloat((mult + 0.35).toFixed(2));
                     initCrashCanvas(mult, false);
                     if (mult >= crashPoint) {
                         clearInterval(activeInterval);
+                        gameActive = false;
                         initCrashCanvas(crashPoint, true, "ВЗРЫВ! Ставка сгорела.");
                         document.getElementById('crashStatus').innerText = `Самолёт улетел!`;
                         resetButtons();
                     }
-                }, 180);
+                }, 120);
                 return;
             }
 
@@ -476,27 +479,60 @@
                 let openedCount = 0;
                 let grid = document.getElementById('minesGrid');
                 grid.innerHTML = '';
-                for(let i=0; i<25; i++) {
+                
+                for(let i = 0; i < 25; i++) {
                     let cell = document.createElement('div');
                     cell.className = 'mine-cell';
                     cell.innerText = '?';
                     let isMine = mines.includes(i);
+                    
                     cell.onclick = function() {
-                        if(cell.classList.contains('opened')) return;
-                        cell.classList.add('opened');
+                        // СТРОГАЯ ПРОВЕРКА: если игра неактивна или ячейка открыта — блокируем клик
+                        if(!gameActive || cell.classList.contains('opened') || cell.classList.contains('exploded')) return;
+                        
                         if(isMine) {
-                            cell.innerText = '💣'; cell.style.background = '#ef4444';
-                            alert('💥 Вы подорвались на мине!');
+                            // ПОДОРВАЛСЯ НА МИНЕ — ИГРА СРАЗУ СТОПИТСЯ
+                            gameActive = false;
+                            cell.classList.add('exploded');
+                            cell.innerText = '💣';
+                            
+                            // Блокируем ВСЕ ячейки на поле и открываем мины
+                            let allCells = grid.children;
+                            for(let j = 0; j < 25; j++) {
+                                allCells[j].classList.add('disabled');
+                                if(mines.includes(j)) {
+                                    allCells[j].classList.add('exploded');
+                                    allCells[j].innerText = '💣';
+                                }
+                            }
+                            
+                            // Блокируем кнопку забора денег
+                            actionBtn.disabled = true;
+                            actionBtn.style.opacity = '0.5';
+                            
+                            alert('💥 Вы подорвались на мине! Ставка сгорела.');
                             resetButtons();
                         } else {
-                            cell.innerText = '💎'; cell.style.background = '#22c55e';
+                            // КРИСТАЛЛ
+                            if (!gameActive) return;
+                            cell.classList.add('opened');
+                            cell.innerText = '💎';
                             openedCount++;
-                            let curMult = (1.5 * (1 + openedCount * 0.2)).toFixed(2);
-                            actionBtn.innerText = `ЗАБРАТЬ (${Math.floor(bet * curMult)} 🪙)`;
+                            
+                            let curMult = Math.min(1.2 + (openedCount * 4.2), 100.0).toFixed(2);
+                            actionBtn.innerText = `ЗАБРАТЬ (${Math.floor(bet * curMult)} 🪙 [x${curMult}])`;
+                            
                             actionBtn.onclick = function() {
+                                if(!gameActive) return;
+                                gameActive = false;
                                 let reward = Math.floor(bet * curMult);
                                 balance += reward; saveState(); updateDisplay();
-                                alert(`🎉 Вы забрали ${reward} монет!`);
+                                
+                                // Блокируем поле после забора выигрыша
+                                let allCells = grid.children;
+                                for(let j = 0; j < 25; j++) allCells[j].classList.add('disabled');
+
+                                alert(`🎉 Вы забрали ${reward} монет (x${curMult})!`);
                                 resetButtons();
                             };
                         }
@@ -512,13 +548,15 @@
                 let choice = parseInt(document.getElementById('racerChoice').value);
                 let p1 = 0, p2 = 0;
                 activeInterval = setInterval(() => {
+                    if(!gameActive) return;
                     p1 += Math.random() * 12; p2 += Math.random() * 12;
                     initRacingCanvas(p1, p2, false);
                     if(p1 >= 240 || p2 >= 240) {
                         clearInterval(activeInterval);
+                        gameActive = false;
                         let winner = p1 >= p2 ? 1 : 2;
                         let won = (winner === choice);
-                        let reward = won ? Math.floor(bet * 2.2) : 0;
+                        let reward = won ? Math.floor(bet * 3.5) : 0;
                         if(won) { balance += reward; saveState(); updateDisplay(); }
                         initRacingCanvas(p1, p2, true, won ? `ПОБЕДА! +${reward}` : `Победил #${winner}. Проигрыш.`);
                         resetButtons();
@@ -531,10 +569,13 @@
                 actionBtn.disabled = true;
                 initFishingCanvas('casting', "Удочка заброшена...");
                 setTimeout(() => {
-                    let success = Math.random() < 0.5;
-                    let reward = success ? Math.floor(bet * 2.0) : 0;
+                    if(!gameActive) return;
+                    let success = Math.random() < 0.45;
+                    let randomMult = (Math.random() * 15 + 1).toFixed(2);
+                    let reward = success ? Math.floor(bet * randomMult) : 0;
                     if(success) { balance += reward; saveState(); updateDisplay(); }
-                    initFishingCanvas('success', success ? `Сундук пойман! +${reward} 🪙` : `Пусто... Сорвалось.`);
+                    initFishingCanvas('success', success ? `Сундук x${randomMult} пойман! +${reward} 🪙` : `Пусто... Сорвалось.`);
+                    gameActive = false;
                     resetButtons();
                 }, 1300);
                 return;
@@ -544,9 +585,11 @@
                 let size = 25, mult = 1.0;
                 actionBtn.innerText = "💰 ЗАБРАТЬ ВЫИГРЫШ";
                 secBtn.style.display = 'block';
-                secBtn.innerText = "🎈 НАДУТЬ ЕЩЕ";
+                secBtn.innerText = "🎈 НАДУТЬ ЕЩЕ (до x100)";
 
                 actionBtn.onclick = function() {
+                    if(!gameActive) return;
+                    gameActive = false;
                     let reward = Math.floor(bet * mult);
                     balance += reward; saveState(); updateDisplay();
                     alert(`🎉 Вы забрали ${reward} монет!`);
@@ -554,16 +597,18 @@
                 };
 
                 secBtn.onclick = function() {
-                    if (Math.random() < 0.25) {
+                    if(!gameActive) return;
+                    if (Math.random() < 0.22 || mult >= 95) {
+                        gameActive = false;
                         initBalloonCanvas(size, mult);
                         alert('💥 Шар лопнул! Ставка сгорела.');
                         resetButtons();
                         return;
                     }
-                    size += 6;
-                    mult = parseFloat((mult + 0.4).toFixed(2));
+                    size += 5;
+                    mult = parseFloat(Math.min(mult * 1.8, 100.0).toFixed(2));
                     initBalloonCanvas(size, mult);
-                    actionBtn.innerText = `💰 ЗАБРАТЬ (${Math.floor(bet * mult)} 🪙)`;
+                    actionBtn.innerText = `💰 ЗАБРАТЬ (${Math.floor(bet * mult)} 🪙 [x${mult}])`;
                 };
                 return;
             }
@@ -571,15 +616,17 @@
             if (currentGame === 'knockout') {
                 actionBtn.disabled = true;
                 let type = parseInt(document.getElementById('punchType').value);
-                let chance = type === 1 ? 0.48 : 0.30;
-                let mult = type === 1 ? 1.8 : 2.8;
+                let chance = type === 1 ? 0.45 : 0.22;
+                let mult = type === 1 ? 5.0 : 15.0;
 
                 initKnockoutCanvas('idle', "Удар наносится...");
                 setTimeout(() => {
+                    if(!gameActive) return;
                     let success = Math.random() < chance;
                     let reward = success ? Math.floor(bet * mult) : 0;
                     if(success) { balance += reward; saveState(); updateDisplay(); }
-                    initKnockoutCanvas(success ? 'hit' : 'idle', success ? `НОКАУТ! +${reward} 🪙` : `Промах! Соперник увернулся.`);
+                    initKnockoutCanvas(success ? 'hit' : 'idle', success ? `НОКАУТ x${mult}! +${reward} 🪙` : `Промах! Соперник увернулся.`);
+                    gameActive = false;
                     resetButtons();
                 }, 1200);
                 return;
@@ -588,14 +635,16 @@
             if (currentGame === 'crypto') {
                 actionBtn.disabled = true;
                 let mult = 1.0;
-                let crashPoint = parseFloat((1.3 + Math.random() * 2.0).toFixed(2));
+                let crashPoint = parseFloat((1.2 + Math.random() * 98.8).toFixed(2));
 
                 actionBtn.innerText = "ЗАФИКСИРОВАТЬ ПРИБЫЛЬ";
                 actionBtn.style.background = "linear-gradient(135deg, #9333ea, #7e22ce)";
                 actionBtn.disabled = false;
 
                 actionBtn.onclick = function() {
+                    if(!gameActive) return;
                     clearInterval(activeInterval);
+                    gameActive = false;
                     let reward = Math.floor(bet * mult);
                     balance += reward; saveState(); updateDisplay();
                     initCryptoCanvas(mult, false, `Сделка закрыта: +${reward} 🪙`);
@@ -603,14 +652,16 @@
                 };
 
                 activeInterval = setInterval(() => {
-                    mult = parseFloat((mult + 0.07).toFixed(2));
+                    if(!gameActive) return;
+                    mult = parseFloat((mult + 0.4).toFixed(2));
                     initCryptoCanvas(mult, false);
                     if (mult >= crashPoint) {
                         clearInterval(activeInterval);
+                        gameActive = false;
                         initCryptoCanvas(crashPoint, true, "Рынок упал! Убыток.");
                         resetButtons();
                     }
-                }, 200);
+                }, 150);
                 return;
             }
 
@@ -619,12 +670,14 @@
                 let wheelBox = document.getElementById('wheelBox');
                 let steps = 0;
                 activeInterval = setInterval(() => {
+                    if(!gameActive) return;
                     steps++;
-                    let randM = [0, 0.5, 1.2, 2.0, 3.5, 5.0][Math.floor(Math.random()*6)];
+                    let randM = [0, 1.5, 5.0, 15.0, 50.0, 100.0][Math.floor(Math.random()*6)];
                     wheelBox.innerHTML = `🎡 [ x${randM} ]`;
                     if(steps > 12) {
                         clearInterval(activeInterval);
-                        let finalM = [0, 0.5, 1.2, 2.0, 3.5][Math.floor(Math.random()*5)];
+                        gameActive = false;
+                        let finalM = [0, 0, 1.2, 3.0, 10.0, 25.0, 100.0][Math.floor(Math.random()*7)];
                         let reward = Math.floor(bet * finalM);
                         if(finalM > 0) { balance += reward; saveState(); updateDisplay(); }
                         wheelBox.innerHTML = `🎡 [ x${finalM} ]<br><span style="font-size:14px; color:#fff;">Выигрыш: ${reward} 🪙</span>`;
