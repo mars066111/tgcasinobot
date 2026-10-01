@@ -75,15 +75,21 @@ def give_money(message):
     )
     markup.add(claim_button)
     
-    # Отправляем сообщение в чат
-    bot.send_message(
-        message.chat.id,
-        f"🎁 **Внимание, `@{target_username}`!**\n"
-        f"👑 Владелец выделил вам персональный бонус: **{amount} фишек**!\n"
-        f"Нажмите кнопку ниже, чтобы зайти в казино и забрать их:",
-        reply_markup=markup,
-        parse_mode="Markdown"
-    )
+    try:
+        # Отправляем персональное сообщение НАПРЯМУЮ игроку в личные сообщения[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span)
+        bot.send_message(
+            target_user_id,
+            f"🎁 **Внимание, `@{target_username}`!**\n"
+            f"👑 Владелец выделил вам персональный бонус: **{amount} фишек**!\n"
+            f"Нажмите кнопку ниже, чтобы зайти в казино и забрать их:",
+            reply_markup=markup,
+            parse_mode="Markdown"
+        )
+        # Отправляем вам подтверждение в чат
+        bot.reply_to(message, f"✅ Бонус в размере {amount} фишек успешно отправлен игроку @{target_username} в личные сообщения!")
+        
+    except Exception as e:
+        bot.reply_to(message, f"❌ Не удалось отправить сообщение игроку. Возможно, он заблокировал бота.\nОшибка: {e}")
 
 if __name__ == "__main__":
     print("Бот запущен...")
