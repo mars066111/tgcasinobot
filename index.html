@@ -191,10 +191,13 @@
 
         let savedBalance = localStorage.getItem('casino_balance');
         let balance = savedBalance !== null ? parseInt(savedBalance) : 1000;
-                let savedBalance = localStorage.getItem('casino_balance');
+            <script>
+        let tg = window.Telegram.WebApp;
+        if (tg && tg.expand) tg.expand();
+
+        let savedBalance = localStorage.getItem('casino_balance');
         let balance = savedBalance !== null ? parseInt(savedBalance) : 1000;
 
-        // Вставьте этот кусок сюда:
         const urlParams = new URLSearchParams(window.location.search);
         const bonusAmount = urlParams.get('bonus');
 
@@ -206,13 +209,13 @@
                 updateDisplay();
                 alert(`🎉 Поздравляем! Вам зачислено ${parsedBonus} фишек от Владельца!`);
                 
-                // Очищаем URL, чтобы бонус не начислялся повторно при обновлении
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
         }
 
-
         let bonusEndTime = localStorage.getItem('casino_bonus_end');
+
+
         if (!bonusEndTime) {
             bonusEndTime = Math.floor(Date.now() / 1000) + 60;
             localStorage.setItem('casino_bonus_end', bonusEndTime);
