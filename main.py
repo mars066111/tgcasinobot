@@ -1,35 +1,19 @@
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
-import json
-import os
 
 TOKEN = "8980639396:AAFCDoDBWSHUR4gQU4PAym-RHAvx6ujt6PM"
 bot = telebot.TeleBot(TOKEN)
 
-WEB_APP_URL = "https://mars066111.github.io/tgcasinobot/"
+# Базовая ссылка на ваше мини-приложение
+BASE_WEB_APP_URL = "https://mars066111.github.io/tgcasinobot/"
 OWNER_ID = 7126242568  
-
-DB_FILE = "database.json"
-
-def load_db():
-    if os.path.exists(DB_FILE):
-        with open(DB_FILE, "r", encoding="utf-8") as f:
-            try:
-                return json.load(f)
-            except:
-                return {}
-    return {}
-
-def save_db(data):
-    with open(DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     markup = InlineKeyboardMarkup()
     web_app_button = InlineKeyboardButton(
         text="🎰 Играть в Казино", 
-        web_app=WebAppInfo(url=WEB_APP_URL)
+        web_app=WebAppInfo(url=BASE_WEB_APP_URL)
     )
     markup.add(web_app_button)
     
@@ -41,13 +25,14 @@ def send_welcome(message):
 
 @bot.message_handler(commands=['give'])
 def give_money(message):
+    # Проверяем, что команду пишете именно вы
     if message.from_user.id != OWNER_ID:
         bot.reply_to(message, "⛔ У вас нет прав на использование этой команды.")
         return
     
     args = message.text.split()
     if len(args) < 3:
-        bot.reply_to(message, "⚠️️ Использование: `/give @username сумма`", parse_mode="Markdown")
+        bot.reply_to(message, "⚠️ Использование: `/give @username сумма`", parse_mode="Markdown")
         return
     
     target_username = args[1].lstrip('@')
@@ -62,32 +47,25 @@ def give_money(message):
         bot.reply_to(message, "❌ Сумма должна быть больше нуля.")
         return
     
-    players_db = load_db()
+    # Создаем специальную ссылку с бонусом для игрока
+    bonus_url = f"{BASE_WEB_APP_URL}?bonus={amount}"
     
-    if target_username not in players_db:
-        players_db[target_username] = 0
+    markup = InlineKeyboardMarkup()
+    claim_button = InlineKeyboardButton(
+        text=f"🎁 Забрать {amount} фишек!", 
+        web_app=WebAppInfo(url=bonus_url)
+    )
+    markup.add(claim_button)
     
-    players_db[target_username] += amount
-    save_db(players_db)
-    
-    # 1. Отправляем отчет вам в чат
-    bot.reply_to(
-        message, 
-        f"👑 **Казначейство казино:**\n"
-        f"Успешно выдано `{amount}` фишек игроку `@{target_username}`.\n"
-        f"💰 Баланс в базе: `{players_db[target_username]}` фишек.",
+    # Отправляем сообщение (его можно отправить в чат, или переслать игроку)
+    bot.send_message(
+        message.chat.id,
+        f"🎁 **Внимание, `@{target_username}`!**\n"
+        f"👑 Владелец выделил вам персональный бонус: **{amount} фишек**!\n"
+        f"Нажмите кнопку ниже, чтобы зайти в казино и забрать их:",
+        reply_markup=markup,
         parse_mode="Markdown"
     )
-    
-    # 2. Пытаемся отправить уведомление самому игроку (если бот знает его chat_id)
-    # Примечание: Чтобы бот мог написать по username, пользователь должен был хотя бы раз написать боту или нажать старт.
-    # Более надежный способ — передавать не юзернейм, а Telegram ID, но для юзернеймов сделаем попытку оповещения:
-    try:
-        # Если у вас в базе сохранялся chat_id игрока, можно отправить ему лично. 
-        # Пока что бот отправляет подтверждение в текущий чат, где вы ввели команду.
-        pass
-    except Exception as e:
-        print(f"Не удалось отправить сообщение игроку: {e}")
 
 if __name__ == "__main__":
     print("Бот запущен...")
