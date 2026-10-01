@@ -262,6 +262,18 @@
         const balanceEl = document.getElementById('user-balance');
         
         window.addEventListener('DOMContentLoaded', () => { 
+            // Обработка бонуса из ссылки бота
+            const urlParams = new URLSearchParams(window.location.search);
+            const bonusAmount = urlParams.get('bonus');
+            if (bonusAmount) {
+                let amount = parseInt(bonusAmount);
+                if (!isNaN(amount) && amount > 0) {
+                    balance += amount;
+                    showToast(`🎁 Получен бонус от владельца: +${amount} фишек!`);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+
             updateBalance(); 
             startBonusTimer();
         });
@@ -307,7 +319,7 @@
                     </div><button class="btn" onclick="playSlots()">Крутить автомат</button>`;
                     break;
                 case 'plane':
-                    titleEl.innerText = "✈️️ Самолетик (Aviator)";
+                    titleEl.innerText = "✈ Самолетик (Aviator)";
                     area.innerHTML = `<div>
                         <div class="aviator-box">
                             <div class="aviator-mult-display" id="plane-mult">1.00x</div>
@@ -353,7 +365,7 @@
                     break;
                 case 'hilo':
                     titleEl.innerText = "📈 Выше / Ниже";
-                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее число выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️</button><button class="btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇️</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="50"></div></div>`;
+                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее число выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️</button><button class="btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇️️</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="50"></div></div>`;
                     break;
             }
         }
@@ -515,7 +527,6 @@
                 if(!minePositions.includes(r)) minePositions.push(r);
             }
 
-            // Кнопка изначально говорит «Сыграйте в поле» и неактивна для вывода
             const mainBtn = document.getElementById('mines-start-btn');
             mainBtn.innerText = "Сделайте ход в поле!";
             mainBtn.disabled = true;
@@ -544,7 +555,6 @@
                 cells[index].innerText = '💎'; cells[index].style.background = '#059669';
                 currentMinesMult += (0.3 * (totalBombsCount / 2)); openedMinesCount++;
                 
-                // Активируем кнопку забора только после первого успешного клика
                 if (openedMinesCount === 1) {
                     const mainBtn = document.getElementById('mines-start-btn');
                     mainBtn.innerText = "Забрать выигрыш";
