@@ -113,7 +113,7 @@
 
     <div class="games-grid">
         <div class="game-card" style="border-color: #fb7185;">
-            <h3>✈️ Самолётик</h3>
+            <h3>✈️️ Самолётик</h3>
             <div class="game-desc">Легендарный Crash</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #f43f5e, #e11d48);" onclick="openGame('crash')">Играть</button>
         </div>
@@ -123,7 +123,7 @@
             <button class="btn-game" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="openGame('mines')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #38bdf8;">
-            <h3>🏎️ Стритрейсинг</h3>
+            <h3>🏎️️ Стритрейсинг</h3>
             <div class="game-desc">Ночной драг-рейсинг</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #0284c7, #0369a1);" onclick="openGame('racing')">Играть</button>
         </div>
@@ -176,14 +176,13 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Система очистки старого забагованного баланса
-        const APP_VERSION = 'v3.0.0';
+        // Система очистки старых данных для предотвращения багов
+        const APP_VERSION = 'v3.0.1';
         if (localStorage.getItem('app_version') !== APP_VERSION) {
             localStorage.clear();
             localStorage.setItem('app_version', APP_VERSION);
         }
 
-        // Баланс строго 0
         let balance = localStorage.getItem('casino_balance');
         balance = balance === null ? 0 : parseInt(balance);
 
@@ -273,7 +272,7 @@
                     <div class="mines-grid" id="minesGrid"></div>
                     <div class="mines-footer">
                         <span style="font-size:13px; color:#38bdf8;">💎 Кристаллы: <b id="gemCount">21</b></span>
-                        <span style="font-size:13px; color:#ef4444;">💣 Мины: <b id="bombCountDisplay">4</b></span>
+                        <span style="font-size:13px; color:#ef4444;">💣 Мины: <b id="bombCountDisplay">3</b></span>
                     </div>`;
                 body.innerHTML = `
                     <div class="controls-group" style="margin-top:10px;"><label>Ставка:</label><input type="number" id="bet" value="100" min="1"></div>
@@ -368,6 +367,23 @@
             document.getElementById('gameModal').style.display = 'none';
         }
 
+        function renderMinesPreview() {
+            let grid = document.getElementById('minesGrid');
+            grid.innerHTML = '';
+            for(let i=0; i<25; i++) {
+                let cell = document.createElement('div');
+                cell.className = 'mine-cell';
+                cell.innerText = '?';
+                grid.appendChild(cell);
+            }
+        }
+
+        function updateMinesCountLabel() {
+            let mCount = parseInt(document.getElementById('minesCountSelect').value);
+            document.getElementById('bombCountDisplay').innerText = mCount;
+            document.getElementById('gemCount').innerText = 25 - mCount;
+        }
+
         function startMinesGame() {
             let bet = parseInt(document.getElementById('bet').value);
             if (isNaN(bet) || bet <= 0) { alert('Введите корректную ставку!'); return; }
@@ -396,7 +412,7 @@
                         cell.innerText = '💣'; cell.style.background = '#ef4444';
                         minesState.active = false;
                         let actionBtn = document.getElementById('actionBtn');
-                        actionBtn.innerText = "Играть снова";
+                        actionBtn.innerText = "Начать заново";
                         actionBtn.onclick = function() { openGame('mines'); };
                         alert('💥 Вы подорвались на мине!');
                         tg.HapticFeedback.notificationOccurred('error');
@@ -689,7 +705,8 @@
                 actionBtn.disabled = true;
                 let type = parseInt(document.getElementById('punchType').value);
                 let mults = {1: 1.8, 2: 2.8, 3: 5.0};
-                let chances = {1: 0.7, 2: 0.45, 3: 0.25};
+                // Честные шансы для каждого удара (исправлен баг со стопроцентным выигрышем джеба)
+                let chances = {1: 0.48, 2: 0.32, 3: 0.18};
                 
                 initKnockoutCanvas('idle', "Прицеливание...");
                 setTimeout(() => {
