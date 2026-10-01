@@ -137,7 +137,7 @@
         </div>
         <div class="game-card" style="border-color: #fb7185;">
             <h3>✈ Самолётик</h3>
-            <div class="game-desc">Крэш полет (без лимитов)</div>
+            <div class="game-desc">Крэш полет (плавный рост)</div>
             <button class="btn-game" style="background: linear-gradient(135deg, #f43f5e, #e11d48);" onclick="openGame('crash')">Играть</button>
         </div>
         <div class="game-card" style="border-color: #facc15;">
@@ -189,7 +189,6 @@
         let tg = window.Telegram.WebApp;
         if (tg && tg.expand) tg.expand();
 
-        // СБРОС И ЖЕСТКАЯ ФИКСАЦИЯ БАЛАНСА НА 1000
         let balance = 1000;
         localStorage.setItem('casino_balance', balance);
 
@@ -317,7 +316,7 @@
                     <div class="ladder-step current" id="lstep1"><span>Шаг 1 (x1.2)</span><span>Шанс: 85%</span></div>
                 </div>`;
                 body.innerHTML = `<div class="controls-group" style="margin-top:8px;"><label>Ставка:</label><input type="number" id="bet" value="50" min="1"></div>`;
-                actionBtn.innerText = "Начать лесенку";
+                actionBtn.innerText = "Сделать шаг 1 (x1.2)";
             }
             else if (game === 'coinflip') {
                 title.innerText = "🪙 Орёл и Решка";
@@ -382,7 +381,6 @@
             }
         }
 
-        // --- УНИВЕРСАЛЬНАЯ ИГРОВАЯ ЛОГИКА ---
         function executeGame() {
             let betInput = document.getElementById('bet');
             let bet = parseInt(betInput.value);
@@ -459,11 +457,11 @@
                 return;
             }
 
-            // 2. САМОЛЕТИК
+            // 2. САМОЛЕТИК (Плавный рост иксов)
             if (currentGame === 'crash') {
                 actionBtn.disabled = true;
-                let mult = 1.0;
-                let targetCrash = parseFloat((1.01 + Math.random() * Math.random() * 7).toFixed(2));
+                let mult = 1.00;
+                let targetCrash = parseFloat((1.05 + Math.random() * Math.random() * 6).toFixed(2));
 
                 actionBtn.innerText = "💰 ЗАБРАТЬ ДЕНЬГИ";
                 actionBtn.disabled = false;
@@ -471,7 +469,7 @@
 
                 activeInterval = setInterval(() => {
                     if (!gameActive) return;
-                    mult = parseFloat((mult + 0.05).toFixed(2));
+                    mult = parseFloat((mult + 0.02).toFixed(2)); // Сделано медленнее
                     initCrashCanvas(mult, false);
 
                     if (mult >= targetCrash) {
@@ -482,7 +480,7 @@
                         actionBtn.style.opacity = '0.4';
                         setTimeout(() => resetButtons(), 1500);
                     }
-                }, 90);
+                }, 120);
 
                 actionBtn.onclick = function() {
                     if (!gameActive) return;
@@ -599,21 +597,19 @@
                 return;
             }
 
-            // 6. ИСПРАВЛЕННАЯ И ЗАЩИЩЕННАЯ ЛЕСЕНКА УДАЧИ
+            // 6. ЛЕСЕНКА УДАЧИ (Сначала шаг — потом забор)
             if (currentGame === 'ladder') {
                 currentLadderStep = 1;
                 activeLadderBet = bet;
                 updateLadderView();
 
-                actionBtn.innerText = "ШАГНУТЬ НА ШАГ 2 (x1.5)";
-                secBtn.style.display = 'block';
-                secBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
-                secBtn.innerText = "ЗАБРАТЬ СТАРТОВЫЙ ВЫИГРЫШ (x1.2)";
+                // При старте игры на Шаге 1 кнопка забрать скрыта, нужно сначала сделать шаг
+                actionBtn.innerText = "ШАГНУТЬ НА ШАГ 1 (x1.2)";
+                secBtn.style.display = 'none';
 
                 let multipliers = { 1: 1.2, 2: 1.5, 3: 2.0, 4: 3.0, 5: 5.0 };
                 let chances = { 1: 0.85, 2: 0.70, 3: 0.55, 4: 0.40, 5: 0.25 };
 
-                // Кнопка шага вверх (теперь деньги дают ТОЛЬКО после реального успешного шага)
                 actionBtn.onclick = function() {
                     if (!gameActive) return;
                     
@@ -625,6 +621,8 @@
                         return;
                     }
 
+                    // Успешный шаг выполнен
+                    let passedStep = currentLadderStep;
                     currentLadderStep++;
                     updateLadderView();
 
@@ -637,14 +635,19 @@
                         return;
                     }
 
+                    // После успешного прохождения Шага 1 или выше открывается возможность забрать выигрыш
+                    let curUnlockedMult = multipliers[passedStep];
                     let nextMult = multipliers[currentLadderStep];
-                    let curUnlockedMult = multipliers[currentLadderStep - 1];
+                    
                     actionBtn.innerText = currentLadderStep === 5 ? "СДЕЛАТЬ ФИНАЛЬНЫЙ ШАГ 5 (x5.0)" : `ШАГНУТЬ НА ШАГ ${currentLadderStep} (x${nextMult})`;
+                    
+                    secBtn.style.display = 'block';
+                    secBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
                     secBtn.innerText = `ЗАБРАТЬ (x${curUnlockedMult})`;
-                    alert(`✅ Шаг ${currentLadderStep - 1} успешно пройден! Множитель зафиксирован.`);
+                    
+                    alert(`✅ Шаг ${passedStep} успешно пройден! Можете забрать выигрыш или идти дальше.`);
                 };
 
-                // Кнопка забора накопленного выигрыша
                 secBtn.onclick = function() {
                     if (!gameActive) return;
                     gameActive = false;
