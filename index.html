@@ -192,19 +192,33 @@
         let savedBalance = localStorage.getItem('casino_balance');
         let balance = savedBalance !== null ? parseInt(savedBalance) : 1000;
 
+        // ПРОВЕРКА БОНУСА ИЗ ССЫЛКИ ОТ БОТА С ЗАЩИТОЙ ПО ID
         const urlParams = new URLSearchParams(window.location.search);
-        const bonusAmount = urlParams.get('bonus');
+        const bonusAmount = parseInt(urlParams.get('bonus'));
+        const forUserId = urlParams.get('for_user');
 
-        if (bonusAmount !== null) {
-            let parsedBonus = parseInt(bonusAmount);
-            if (!isNaN(parsedBonus) && parsedBonus > 0) {
-                balance += parsedBonus;
-                saveState();
-                updateDisplay();
-                alert(`🎉 Поздравляем! Вам зачислено ${parsedBonus} фишек от Владельца!`);
+        if (!isNaN(bonusAmount) && bonusAmount > 0 && forUserId) {
+            let currentUserId = tg.initDataUnsafe?.user?.id;
+
+            if (currentUserId && currentUserId.toString() === forUserId.toString()) {
+                let bonusKey = `claimed_bonus_${forUserId}_${bonusAmount}_${window.location.search}`;
                 
-                window.history.replaceState({}, document.title, window.location.pathname);
+                if (!localStorage.getItem(bonusKey)) {
+                    balance += bonusAmount;
+                    saveState();
+                    updateDisplay();
+                    localStorage.setItem(bonusKey, 'true');
+                    
+                    alert(`🎉 Поздравляем! Вам успешно зачислено ${bonusAmount} фишек от Владельца!`);
+                } else {
+                    alert('⚠️ Этот персональный бонус уже был активирован ранее.');
+                }
+            } else {
+                alert('❌ Эта бонусная ссылка предназначена для другого игрока!');
             }
+            
+            // Очищаем адресную строку от параметров бонуса
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
 
         let bonusEndTime = localStorage.getItem('casino_bonus_end');
