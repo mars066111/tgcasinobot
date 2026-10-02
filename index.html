@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Hub & CS2 Cases (Real Market Prices)</title>
+    <title>Casino Hub & CS2 Cases (Updated)</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -144,6 +144,7 @@
             transition: transform 0.2s; position: relative; overflow: hidden;
         }
         .case-card:active { transform: scale(0.96); }
+        .case-card.cooldown { opacity: 0.5; pointer-events: none; }
         .case-img { font-size: 3rem; margin: 8px 0; }
         .case-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
         .case-price { font-size: 0.85rem; color: var(--accent-blue); font-weight: 600; }
@@ -169,11 +170,21 @@
             max-width: 440px; margin: 0 auto; width: 100%; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
 
+        /* Выбор количества кейсов */
+        .case-count-selector {
+            display: flex; gap: 8px; justify-content: center; margin-bottom: 10px;
+        }
+        .count-btn {
+            background: #334155; border: 1px solid rgba(56,189,248,0.2); color: white;
+            padding: 6px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem;
+        }
+        .count-btn.active { background: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); }
+
         /* Рулетка скинов CS2 */
         .case-opening-container {
             position: relative; width: 100%; height: 140px; background: #090d16;
             border-radius: 12px; overflow: hidden; border: 2px solid rgba(56,189,248,0.3);
-            margin: 20px 0; display: flex; align-items: center;
+            margin: 15px 0; display: flex; align-items: center;
         }
         .case-opening-pointer {
             position: absolute; top: 0; bottom: 0; left: 50%; width: 3px;
@@ -283,9 +294,9 @@
         }
         .dice-opt-btn.active { background: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); }
 
-        /* Уведомление поднято выше, чтобы не перекрывать нижнюю навигацию */
+        /* Уведомление поднято выше для видимости */
         #toast {
-            position: fixed; bottom: 140px; left: 50%; transform: translateX(-50%) translateY(100px);
+            position: fixed; bottom: 180px; left: 50%; transform: translateX(-50%) translateY(100px);
             background: #1e293b; color: white; border: 1px solid rgba(56,189,248,0.3);
             padding: 12px 24px; border-radius: 20px; transition: transform 0.3s ease; z-index: 1000;
             font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.4); pointer-events: none;
@@ -329,7 +340,7 @@
 
     <!-- ВКЛАДКА 2: КЕЙСЫ CS2 -->
     <div class="container" id="tab-cases">
-        <div class="section-title"><span>CS2 Кейсы</span><span>📦 Реальный Рынок</span></div>
+        <div class="section-title"><span>CS2 Кейсы</span><span>📦 Премиум Цены</span></div>
         <div class="cases-grid" id="cases-list-grid">
             <!-- Динамически заполняется -->
         </div>
@@ -363,61 +374,59 @@
     <div id="toast">Уведомление</div>
 
     <script>
-        // Сбалансированные кейсы с расширенным списком скинов и РЕАЛЬНЫМИ ценами (в монетах)
+        // Повышенные реальные цены кейсов + добавлен Ножевой кейс за 100000
         const CS2_CASES = [
             {
-                id: 'case_weapon_1', name: 'CS:GO Weapon Case', icon: '📦', price: 1400,
+                id: 'case_weapon_1', name: 'CS:GO Weapon Case', icon: '📦', price: 5000,
                 items: [
-                    { name: 'Safari Mesh', weapon: 'SSG 08', rarity: 'consumer', color: '#b0c3d9', price: 40, icon: '🎯' },
-                    { name: 'Boreal Forest', weapon: 'AUG', rarity: 'consumer', color: '#b0c3d9', price: 50, icon: '🎯' },
-                    { name: 'Sandstorm', weapon: 'Tec-9', rarity: 'milspec', color: '#4b69ff', price: 180, icon: '🔫' },
-                    { name: 'Contrast Spray', weapon: 'MAC-10', rarity: 'milspec', color: '#4b69ff', price: 130, icon: '🔫' },
-                    { name: 'Magma', weapon: 'FAMAS', rarity: 'restricted', color: '#d32ce6', price: 550, icon: '🔫' },
-                    { name: 'Water Elemental', weapon: 'Glock-18', rarity: 'restricted', color: '#d32ce6', price: 850, icon: '💧' },
-                    { name: 'Neon Rider', weapon: 'Mac-10', rarity: 'classified', color: '#eb4b4b', price: 2100, icon: '⚡' },
-                    { name: 'Asiimov', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 7800, icon: '💥' }
+                    { name: 'Safari Mesh', weapon: 'SSG 08', rarity: 'consumer', color: '#b0c3d9', price: 150, icon: '🎯' },
+                    { name: 'Boreal Forest', weapon: 'AUG', rarity: 'consumer', color: '#b0c3d9', price: 200, icon: '🎯' },
+                    { name: 'Sandstorm', weapon: 'Tec-9', rarity: 'milspec', color: '#4b69ff', price: 700, icon: '🔫' },
+                    { name: 'Contrast Spray', weapon: 'MAC-10', rarity: 'milspec', color: '#4b69ff', price: 500, icon: '🔫' },
+                    { name: 'Magma', weapon: 'FAMAS', rarity: 'restricted', color: '#d32ce6', price: 2200, icon: '🔫' },
+                    { name: 'Water Elemental', weapon: 'Glock-18', rarity: 'restricted', color: '#d32ce6', price: 3400, icon: '💧' },
+                    { name: 'Neon Rider', weapon: 'Mac-10', rarity: 'classified', color: '#eb4b4b', price: 8500, icon: '⚡' },
+                    { name: 'Asiimov', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 32000, icon: '💥' }
                 ]
             },
             {
-                id: 'case_revolution', name: 'Revolution Case', icon: '🎁', price: 30,
+                id: 'case_revolution', name: 'Revolution Case', icon: '🎁', price: 12000,
                 items: [
-                    { name: 'Scorched', weapon: 'PP-Bizon', rarity: 'consumer', color: '#b0c3d9', price: 15, icon: '🔫' },
-                    { name: 'Jungle DDPAT', weapon: 'MP7', rarity: 'consumer', color: '#b0c3d9', price: 20, icon: '🔫' },
-                    { name: 'Night Stripe', weapon: 'MP9', rarity: 'milspec', color: '#4b69ff', price: 60, icon: '🔫' },
-                    { name: 'Sandswept', weapon: 'MAG-7', rarity: 'milspec', color: '#4b69ff', price: 45, icon: '🔫' },
-                    { name: 'Mecha Industries', weapon: 'Galil AR', rarity: 'restricted', color: '#d32ce6', price: 350, icon: '🤖' },
-                    { name: 'Cyberpunked', weapon: 'MP5-SD', rarity: 'restricted', color: '#d32ce6', price: 290, icon: '🤖' },
-                    { name: 'Emperor', weapon: 'M4A4', rarity: 'classified', color: '#eb4b4b', price: 6200, icon: '👑' },
-                    { name: 'Fade', weapon: 'Bayonet', rarity: 'special', color: '#ffd700', price: 115000, icon: '🔪' }
+                    { name: 'Scorched', weapon: 'PP-Bizon', rarity: 'consumer', color: '#b0c3d9', price: 400, icon: '🔫' },
+                    { name: 'Jungle DDPAT', weapon: 'MP7', rarity: 'consumer', color: '#b0c3d9', price: 600, icon: '🔫' },
+                    { name: 'Night Stripe', weapon: 'MP9', rarity: 'milspec', color: '#4b69ff', price: 1500, icon: '🔫' },
+                    { name: 'Sandswept', weapon: 'MAG-7', rarity: 'milspec', color: '#4b69ff', price: 1200, icon: '🔫' },
+                    { name: 'Mecha Industries', weapon: 'Galil AR', rarity: 'restricted', color: '#d32ce6', price: 4500, icon: '🤖' },
+                    { name: 'Cyberpunked', weapon: 'MP5-SD', rarity: 'restricted', color: '#d32ce6', price: 3800, icon: '🤖' },
+                    { name: 'Emperor', weapon: 'M4A4', rarity: 'classified', color: '#eb4b4b', price: 25000, icon: '👑' },
+                    { name: 'Fade', weapon: 'Bayonet', rarity: 'special', color: '#ffd700', price: 350000, icon: '🔪' }
                 ]
             },
             {
-                id: 'case_dreams', name: 'Dreams & Nightmares', icon: '🔮', price: 150,
+                id: 'case_dreams', name: 'Dreams & Nightmares', icon: '🔮', price: 25000,
                 items: [
-                    { name: 'Coordinates', weapon: 'P250', rarity: 'milspec', color: '#4b69ff', price: 90, icon: '🔫' },
-                    { name: 'UIColor', weapon: 'MP5-SD', rarity: 'milspec', color: '#4b69ff', price: 110, icon: '🔫' },
-                    { name: 'Fizzy POP', weapon: 'PP-Bizon', rarity: 'milspec', color: '#4b69ff', price: 70, icon: '🥤' },
-                    { name: 'Night Terror', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 1100, icon: '🌙' },
-                    { name: 'Mantis', weapon: 'XM1014', rarity: 'restricted', color: '#d32ce6', price: 450, icon: '🐛' },
-                    { name: 'Helix', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 4300, icon: '👁' },
-                    { name: 'Doppler', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 240000, icon: '🗡️' }
+                    { name: 'Coordinates', weapon: 'P250', rarity: 'milspec', color: '#4b69ff', price: 1800, icon: '🔫' },
+                    { name: 'UIColor', weapon: 'MP5-SD', rarity: 'milspec', color: '#4b69ff', price: 2200, icon: '🔫' },
+                    { name: 'Fizzy POP', weapon: 'PP-Bizon', rarity: 'milspec', color: '#4b69ff', price: 1400, icon: '🥤' },
+                    { name: 'Night Terror', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 6500, icon: '🌙' },
+                    { name: 'Mantis', weapon: 'XM1014', rarity: 'restricted', color: '#d32ce6', price: 3000, icon: '🐛' },
+                    { name: 'Helix', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 18000, icon: '👁' },
+                    { name: 'Doppler', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 650000, icon: '🗡️️' }
                 ]
             },
             {
-                id: 'case_hydra', name: 'Operation Hydra', icon: '🎖️', price: 3800,
+                id: 'case_knife', name: 'Knife & Gloves Case', icon: '🗡️', price: 100000,
                 items: [
-                    { name: 'Jungle DDPAT', weapon: 'Dual Berettas', rarity: 'milspec', color: '#4b69ff', price: 350, icon: '🔫' },
-                    { name: 'Rust Coat', weapon: 'Sawed-Off', rarity: 'milspec', color: '#4b69ff', price: 280, icon: '🔫' },
-                    { name: 'Blueprint', weapon: 'M4A4', rarity: 'restricted', color: '#d32ce6', price: 2400, icon: '📐' },
-                    { name: 'Heat', weapon: 'P90', rarity: 'restricted', color: '#d32ce6', price: 1800, icon: '🔥' },
-                    { name: 'Neo-Noir', weapon: 'AWP', rarity: 'classified', color: '#eb4b4b', price: 12500, icon: '💜' },
-                    { name: 'Dragon Lore', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 450000, icon: '🐉' },
-                    { name: 'Howl', weapon: 'M4A4', rarity: 'special', color: '#ffd700', price: 650000, icon: '🐺' }
+                    { name: 'Rust Coat', weapon: 'Bowie Knife', rarity: 'covert', color: '#ff0000', price: 85000, icon: '🔪' },
+                    { name: 'Lore', weapon: 'M9 Bayonet', rarity: 'special', color: '#ffd700', price: 900000, icon: '🗡️' },
+                    { name: 'Fade', weapon: 'Butterfly Knife', rarity: 'special', color: '#ffd700', price: 1500000, icon: '🦋' },
+                    { name: 'Slaughter', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 1200000, icon: '🔪' },
+                    { name: 'Vice', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 2000000, icon: '🥊' },
+                    { name: 'Pandoras Box', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 3500000, icon: '🥊' }
                 ]
             }
         ];
 
-        // Фиксация дефолтного баланса 5000 при первом запуске
         let balance = localStorage.getItem('casino_balance') !== null ? parseInt(localStorage.getItem('casino_balance')) : 5000;
         let inventory = JSON.parse(localStorage.getItem('cs2_inventory')) || [];
         
@@ -440,7 +449,7 @@
         function calculateElo() {
             if (inventory.length === 0) return 100;
             let totalValue = inventory.reduce((sum, item) => sum + item.price, 0);
-            return 100 + Math.floor(totalValue / 5000);
+            return 100 + Math.floor(totalValue / 15000);
         }
 
         function updateElo() {
@@ -472,48 +481,45 @@
             }
         }
 
-        // Система 5-секундного кулдауна для игр в казино
+        // Общая система 5-секундного кулдауна
         let globalCooldown = false;
-        let cooldownTimers = {};
 
-        function triggerGameCooldown(gameKey) {
-            globalCooldown = true;
-            let timeLeft = 5;
-            const card = document.getElementById('card-' + gameKey);
+        function triggerCooldown(key) {
+            const card = document.getElementById(key);
             if(card) {
                 card.classList.add('cooldown');
+                let timeLeft = 5;
                 let overlay = document.createElement('div');
                 overlay.className = 'cd-overlay';
-                overlay.id = 'cd-' + gameKey;
+                overlay.id = 'cd-' + key;
                 overlay.innerText = `Пауза: ${timeLeft}с`;
                 card.appendChild(overlay);
-            }
 
-            let timer = setInterval(() => {
-                timeLeft--;
-                let ov = document.getElementById('cd-' + gameKey);
-                if(ov) ov.innerText = `Пауза: ${timeLeft}с`;
-                if(timeLeft <= 0) {
-                    clearInterval(timer);
-                    globalCooldown = false;
-                    if(card) {
+                let timer = setInterval(() => {
+                    timeLeft--;
+                    let ov = document.getElementById('cd-' + key);
+                    if(ov) ov.innerText = `Пауза: ${timeLeft}с`;
+                    if(timeLeft <= 0) {
+                        clearInterval(timer);
                         card.classList.remove('cooldown');
                         if(ov) ov.remove();
                     }
-                }
-            }, 1000);
+                }, 1000);
+            }
         }
 
         function renderCasesList() {
             const grid = document.getElementById('cases-list-grid');
             grid.innerHTML = CS2_CASES.map(c => `
-                <div class="case-card" onclick="openCaseModal('${c.id}')">
+                <div class="case-card" id="card-${c.id}" onclick="openCaseModal('${c.id}')">
                     <div class="case-img">${c.icon}</div>
                     <div class="case-name">${c.name}</div>
                     <div class="case-price">${c.price} 🪙</div>
                 </div>
             `).join('');
         }
+
+        let selectedCaseCount = 1;
 
         function openCaseModal(caseId) {
             const caseData = CS2_CASES.find(c => c.id === caseId);
@@ -522,20 +528,37 @@
             const area = document.getElementById('game-content-area');
             modal.classList.add('active');
             titleEl.innerText = caseData.name;
+            selectedCaseCount = 1;
 
             area.innerHTML = `
                 <div>
+                    <div class="case-count-selector">
+                        <button class="count-btn active" onclick="setCaseCount(1, this)">1 кейс</button>
+                        <button class="count-btn" onclick="setCaseCount(3, this)">3 кейса</button>
+                        <button class="count-btn" onclick="setCaseCount(5, this)">5 кейсов</button>
+                    </div>
                     <div class="case-opening-container" id="roller-box">
                         <div class="case-opening-pointer"></div>
                         <div class="case-roller" id="case-roller"></div>
                     </div>
                     <div class="display-screen" id="case-result-info">
-                        <span style="font-size:0.9rem; color:var(--text-muted);">Цена открытия: <b>${caseData.price} монет</b></span>
+                        <span style="font-size:0.9rem; color:var(--text-muted);">Цена открытия: <b id="case-total-price">${caseData.price}</b> монет</span>
                     </div>
                 </div>
                 <button class="btn" id="open-case-btn" onclick="startCaseOpening('${caseId}')">Открыть кейс</button>
             `;
             initRollerItems(caseData);
+        }
+
+        function setCaseCount(count, btn) {
+            selectedCaseCount = count;
+            document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const activeModalTitle = document.getElementById('modal-game-title').innerText;
+            const caseData = CS2_CASES.find(c => c.name === activeModalTitle);
+            if(caseData) {
+                document.getElementById('case-total-price').innerText = caseData.price * selectedCaseCount;
+            }
         }
 
         function initRollerItems(caseData) {
@@ -556,11 +579,12 @@
 
         function startCaseOpening(caseId) {
             const caseData = CS2_CASES.find(c => c.id === caseId);
-            if (balance < caseData.price) {
+            let totalCost = caseData.price * selectedCaseCount;
+            if (balance < totalCost) {
                 showToast("❌ Недостаточно монет!");
                 return;
             }
-            balance -= caseData.price;
+            balance -= totalCost;
             updateBalance();
 
             const btn = document.getElementById('open-case-btn');
@@ -569,23 +593,26 @@
 
             const roller = document.getElementById('case-roller');
             
-            // Сниженные шансы на выпад крутых скинов (реалистичная математика редкости)
-            let rollRand = Math.random() * 100;
-            let targetRarity = 'consumer';
-            if (rollRand > 99.6) {
-                let specItems = caseData.items.filter(i => i.rarity === 'special' || i.rarity === 'covert');
-                targetRarity = specItems.length > 0 ? specItems[0].rarity : 'classified';
-            } else if (rollRand > 97.0) targetRarity = 'covert';
-            else if (rollRand > 90.0) targetRarity = 'classified';
-            else if (rollRand > 75.0) targetRarity = 'restricted';
-            else if (rollRand > 45.0) targetRarity = 'milspec';
+            // Выборка скинов для мульти-открытия
+            let wonItems = [];
+            for(let cIdx = 0; cIdx < selectedCaseCount; cIdx++) {
+                let rollRand = Math.random() * 100;
+                let targetRarity = 'consumer';
+                if (rollRand > 99.6) {
+                    let specItems = caseData.items.filter(i => i.rarity === 'special' || i.rarity === 'covert');
+                    targetRarity = specItems.length > 0 ? specItems[0].rarity : 'classified';
+                } else if (rollRand > 97.0) targetRarity = 'covert';
+                else if (rollRand > 90.0) targetRarity = 'classified';
+                else if (rollRand > 75.0) targetRarity = 'restricted';
+                else if (rollRand > 45.0) targetRarity = 'milspec';
 
-            let pool = caseData.items.filter(i => i.rarity === targetRarity);
-            if(pool.length === 0) pool = caseData.items;
-            let winningItem = pool[Math.floor(Math.random() * pool.length)];
+                let pool = caseData.items.filter(i => i.rarity === targetRarity);
+                if(pool.length === 0) pool = caseData.items;
+                wonItems.push(pool[Math.floor(Math.random() * pool.length)]);
+            }
 
-            let tickets = roller.children;
-            let targetTicket = tickets[35];
+            let winningItem = wonItems[0];
+            let targetTicket = roller.children[35];
             targetTicket.style.borderBottomColor = winningItem.color;
             targetTicket.querySelector('.s-icon').innerText = winningItem.icon;
             targetTicket.querySelector('.s-name').innerText = `${winningItem.weapon} | ${winningItem.name}`;
@@ -595,18 +622,24 @@
             roller.style.transform = `translateX(-${offsetPx}px)`;
 
             setTimeout(() => {
-                inventory.unshift({ ...winningItem, id: Date.now() });
+                wonItems.forEach(item => {
+                    inventory.unshift({ ...item, id: Date.now() + Math.random() });
+                });
                 localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
                 updateElo();
 
-                document.getElementById('case-result-info').innerHTML = `
-                    <span style="color: ${winningItem.color}; font-weight:bold; font-size:1rem;">Выпало: ${winningItem.weapon} | ${winningItem.name}</span>
-                    <span style="font-size:0.85rem; color: var(--accent-blue);">Цена: ${winningItem.price} монет</span>
-                `;
-                showToast(`🎉 Получен скин ${winningItem.name}!`);
-                btn.disabled = false;
-                btn.style.opacity = "1";
-                btn.innerText = "Открыть еще";
+                let resultHtml = wonItems.map(item => `
+                    <div style="color: ${item.color}; font-weight:bold; font-size:0.9rem;">🎁 ${item.weapon} | ${item.name} (${item.price} 🪙)</div>
+                `).join('');
+
+                document.getElementById('case-result-info').innerHTML = resultHtml;
+                showToast(`🎉 Успешно получено предметов: ${wonItems.length}!`);
+                
+                // Закрываем окно и запускаем таймер перед кулдауном
+                setTimeout(() => {
+                    closeGame();
+                    triggerCooldown('card-' + caseId);
+                }, 1500);
             }, 4100);
         }
 
@@ -734,8 +767,12 @@
                         showToast("😢 Мимо!");
                     }
                     updateBalance();
-                    closeGame();
-                    triggerGameCooldown('slots');
+                    
+                    // Показываем результат 1.5 секунды, потом закрываем и включаем кулдаун
+                    setTimeout(() => {
+                        closeGame();
+                        triggerCooldown('card-slots');
+                    }, 1500);
                 }
             }, 70);
         }
@@ -818,8 +855,10 @@
                 let win = Math.floor(bet * currentPlaneMult); balance += win; updateBalance();
                 showToast(`🎉 Успешно забрано! +${win}`);
                 resetPlane();
-                closeGame();
-                triggerGameCooldown('plane');
+                setTimeout(() => {
+                    closeGame();
+                    triggerCooldown('card-plane');
+                }, 1500);
             };
 
             planeInterval = setInterval(() => {
@@ -833,11 +872,13 @@
 
                 if (currentPlaneMult >= maxMult) {
                     clearInterval(planeInterval); flewAway = true;
-                    multEl.innerText = "УЛЕТЕЛ ✈️️";
+                    multEl.innerText = "УЛЕТЕЛ ✈";
                     showToast("😢 Самолетик улетел!");
                     resetPlane();
-                    closeGame();
-                    triggerGameCooldown('plane');
+                    setTimeout(() => {
+                        closeGame();
+                        triggerCooldown('card-plane');
+                    }, 1500);
                 }
             }, 80);
         }
@@ -864,7 +905,7 @@
                 totalBombsCount = parseInt(document.getElementById('mines-count-select').value);
                 document.getElementById('mines-count-select').disabled = true;
 
-                minesActive = true; currentMinesMult = 1.2; openedMinesCount = 0;
+                minesActive = true; currentMinesMult = 1.05; openedMinesCount = 0;
                 minePositions = [];
                 while(minePositions.length < totalBombsCount) {
                     let r = Math.floor(Math.random() * 25);
@@ -896,11 +937,14 @@
                 cells[index].innerText = '💥'; cells[index].style.background = '#dc2626';
                 showToast("💥 Вы подорвались!");
                 endMines25();
-                closeGame();
-                triggerGameCooldown('mines');
+                setTimeout(() => {
+                    closeGame();
+                    triggerCooldown('card-mines');
+                }, 1500);
             } else {
                 cells[index].innerText = '💎'; cells[index].style.background = '#059669';
-                currentMinesMult += 0.4; openedMinesCount++;
+                // Уменьшенные честные иксы
+                currentMinesMult += 0.15; openedMinesCount++;
                 showToast(`💎 Алмаз! x${currentMinesMult.toFixed(2)}`);
             }
         }
@@ -912,8 +956,10 @@
             balance += win; updateBalance();
             showToast(`🎉 Вы забрали: +${win}`);
             endMines25();
-            closeGame();
-            triggerGameCooldown('mines');
+            setTimeout(() => {
+                closeGame();
+                triggerCooldown('card-mines');
+            }, 1500);
         }
 
         function endMines25() {
@@ -961,8 +1007,10 @@
                     showToast(`😢 Сумма ${sum}. Проигрыш.`);
                 }
                 updateBalance();
-                closeGame();
-                triggerGameCooldown('dice');
+                setTimeout(() => {
+                    closeGame();
+                    triggerCooldown('card-dice');
+                }, 1500);
             }, 600);
         }
 
@@ -979,8 +1027,10 @@
                     let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
                 } else { showToast("😢 Проигрыш"); }
                 updateBalance();
-                closeGame();
-                triggerGameCooldown('roulette');
+                setTimeout(() => {
+                    closeGame();
+                    triggerCooldown('card-roulette');
+                }, 1500);
             }, 700);
         }
 
@@ -997,8 +1047,10 @@
                     let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
                 } else { showToast("😢 Мимо"); }
                 updateBalance();
-                closeGame();
-                triggerGameCooldown('coinflip');
+                setTimeout(() => {
+                    closeGame();
+                    triggerCooldown('card-coinflip');
+                }, 1500);
             }, 500);
         }
 
@@ -1013,8 +1065,10 @@
                 let prize = Math.floor(bet * 1.8); balance += prize; showToast(`🎉 Верно! +${prize}`);
             } else { showToast("😢 Не угадали"); }
             updateBalance();
-            closeGame();
-            triggerGameCooldown('hilo');
+            setTimeout(() => {
+                closeGame();
+                triggerCooldown('card-hilo');
+            }, 1500);
         }
     </script>
 </body>
