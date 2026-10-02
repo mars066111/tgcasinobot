@@ -1228,5 +1228,169 @@
             }, 500);
         }
     </script>
+<style>
+:root{--bg-color:#14060b;--card-bg:#2a0e18;--card-border:#5a1c30;--accent-red:#c4122f;--accent-red-dark:#7a0f2b;--accent-red-glow:rgba(196,18,47,.45);--text-muted:#c9a0ab;--gold:#ffb627}
+body{background-image:radial-gradient(ellipse 90% 50% at 50% -10%,rgba(190,24,60,.5),transparent)}
+header,nav.bottom-nav{background:rgba(26,6,12,.96);border-color:rgba(255,122,47,.28)}
+.dashboard-panel,.game-card,.case-card,.inventory-item,.game-arena{background:linear-gradient(160deg,#3d1322,#210911);border-color:rgba(255,122,47,.28)}
+.btn,.promo-banner{background:linear-gradient(135deg,#b3122f,#ff7a2f);box-shadow:0 4px 16px rgba(255,90,40,.4)}
+.stat-badge,.user-link,.back-btn{background:rgba(255,122,47,.12);border-color:rgba(255,122,47,.32)}
+.count-btn{background:#3d1322;border-color:rgba(255,122,47,.3)}.count-btn.active{color:#1a0509}
+.case-card{transition:transform .15s,box-shadow .2s}.case-card:active{box-shadow:0 0 18px rgba(255,122,47,.35)}
+#toast{bottom:calc(92px + env(safe-area-inset-bottom));background:#2a0e18;border-color:rgba(255,122,47,.5)}
+.upg-top{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:8px;align-items:center}
+.upg-slot{background:#1c0910;border:1px solid rgba(255,122,47,.3);border-radius:14px;min-height:124px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:.64rem;gap:3px;font-weight:700}
+.upg-slot img{width:100%;max-height:54px;object-fit:contain}
+.upg-slot i{font-style:normal;color:var(--gold)}
+.upg-wheel{position:relative;aspect-ratio:1}.upg-wheel svg{width:100%;height:100%}
+.upg-ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.upg-ctr b{font-size:1.45rem;color:var(--gold)}.upg-ctr small{font-size:.62rem;color:var(--text-muted)}
+#u-ptr{position:absolute;inset:0}
+#u-ptr::before{content:"";position:absolute;top:1px;left:50%;margin-left:-7px;border:7px solid transparent;border-top:13px solid var(--gold);border-bottom:0}
+.upg-coins{background:#1c0910;border:1px solid rgba(255,122,47,.25);border-radius:12px;padding:10px 12px;font-size:.8rem;font-weight:700}
+.upg-coins input{width:100%;accent-color:var(--gold);margin-top:6px}
+.upg-chips{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.upg-chips button{background:#2a0e18;border:1px solid rgba(255,122,47,.3);color:#fff;border-radius:8px;padding:7px 0;font-weight:800;font-size:.72rem}
+.upg-tabs{display:flex;gap:8px}.upg-tabs button{flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,122,47,.3);background:#2a0e18;color:#fff;font-weight:800}
+.upg-tabs button.on{background:var(--gold);color:#1a0509}
+.upg-q{width:100%;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,122,47,.3);background:#1c0910;color:#fff;outline:none}
+.ug{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:52vh;overflow-y:auto;padding-bottom:6px}
+.ug-i{background:#2a0e18;border-radius:10px;padding:6px 3px;text-align:center;border:1px solid transparent;border-bottom:3px solid var(--rc);font-size:.62rem;display:flex;flex-direction:column;align-items:center;gap:1px}
+.ug-i.sel{border-color:var(--gold);box-shadow:0 0 12px rgba(255,182,39,.45)}
+.ug-i b{color:var(--gold);font-size:.74rem}.ug-i img{width:100%;height:40px;object-fit:contain}
+.ug-i span{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.ug-i small{color:var(--text-muted)}
+</style>
+<script>
+(function(){
+/* ---------- 1. Уведомления: 3 секунды ---------- */
+let _tt;
+showToast=function(t){const e=document.getElementById('toast');e.innerText=t;e.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>e.classList.remove('show'),3000)};
+
+/* ---------- 2. Картинки: реальные + запасной вариант ---------- */
+const FB={};
+getSkinImg=function(it){return generateFallbackSVG(it)};
+getCaseImg=function(id){return generateFallbackCaseSVG(id)};
+document.addEventListener('error',e=>{const i=e.target;if(i&&i.tagName==='IMG'){const f=FB[i.getAttribute('src')];if(f)i.src=f}},true);
+
+/* ---------- 3. Кейсы: одна строка = один кейс ----------
+   формат: Название;m:Оружие|Скин:цена,...;r:...;c:...;v:...;x:...
+   m=Армейское r=Запрещённое c=Засекреченное v=Тайное x=Крайне редкое
+   Цена кейса считается сама из шансов и цен скинов. Скины дороже 12 цен кейса вырезаются. */
+const T={m:['milspec',79.92],r:['restricted',15.98],c:['classified',3.2],v:['covert',.64],x:['special',.26]};
+const RAW=[
+"Chroma Case;m:Glock-18|Catacombs:80,MP9|Deadly Poison:90,SCAR-20|Grotto:100,XM1014|Quicksilver:150;r:Desert Eagle|Naga:560,MAC-10|Malachite:380,Sawed-Off|Serenity:480;c:AK-47|Cartel:2400,M4A4|Dragon King:1700;v:AWP|Man-o'-war:8000",
+"Fracture Case;m:Negev|Ultralight:150,P2000|Gnarled:190,SG 553|Ol' Rusty:170,SSG 08|Mainframe 001:210,P250|Cassette:230;r:PP-Bizon|Runic:400,Galil AR|Connexion:470,P90|Freight:420;c:MAG-7|Monster Call:1500,MP5-SD|Kitbash:1400;v:AK-47|Legion of Anubis:5200",
+"Recoil Case;m:Glock-18|Winterized:340,Negev|Drop Me:360,P250|Visions:320,R8 Revolver|Crazy 8:400;r:UMP-45|Roadblock:720,Galil AR|Destroyer:820,Sawed-Off|Kiss♥Love:780;c:USP-S|Printstream:3600,AWP|Chromatic Aberration:4300;v:AK-47|Ice Coaled:6500",
+"Dreams & Nightmares Case;m:Five-SeveN|Scrawl:470,MAG-7|Foresight:540,SCAR-20|Poultrygeist:510,MAC-10|Ensnared:560;r:FAMAS|Rapid Eye Movement:1150,XM1014|Zombie Offensive:1050,MP9|Starlight Protector:1600;c:M4A1-S|Night Terror:3900,USP-S|Ticket to Hell:3300;v:AK-47|Nightwish:12000",
+"Revolution Case;m:MP9|Featherweight:900,Tec-9|Rebel:950,MAG-7|Insomnia:1000,SG 553|Cyberforce:1050;r:Galil AR|Control:2300,P250|Re.built:2000,UMP-45|Wild Child:2200;c:M4A4|Temukau:6800,Glock-18|Vogue:5800;v:AK-47|Head Shot:15000",
+"Kilowatt Case;m:Tec-9|Slag:1300,MAC-10|Light Box:1400,Dual Berettas|Hideout:1350,Nova|Dark Sigil:1500;r:Zeus x27|Olympus:3200,M4A4|Etch Lord:3400,SSG 08|Dezastre:3300;c:AK-47|Inheritance:12000,USP-S|Jawbreaker:9000;v:AWP|Chrome Cannon:22000",
+"Snakebite Case;m:Glock-18|Clear Polymer:2200,MAC-10|Button Masher:2100,R8 Revolver|Junk Yard:2000,Tec-9|Brother:2300;r:M4A4|In Living Color:5200,SSG 08|Parallax:4600,P90|Vent Rush:4800;c:Desert Eagle|Printstream:11000,AK-47|Slate:9000;v:AWP|Neo-Noir:26000",
+"Knife Case;v:Bayonet|Boreal Forest:12000,Flip Knife|Safari Mesh:15000,Gut Knife|Forest DDPAT:18000;x:Karambit|Doppler:140000,M9 Bayonet|Lore:220000,Butterfly Knife|Fade:350000"
+];
+const uniq={},cases=[];
+RAW.forEach((ln,ci)=>{
+  const p=ln.split(';'),tiers={};
+  p.slice(1).forEach(t=>{const k=t[0];tiers[k]=t.slice(2).split(',').map(s=>{const a=s.split(':'),b=a[0].split('|'),key=b[0]+' | '+b[1];
+    return uniq[key]||(uniq[key]={weapon:b[0],name:b[1],rarity:T[k][0],price:+a[1]})})});
+  let keys,sum,price;
+  const calc=()=>{keys=Object.keys(tiers).filter(k=>tiers[k].length);sum=keys.reduce((s,k)=>s+T[k][1],0);
+    price=Math.max(100,Math.round(keys.reduce((s,k)=>s+T[k][1]/sum*tiers[k].reduce((a,o)=>a+o.price,0)/tiers[k].length,0)*1.1/10)*10)};
+  for(let i=0;i<3;i++){calc();keys.forEach(k=>{const f=tiers[k].filter(o=>o.price<=price*12);if(f.length)tiers[k]=f;else tiers[k]=[]})}
+  calc();
+  const items=[];
+  keys.forEach(k=>{const w=T[k][1]/tiers[k].length;tiers[k].forEach(o=>items.push(Object.assign({},o,{chance:w})))});
+  cases.push({id:'case'+ci,name:p[0],price,items});
+});
+cases.sort((a,b)=>a.price-b.price);
+CS2_CASES.length=0;cases.forEach(c=>CS2_CASES.push(c));
+ALL_POSSIBLE_SKINS.length=0;Object.values(uniq).sort((a,b)=>a.price-b.price).forEach(o=>ALL_POSSIBLE_SKINS.push(o));
+
+/* реальные картинки из открытой базы CSGO-API (если нет сети — останутся нарисованные) */
+async function loadReal(){
+  try{
+    const API='https://bymykel.github.io/CSGO-API/api/en/';
+    let m=JSON.parse(localStorage.getItem('lc_img2')||'null');
+    if(!m){
+      const [s,c]=await Promise.all([fetch(API+'skins.json').then(r=>r.json()),fetch(API+'crates.json').then(r=>r.json())]);
+      m={};const need=new Set(ALL_POSSIBLE_SKINS.map(x=>x.weapon+' | '+x.name)),cn=new Set(CS2_CASES.map(x=>x.name));
+      s.forEach(x=>{if(need.has(x.name))m[x.name]=x.image});
+      c.forEach(x=>{if(cn.has(x.name))m[x.name]=x.image});
+      localStorage.setItem('lc_img2',JSON.stringify(m));
+    }
+    ALL_POSSIBLE_SKINS.forEach(x=>{const u=m[x.weapon+' | '+x.name];if(u){FB[u]=generateFallbackSVG(x);x.img=u}});
+    CS2_CASES.forEach((x,i)=>{const u=m[x.name];if(u){FB[u]=generateFallbackCaseSVG(x.id);x.iconImg=u}});
+    renderCasesList();renderInventory();upgRender();
+  }catch(e){}
+}
+
+/* ---------- 4. Апгрейдер по макету ---------- */
+document.getElementById('tab-upgrader').innerHTML=`
+<div class="section-title"><span>⬆ Апгрейдер: улучшай скины</span><span id="u-bal"></span></div>
+<div class="upgrader-container">
+ <div class="upg-top">
+  <div class="upg-slot" id="u-from"></div>
+  <div class="upg-wheel"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="#3a1522" stroke-width="12"/><circle id="u-arc" cx="100" cy="100" r="88" fill="none" stroke="#ffb627" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 553" transform="rotate(-90 100 100)"/></svg>
+   <div class="upg-ctr"><b id="u-pct">0.00%</b><small id="u-lbl">низкий шанс</small></div><div id="u-ptr"></div></div>
+  <div class="upg-slot" id="u-to"></div>
+ </div>
+ <div class="upg-coins">Добавить монеты: <span id="u-cv" style="color:var(--gold)">0</span><input type="range" id="u-coins" min="0" max="0" step="10" value="0" oninput="upgRender()"></div>
+ <button class="btn" id="u-go" onclick="upgGo()">Прокачать</button>
+ <div class="upg-chips"><button onclick="upgMul(2)">x2</button><button onclick="upgMul(4)">x4</button><button onclick="upgMul(8)">x8</button><button onclick="upgPct(35)">35%</button><button onclick="upgPct(55)">55%</button><button onclick="upgPct(75)">75%</button></div>
+ <div class="upg-tabs"><button id="ut-inv" onclick="upgTab('inv')">Мои скины</button><button id="ut-shop" onclick="upgTab('shop')">Выберите скин</button></div>
+ <input class="upg-q" id="u-q" placeholder="Название" oninput="upgRender()">
+ <div class="ug" id="u-list"></div>
+</div>`;
+let uF=null,uT=null,uTab='inv',uBusy=false;
+const extra=()=>+document.getElementById('u-coins').value||0;
+const stake=()=>uF?uF.price+extra():0;
+const chance=()=>!uF||!uT?0:(stake()>=uT.price?95:Math.min(95,Math.max(3,stake()/uT.price*90)));
+const slot=(it,ph)=>it?`<img src="${itemImg(it)}"><span>${it.weapon} | ${it.name}</span><i>${fmt(it.price)} 🪙</i>`:ph;
+upgRender=function(){
+  const c=chance(),co=document.getElementById('u-coins');
+  co.max=balance;if(+co.value>balance)co.value=balance;
+  document.getElementById('u-bal').innerText=fmt(balance)+' 🪙';
+  document.getElementById('u-cv').innerText=fmt(extra());
+  document.getElementById('u-from').innerHTML=slot(uF,'<span style="font-size:1.6rem">🎒</span><span>Выберите свой скин</span><span style="color:var(--text-muted)">до 1 предмета</span>');
+  document.getElementById('u-to').innerHTML=slot(uT,'<span style="font-size:1.6rem">🎯</span><span>Выберите желаемый скин</span>');
+  document.getElementById('u-arc').setAttribute('stroke-dasharray',(c/100*553)+' 553');
+  document.getElementById('u-pct').innerText=c.toFixed(2)+'%';
+  document.getElementById('u-lbl').innerText=c>=60?'высокий шанс':c>=30?'средний шанс':'низкий шанс';
+  document.getElementById('ut-inv').className=uTab==='inv'?'on':'';
+  document.getElementById('ut-shop').className=uTab==='shop'?'on':'';
+  const q=document.getElementById('u-q').value.toLowerCase();
+  const src=uTab==='inv'?inventory.map((o,i)=>[o,i]):ALL_POSSIBLE_SKINS.map((o,i)=>[o,i]);
+  const rows=src.filter(([o])=>(o.weapon+' '+o.name).toLowerCase().includes(q));
+  document.getElementById('u-list').innerHTML=rows.length?rows.map(([o,i])=>`<div class="ug-i ${(uTab==='inv'?uF===o:uT&&uT.name===o.name&&uT.weapon===o.weapon)?'sel':''}" style="--rc:${RARITY[o.rarity].color}" onclick="upgPick(${i})"><b>${fmt(o.price)}</b><img src="${itemImg(o)}"><small>${o.weapon}</small><span>${o.name}</span></div>`).join(''):'<div class="empty-inv" style="grid-column:span 3">'+(uTab==='inv'?'Инвентарь пуст.<br>Выбейте скины в кейсах.':'Ничего не найдено')+'</div>';
+};
+upgTab=function(t){uTab=t;upgRender()};
+upgPick=function(i){if(uBusy)return;if(uTab==='inv'){uF=inventory[i]}else{uT=ALL_POSSIBLE_SKINS[i]}haptic('light');upgRender()};
+const nearest=p=>ALL_POSSIBLE_SKINS.reduce((a,b)=>Math.abs(b.price-p)<Math.abs(a.price-p)?b:a);
+upgMul=function(k){if(!uF){showToast('Сначала выберите свой скин');return}uT=nearest(stake()*k);upgRender()};
+upgPct=function(p){if(!uF){showToast('Сначала выберите свой скин');return}uT=nearest(stake()*90/p);upgRender()};
+upgGo=function(){
+  if(uBusy)return;
+  if(!uF||!uT){showToast('❌ Выберите оба скина!');return}
+  if(extra()>balance){showToast('❌ Недостаточно монет!');return}
+  const ch=chance(),ok=Math.random()*100<ch,z=ch*3.6,ang=ok?Math.random()*z:z+Math.random()*(360-z);
+  uBusy=true;balance-=extra();updateBalance();
+  const i=inventory.indexOf(uF);if(i>-1)inventory.splice(i,1);
+  const p=document.getElementById('u-ptr');p.style.transition='transform 3.2s cubic-bezier(.1,.7,.1,1)';p.style.transform='rotate('+(1440+ang)+'deg)';haptic('medium');
+  const won=uT;
+  setTimeout(()=>{
+    if(ok){inventory.unshift(Object.assign({},won,{id:Date.now()+Math.random()}));hapticNotif('success');showToast('🎉 Успех! Получен '+won.weapon+' | '+won.name)}
+    else{hapticNotif('error');showToast('😢 Неудача! Скин сгорел.')}
+    saveGame();updateElo();renderInventory();
+    uF=null;uT=null;uBusy=false;p.style.transition='none';p.style.transform='rotate(0deg)';
+    document.getElementById('u-coins').value=0;upgRender();
+  },3400);
+};
+const _sw=switchTab;
+switchTab=function(t,b){_sw(t,b);if(t==='upgrader')upgRender()};
+
+renderCasesList();renderInventory();upgRender();loadReal();
+})();
+</script>
+
 </body>
 </html>
