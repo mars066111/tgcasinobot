@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Hub & CS2 Cases (Expanded)</title>
+    <title>Casino Hub & CS2 Cases (Upgrader & Cheap Cases)</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -27,7 +27,7 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             min-height: 100vh;
-            padding-top: 50px; /* Компактный отступ под мини-хедер */
+            padding-top: 50px;
             padding-bottom: 90px;
             position: relative;
             overflow-x: hidden;
@@ -63,7 +63,6 @@
             padding: 4px 10px; border-radius: 14px; border: 1px solid rgba(56, 189, 248, 0.3);
         }
 
-        /* Блок таблички статистики теперь в главном меню */
         .dashboard-panel {
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
             border: 1px solid rgba(56, 189, 248, 0.25);
@@ -97,10 +96,10 @@
         }
         .nav-item {
             background: none; border: none; color: var(--text-muted);
-            font-size: 0.8rem; font-weight: 600; display: flex; flex-direction: column;
-            align-items: center; gap: 4px; cursor: pointer; transition: color 0.2s;
+            font-size: 0.75rem; font-weight: 600; display: flex; flex-direction: column;
+            align-items: center; gap: 3px; cursor: pointer; transition: color 0.2s;
         }
-        .nav-item span { font-size: 1.3rem; }
+        .nav-item span { font-size: 1.2rem; }
         .nav-item.active { color: var(--accent-blue); }
 
         .promo-banner {
@@ -243,6 +242,33 @@
         .btn:active { opacity: 0.8; }
         .btn.disabled { opacity: 0.4; pointer-events: none; }
 
+        /* UPGRADER STYLES */
+        .upgrader-container {
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .upgrader-box-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+        .upgrade-card-slot {
+            background: #0f172a; border: 2px dashed rgba(56,189,248,0.3); border-radius: 14px;
+            padding: 12px; min-height: 130px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; cursor: pointer; text-align: center;
+            position: relative;
+        }
+        .upgrade-card-slot.selected { border-style: solid; border-color: var(--accent-blue); background: rgba(56,189,248,0.05); }
+        .upgrader-arrow {
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--accent-blue); font-weight: bold; margin: -4px 0;
+        }
+        .upgrader-chance-info {
+            background: rgba(30,41,59,0.9); border: 1px solid rgba(56,189,248,0.2); border-radius: 12px;
+            padding: 10px; text-align: center; font-size: 0.9rem;
+        }
+        .upgrader-chance-info span { color: var(--accent-blue); font-weight: bold; }
+        
+        .selector-modal-list {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 350px; overflow-y: auto; padding-right: 4px;
+        }
+
         .bet-control {
             display: flex; justify-content: space-between; align-items: center;
             background: #0f172a; padding: 10px 14px; border-radius: 12px; margin: 10px 0;
@@ -257,7 +283,7 @@
             background: #0f172a; border-radius: 12px; padding: 15px;
             min-height: 100px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; margin: 8px 0;
-            border: 1px solid rgba(56, 189, 248, 0.2); color: var(--text-main); gap: 6px;
+            border: 1px solid rgba(56, 189, 248, 0.2); color: var::text-main; gap: 6px;
         }
 
         .slot-machine-cabinet {
@@ -320,14 +346,11 @@
         <div class="circle c1"></div> <div class="circle c2"></div> <div class="circle c3"></div>
     </div>
 
-    <!-- Компактный верхний хедер (только ссылка) -->
     <header>
         <a href="https://t.me/Larp333you" target="_blank" class="user-link">@Larp333you</a>
     </header>
 
-    <!-- ВКЛАДКА 1: КАРИНО / ГЛАВНОЕ МЕНЮ -->
     <div class="container active-tab" id="tab-casino">
-        <!-- ТАБЛИЧКА СТАТИСТИКИ (теперь строго в главном меню, никуда не смещается) -->
         <div class="dashboard-panel">
             <div class="dashboard-row">
                 <div class="header-stats">
@@ -356,13 +379,31 @@
         </div>
     </div>
 
-    <!-- ВКЛАДКА 2: КЕЙСЫ CS2 -->
     <div class="container" id="tab-cases">
-        <div class="section-title"><span>CS2 Кейсы</span><span>📦 Премиум Цены</span></div>
+        <div class="section-title"><span>CS2 Кейсы</span><span>📦 Доступные цены</span></div>
         <div class="cases-grid" id="cases-list-grid"></div>
     </div>
 
-    <!-- ВКЛАДКА 3: ИНВЕНТАРЬ -->
+    <div class="container" id="tab-upgrader">
+        <div class="section-title"><span>Апгрейдер скинов</span><span>🚀 Улучшение</span></div>
+        <div class="upgrader-container">
+            <div class="upgrader-box-row">
+                <div class="upgrade-card-slot" id="upgrader-from-slot" onclick="openUpgraderSelector('from')">
+                    <span style="font-size:1.8rem">🎒</span>
+                    <span style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Ваш скин</span>
+                    <span id="up-from-name" style="font-size:0.75rem; font-weight:bold; margin-top:2px;">Выберите...</span>
+                </div>
+                <div class="upgrade-card-slot" id="upgrader-to-slot" onclick="openUpgraderSelector('to')">
+                    <span style="font-size:1.8rem">🎁</span>
+                    <span style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Желаемый скин</span>
+                    <span id="up-to-name" style="font-size:0.75rem; font-weight:bold; margin-top:2px;">Выберите...</span>
+                </div>
+            </div>
+            <div class="upgrader-chance-info">Шанс успеха: <span id="upgrader-chance-val">0%</span></div>
+            <button class="btn disabled" id="upgrade-exec-btn" onclick="executeUpgrade()">Улучшить скин</button>
+        </div>
+    </div>
+
     <div class="container" id="tab-inventory">
         <div class="section-title"><span>Ваш инвентарь CS2</span><span id="inv-count">0 предметов</span></div>
         <div class="inventory-grid" id="inventory-grid-container"></div>
@@ -370,11 +411,11 @@
 
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('casino', this)"><span>🎰</span>Казино</button>
-        <button class="nav-item" onclick="switchTab('cases', this)"><span>📦</span>Кейсы CS2</button>
+        <button class="nav-item" onclick="switchTab('cases', this)"><span>📦</span>Кейсы</button>
+        <button class="nav-item" onclick="switchTab('upgrader', this)"><span>🚀</span>Апгрейд</button>
         <button class="nav-item" onclick="switchTab('inventory', this)"><span>🎒</span>Инвентарь</button>
     </nav>
 
-    <!-- МОДАЛКА ИГР / ОТКРЫТИЯ КЕЙСОВ -->
     <div class="modal" id="game-modal">
         <div class="modal-header">
             <button class="back-btn" id="modal-back-btn" onclick="closeGame()">← Назад</button>
@@ -388,115 +429,93 @@
 
     <script>
         const CS2_CASES = [
-            /* Старые кейсы (полностью сохранены) */
             {
-                id: 'case_weapon_1', name: 'CS:GO Weapon Case', icon: '📦', price: 5000,
+                id: 'case_weapon_1', name: 'CS:GO Weapon Case', icon: '📦', price: 350,
                 items: [
-                    { name: 'Safari Mesh', weapon: 'SSG 08', rarity: 'consumer', color: '#b0c3d9', price: 150, icon: '🎯' },
-                    { name: 'Boreal Forest', weapon: 'AUG', rarity: 'consumer', color: '#b0c3d9', price: 200, icon: '🎯' },
-                    { name: 'Sandstorm', weapon: 'Tec-9', rarity: 'milspec', color: '#4b69ff', price: 700, icon: '🔫' },
+                    { name: 'Safari Mesh', weapon: 'SSG 08', rarity: 'consumer', color: '#b0c3d9', price: 250, icon: '🎯' },
+                    { name: 'Boreal Forest', weapon: 'AUG', rarity: 'consumer', color: '#b0c3d9', price: 300, icon: '🎯' },
+                    { name: 'Sandstorm', weapon: 'Tec-9', rarity: 'milspec', color: '#4b69ff', price: 600, icon: '🔫' },
                     { name: 'Contrast Spray', weapon: 'MAC-10', rarity: 'milspec', color: '#4b69ff', price: 500, icon: '🔫' },
-                    { name: 'Magma', weapon: 'FAMAS', rarity: 'restricted', color: '#d32ce6', price: 2200, icon: '🔫' },
-                    { name: 'Water Elemental', weapon: 'Glock-18', rarity: 'restricted', color: '#d32ce6', price: 3400, icon: '💧' },
-                    { name: 'Neon Rider', weapon: 'Mac-10', rarity: 'classified', color: '#eb4b4b', price: 8500, icon: '⚡' },
-                    { name: 'Asiimov', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 32000, icon: '💥' }
+                    { name: 'Magma', weapon: 'FAMAS', rarity: 'restricted', color: '#d32ce6', price: 1200, icon: '🔫' },
+                    { name: 'Water Elemental', weapon: 'Glock-18', rarity: 'restricted', color: '#d32ce6', price: 2100, icon: '💧' },
+                    { name: 'Neon Rider', weapon: 'Mac-10', rarity: 'classified', color: '#eb4b4b', price: 4800, icon: '⚡' },
+                    { name: 'Asiimov', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 15000, icon: '💥' }
                 ]
             },
             {
-                id: 'case_revolution', name: 'Revolution Case', icon: '🎁', price: 12000,
+                id: 'case_revolution', name: 'Revolution Case', icon: '🎁', price: 750,
                 items: [
-                    { name: 'Scorched', weapon: 'PP-Bizon', rarity: 'consumer', color: '#b0c3d9', price: 400, icon: '🔫' },
-                    { name: 'Jungle DDPAT', weapon: 'MP7', rarity: 'consumer', color: '#b0c3d9', price: 600, icon: '🔫' },
-                    { name: 'Night Stripe', weapon: 'MP9', rarity: 'milspec', color: '#4b69ff', price: 1500, icon: '🔫' },
-                    { name: 'Sandswept', weapon: 'MAG-7', rarity: 'milspec', color: '#4b69ff', price: 1200, icon: '🔫' },
-                    { name: 'Mecha Industries', weapon: 'Galil AR', rarity: 'restricted', color: '#d32ce6', price: 4500, icon: '🤖' },
-                    { name: 'Cyberpunked', weapon: 'MP5-SD', rarity: 'restricted', color: '#d32ce6', price: 3800, icon: '🤖' },
-                    { name: 'Emperor', weapon: 'M4A4', rarity: 'classified', color: '#eb4b4b', price: 25000, icon: '👑' },
-                    { name: 'Fade', weapon: 'Bayonet', rarity: 'special', color: '#ffd700', price: 350000, icon: '🔪' }
+                    { name: 'Scorched', weapon: 'PP-Bizon', rarity: 'consumer', color: '#b0c3d9', price: 500, icon: '🔫' },
+                    { name: 'Jungle DDPAT', weapon: 'MP7', rarity: 'consumer', color: '#b0c3d9', price: 650, icon: '🔫' },
+                    { name: 'Night Stripe', weapon: 'MP9', rarity: 'milspec', color: '#4b69ff', price: 1100, icon: '🔫' },
+                    { name: 'Sandswept', weapon: 'MAG-7', rarity: 'milspec', color: '#4b69ff', price: 950, icon: '🔫' },
+                    { name: 'Mecha Industries', weapon: 'Galil AR', rarity: 'restricted', color: '#d32ce6', price: 2500, icon: '🤖' },
+                    { name: 'Cyberpunked', weapon: 'MP5-SD', rarity: 'restricted', color: '#d32ce6', price: 2200, icon: '🤖' },
+                    { name: 'Emperor', weapon: 'M4A4', rarity: 'classified', color: '#eb4b4b', price: 9500, icon: '👑' },
+                    { name: 'Fade', weapon: 'Bayonet', rarity: 'special', color: '#ffd700', price: 85000, icon: '🔪' }
                 ]
             },
             {
-                id: 'case_dreams', name: 'Dreams & Nightmares', icon: '🔮', price: 25000,
+                id: 'case_dreams', name: 'Dreams & Nightmares', icon: '🔮', price: 1500,
                 items: [
-                    { name: 'Coordinates', weapon: 'P250', rarity: 'milspec', color: '#4b69ff', price: 1800, icon: '🔫' },
-                    { name: 'UIColor', weapon: 'MP5-SD', rarity: 'milspec', color: '#4b69ff', price: 2200, icon: '🔫' },
-                    { name: 'Fizzy POP', weapon: 'PP-Bizon', rarity: 'milspec', color: '#4b69ff', price: 1400, icon: '🥤' },
-                    { name: 'Night Terror', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 6500, icon: '🌙' },
-                    { name: 'Mantis', weapon: 'XM1014', rarity: 'restricted', color: '#d32ce6', price: 3000, icon: '🐛' },
-                    { name: 'Helix', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 18000, icon: '👁' },
-                    { name: 'Doppler', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 650000, icon: '🗡' }
+                    { name: 'Coordinates', weapon: 'P250', rarity: 'milspec', color: '#4b69ff', price: 1200, icon: '🔫' },
+                    { name: 'UIColor', weapon: 'MP5-SD', rarity: 'milspec', color: '#4b69ff', price: 1400, icon: '🔫' },
+                    { name: 'Fizzy POP', weapon: 'PP-Bizon', rarity: 'milspec', color: '#4b69ff', price: 1100, icon: '🥤' },
+                    { name: 'Night Terror', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 3500, icon: '🌙' },
+                    { name: 'Mantis', weapon: 'XM1014', rarity: 'restricted', color: '#d32ce6', price: 2800, icon: '🐛' },
+                    { name: 'Helix', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 7800, icon: '👁' },
+                    { name: 'Doppler', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 140000, icon: '🗡' }
                 ]
             },
             {
-                id: 'case_knife', name: 'Knife & Gloves Case', icon: '🗡️', price: 100000,
+                id: 'case_knife', name: 'Knife & Gloves Case', icon: '🗡️', price: 5000,
                 items: [
-                    { name: 'Rust Coat', weapon: 'Bowie Knife', rarity: 'covert', color: '#ff0000', price: 85000, icon: '🔪' },
-                    { name: 'Lore', weapon: 'M9 Bayonet', rarity: 'special', color: '#ffd700', price: 900000, icon: '🗡️' },
-                    { name: 'Fade', weapon: 'Butterfly Knife', rarity: 'special', color: '#ffd700', price: 1500000, icon: '🦋' },
-                    { name: 'Slaughter', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 1200000, icon: '🔪' },
-                    { name: 'Vice', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 2000000, icon: '🥊' },
-                    { name: 'Pandoras Box', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 3500000, icon: '🥊' }
-                ]
-            },
-            /* Новые кейсы */
-            {
-                id: 'case_fracture', name: 'Fracture Case', icon: '🧪', price: 8000,
-                items: [
-                    { name: 'Magna Carta', weapon: 'P250', rarity: 'consumer', color: '#b0c3d9', price: 250, icon: '📜' },
-                    { name: 'Oxide Oasis', weapon: 'P90', rarity: 'consumer', color: '#b0c3d9', price: 300, icon: '🏜️' },
-                    { name: 'Etch Lord', weapon: 'SG 553', rarity: 'milspec', color: '#4b69ff', price: 900, icon: '🔫' },
-                    { name: 'Voodoo', weapon: 'PP-Bizon', rarity: 'milspec', color: '#4b69ff', price: 800, icon: '🔮' },
-                    { name: 'Monkey Business', weapon: 'Galil AR', rarity: 'restricted', color: '#d32ce6', price: 2800, icon: '🐒' },
-                    { name: 'Tooth Fairy', weapon: 'M4A4', rarity: 'restricted', color: '#d32ce6', price: 4200, icon: '🦷' },
-                    { name: 'Printstream', weapon: 'Desert Eagle', rarity: 'classified', color: '#eb4b4b', price: 31000, icon: '⚡' },
-                    { name: 'Skeleton Knife', weapon: 'Fade', rarity: 'special', color: '#ffd700', price: 800000, icon: '🔪' }
-                ]
-            },
-            {
-                id: 'case_prisma2', name: 'Prisma 2 Case', icon: '🌈', price: 15000,
-                items: [
-                    { name: 'Capillary', weapon: 'AUG', rarity: 'consumer', color: '#b0c3d9', price: 450, icon: '🩸' },
-                    { name: 'Scumbria', weapon: 'SG 553', rarity: 'consumer', color: '#b0c3d9', price: 500, icon: '🐟' },
-                    { name: 'Uncharted', weapon: 'AK-47', rarity: 'milspec', color: '#4b69ff', price: 1600, icon: '🗺️' },
-                    { name: 'Disarray', weapon: 'MP5-SD', rarity: 'milspec', color: '#4b69ff', price: 1400, icon: '🌀' },
-                    { name: 'Player Two', weapon: 'M4A4', rarity: 'restricted', color: '#d32ce6', price: 7500, icon: '🎮' },
-                    { name: 'Bullet Queen', weapon: 'Glock-18', rarity: 'classified', color: '#eb4b4b', price: 19000, icon: '👑' },
-                    { name: 'Talon Knife', weapon: 'Marble Fade', rarity: 'special', color: '#ffd700', price: 750000, icon: '🗡️' }
-                ]
-            },
-            {
-                id: 'case_glove', name: 'Glove Case', icon: '🥊', price: 45000,
-                items: [
-                    { name: 'Iron Clad', weapon: 'MP7', rarity: 'consumer', color: '#b0c3d9', price: 900, icon: '🛡️' },
-                    { name: 'Grassland', weapon: 'G3SG1', rarity: 'consumer', color: '#b0c3d9', price: 850, icon: '🌿' },
-                    { name: 'Sandstorm', weapon: 'Dual Berettas', rarity: 'milspec', color: '#4b69ff', price: 2500, icon: '🌪️' },
-                    { name: 'Stinger', weapon: 'CZ75-Auto', rarity: 'restricted', color: '#d32ce6', price: 5500, icon: '🐝' },
-                    { name: 'Neo-Noir', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 24000, icon: '🖤' },
-                    { name: 'Slaughter', weapon: 'Specialist Gloves', rarity: 'special', color: '#ffd700', price: 1800000, icon: '🥊' }
-                ]
-            },
-            {
-                id: 'case_operation_hydra', name: 'Operation Hydra', icon: '🐍', price: 80000,
-                items: [
-                    { name: 'Pulse', weapon: 'P250', rarity: 'consumer', color: '#b0c3d9', price: 1500, icon: '💓' },
-                    { name: 'Cache', weapon: 'MAC-10', rarity: 'milspec', color: '#4b69ff', price: 3200, icon: '☢️' },
-                    { name: 'Metal Flowers', weapon: 'UMP-45', rarity: 'restricted', color: '#d32ce6', price: 7800, icon: '🌸' },
-                    { name: ' Oni Taiji', weapon: 'M4A4', rarity: 'covert', color: '#ff0000', price: 95000, icon: '👹' },
-                    { name: 'Crimson Kimono', weapon: 'Specialist Gloves', rarity: 'special', color: '#ffd700', price: 2500000, icon: '🥊' }
+                    { name: 'Rust Coat', weapon: 'Bowie Knife', rarity: 'covert', color: '#ff0000', price: 18000, icon: '🔪' },
+                    { name: 'Lore', weapon: 'M9 Bayonet', rarity: 'special', color: '#ffd700', price: 220000, icon: '🗡️' },
+                    { name: 'Fade', weapon: 'Butterfly Knife', rarity: 'special', color: '#ffd700', price: 350000, icon: '🦋' },
+                    { name: 'Slaughter', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 280000, icon: '🔪' },
+                    { name: 'Vice', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 450000, icon: '🥊' },
+                    { name: 'Pandoras Box', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 700000, icon: '🥊' }
                 ]
             }
+        ];
+
+        // Все доступные скины для апгрейдера (пул желаемых наград)
+        const ALL_POSSIBLE_SKINS = [
+            { name: 'Safari Mesh', weapon: 'SSG 08', color: '#b0c3d9', price: 250, icon: '🎯' },
+            { name: 'Sandstorm', weapon: 'Tec-9', color: '#4b69ff', price: 600, icon: '🔫' },
+            { name: 'Magma', weapon: 'FAMAS', color: '#d32ce6', price: 1200, icon: '🔫' },
+            { name: 'Water Elemental', weapon: 'Glock-18', color: '#d32ce6', price: 2100, icon: '💧' },
+            { name: 'Mecha Industries', weapon: 'Galil AR', color: '#d32ce6', price: 2500, icon: '🤖' },
+            { name: 'Night Terror', weapon: 'M4A1-S', color: '#d32ce6', price: 3500, icon: '🌙' },
+            { name: 'Neon Rider', weapon: 'Mac-10', color: '#eb4b4b', price: 4800, icon: '⚡' },
+            { name: 'Helix', weapon: 'USP-S', color: '#eb4b4b', price: 7800, icon: '👁' },
+            { name: 'Emperor', weapon: 'M4A4', color: '#eb4b4b', price: 9500, icon: '👑' },
+            { name: 'Asiimov', weapon: 'AWP', color: '#ff0000', price: 15000, icon: '💥' },
+            { name: 'Rust Coat', weapon: 'Bowie Knife', color: '#ff0000', price: 18000, icon: '🔪' },
+            { name: 'Lore', weapon: 'M9 Bayonet', color: '#ffd700', price: 220000, icon: '🗡️' },
+            { name: 'Fade', weapon: 'Butterfly Knife', color: '#ffd700', price: 350000, icon: '🦋' },
+            { name: 'Vice', weapon: 'Sport Gloves', color: '#ffd700', price: 450000, icon: '🥊' }
         ];
 
         let balance = 10000;
         let inventory = [];
         let cooldowns = {};
 
+        // Состояние апгрейдера
+        let upgraderSelectedFrom = null; // объект скина инвентаря
+        let upgraderSelectedTo = null;   // объект скина из каталога
+
         if (localStorage.getItem('casino_balance') !== null) {
             balance = parseInt(localStorage.getItem('casino_balance'));
+        } else {
+            balance = 10000;
         }
+
         if (localStorage.getItem('cs2_inventory') !== null) {
             inventory = JSON.parse(localStorage.getItem('cs2_inventory'));
         }
+
         if (localStorage.getItem('casino_cooldowns') !== null) {
             try { cooldowns = JSON.parse(localStorage.getItem('casino_cooldowns')); } catch(e) { cooldowns = {}; }
         }
@@ -710,12 +729,12 @@
             let hasCovert = caseData.items.some(i => i.rarity === 'covert');
             let hasSpecial = caseData.items.some(i => i.rarity === 'special');
 
-            if(hasConsumer) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#b0c3d9">Ширпотреб / Промышленное</span><span>45.0%</span></div>`;
-            if(hasMilspec) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#4b69ff">Армейское качество</span><span>30.0%</span></div>`;
-            if(hasRestricted) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#d32ce6">Запрещенное</span><span>15.0%</span></div>`;
-            if(hasClassified) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#eb4b4b">Секретное</span><span>7.0%</span></div>`;
-            if(hasCovert) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#ff0000">Тайное</span><span>2.6%</span></div>`;
-            if(hasSpecial) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#ffd700">★ Нож / Перчатки</span><span>0.4%</span></div>`;
+            if(hasConsumer) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#b0c3d9">Ширпотреб</span><span>30.0%</span></div>`;
+            if(hasMilspec) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#4b69ff">Армейское качество</span><span>32.0%</span></div>`;
+            if(hasRestricted) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#d32ce6">Запрещенное</span><span>20.0%</span></div>`;
+            if(hasClassified) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#eb4b4b">Секретное</span><span>12.0%</span></div>`;
+            if(hasCovert) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#ff0000">Тайное</span><span>5.0%</span></div>`;
+            if(hasSpecial) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#ffd700">★ Нож / Перчатки</span><span>3.0%</span></div>`;
 
             dropRatesHtml += `</div>`;
 
@@ -795,13 +814,13 @@
             for(let cIdx = 0; cIdx < selectedCaseCount; cIdx++) {
                 let rollRand = Math.random() * 100;
                 let targetRarity = 'consumer';
-                if (rollRand > 99.6) {
-                    let specItems = caseData.items.filter(i => i.rarity === 'special' || i.rarity === 'covert');
-                    targetRarity = specItems.length > 0 ? specItems[0].rarity : 'classified';
-                } else if (rollRand > 97.0) targetRarity = 'covert';
-                else if (rollRand > 90.0) targetRarity = 'classified';
-                else if (rollRand > 75.0) targetRarity = 'restricted';
-                else if (rollRand > 45.0) targetRarity = 'milspec';
+                if (rollRand > 97.0) {
+                    let specItems = caseData.items.filter(i => i.rarity === 'special');
+                    targetRarity = specItems.length > 0 ? 'special' : 'covert';
+                } else if (rollRand > 92.0) targetRarity = 'covert';
+                else if (rollRand > 80.0) targetRarity = 'classified';
+                else if (rollRand > 60.0) targetRarity = 'restricted';
+                else if (rollRand > 28.0) targetRarity = 'milspec';
 
                 let pool = caseData.items.filter(i => i.rarity === targetRarity);
                 if(pool.length === 0) pool = caseData.items;
@@ -840,12 +859,136 @@
             }, 6100);
         }
 
+        // ЛОГИКА АПГРЕЙДЕРА
+        function openUpgraderSelector(type) {
+            const modal = document.getElementById('game-modal');
+            const titleEl = document.getElementById('modal-game-title');
+            const area = document.getElementById('game-content-area');
+            modal.classList.add('active');
+
+            if (type === 'from') {
+                titleEl.innerText = "Выберите скин из инвентаря";
+                if (inventory.length === 0) {
+                    area.innerHTML = `<div class="empty-inv">Ваш инвентарь пуст. Сначала выиграйте скины в кейсах!</div>`;
+                    return;
+                }
+                area.innerHTML = `
+                    <div class="selector-modal-list">
+                        ${inventory.map((item, idx) => `
+                            <div class="inventory-item" style="border-top: 4px solid ${item.color}; cursor:pointer;" onclick="selectUpgraderFrom(${idx})">
+                                <div class="inv-skin-icon">${item.icon}</div>
+                                <div class="inv-skin-weapon">${item.weapon}</div>
+                                <div class="inv-skin-name">${item.name}</div>
+                                <div class="inv-skin-price">${item.price} 🪙</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                titleEl.innerText = "Выберите желаемый скин";
+                area.innerHTML = `
+                    <div class="selector-modal-list">
+                        ${ALL_POSSIBLE_SKINS.map((item, idx) => `
+                            <div class="inventory-item" style="border-top: 4px solid ${item.color}; cursor:pointer;" onclick="selectUpgraderTo(${idx})">
+                                <div class="inv-skin-icon">${item.icon}</div>
+                                <div class="inv-skin-weapon">${item.weapon}</div>
+                                <div class="inv-skin-name">${item.name}</div>
+                                <div class="inv-skin-price">${item.price} 🪙</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        function selectUpgraderFrom(index) {
+            upgraderSelectedFrom = inventory[index];
+            document.getElementById('upgrader-from-slot').classList.add('selected');
+            document.getElementById('up-from-name').innerText = `${upgraderSelectedFrom.weapon} | ${upgraderSelectedFrom.name} (${upgraderSelectedFrom.price} 🪙)`;
+            closeGame();
+            calcUpgraderChance();
+        }
+
+        function selectUpgraderTo(index) {
+            upgraderSelectedTo = ALL_POSSIBLE_SKINS[index];
+            document.getElementById('upgrader-to-slot').classList.add('selected');
+            document.getElementById('up-to-name').innerText = `${upgraderSelectedTo.weapon} | ${upgraderSelectedTo.name} (${upgraderSelectedTo.price} 🪙)`;
+            closeGame();
+            calcUpgraderChance();
+        }
+
+        function calcUpgraderChance() {
+            if (!upgraderSelectedFrom || !upgraderSelectedTo) return;
+            let fromPrice = upgraderSelectedFrom.price;
+            let toPrice = upgraderSelectedTo.price;
+
+            if (fromPrice >= toPrice) {
+                document.getElementById('upgrader-chance-val').innerText = "100% (Цена желанного ниже или равна)";
+                document.getElementById('upgrade-exec-btn').classList.remove('disabled');
+                return;
+            }
+
+            let chance = (fromPrice / toPrice) * 90; // честный формула шанса
+            if (chance > 95) chance = 95;
+            if (chance < 3) chance = 3;
+
+            document.getElementById('upgrader-chance-val').innerText = `${chance.toFixed(1)}%`;
+            document.getElementById('upgrade-exec-btn').classList.remove('disabled');
+        }
+
+        function executeUpgrade() {
+            if (!upgraderSelectedFrom || !upgraderSelectedTo) {
+                showToast("❌ Выберите оба скина!");
+                return;
+            }
+
+            let fromPrice = upgraderSelectedFrom.price;
+            let toPrice = upgraderSelectedTo.price;
+
+            let chance = 100;
+            if (fromPrice < toPrice) {
+                chance = (fromPrice / toPrice) * 90;
+                if (chance > 95) chance = 95;
+                if (chance < 3) chance = 3;
+            }
+
+            // Находим индекс отдаваемого скина в инвентаре
+            let invIndex = inventory.findIndex(i => i.id === upgraderSelectedFrom.id);
+            if (invIndex !== -1) {
+                inventory.splice(invIndex, 1);
+            }
+
+            let roll = Math.random() * 100;
+            if (roll <= chance) {
+                // Победа
+                inventory.unshift({ ...upgraderSelectedTo, id: Date.now() + Math.random() });
+                showToast(`🎉 Успех! Вы апгрейднули скин до ${upgraderSelectedTo.name}!`);
+            } else {
+                showToast("😢 Неудача! Скин сгорел.");
+            }
+
+            saveGame();
+            updateElo();
+            renderInventory();
+
+            // Сброс выбора
+            upgraderSelectedFrom = null;
+            upgraderSelectedTo = null;
+            document.getElementById('upgrader-from-slot').classList.remove('selected');
+            document.getElementById('upgrader-to-slot').classList.remove('selected');
+            document.getElementById('up-from-name').innerText = "Выберите...";
+            document.getElementById('up-to-name').innerText = "Выберите...";
+            document.getElementById('upgrader-chance-val').innerText = "0%";
+            document.getElementById('upgrade-exec-btn').classList.add('disabled');
+            switchTab('inventory', document.querySelector('.bottom-nav button:nth-child(4)'));
+        }
+
         function renderInventory() {
             const container = document.getElementById('inventory-grid-container');
             document.getElementById('inv-count').innerText = `${inventory.length} предметов`;
 
             if (inventory.length === 0) {
-                container.innerHTML = `<div class="empty-inv">Ваш инвентарь пуст. Откройте кейсы во вкладке «CS2 Кейсы»!</div>`;
+                container.innerHTML = `<div class="empty-inv">Ваш инвентарь пуст. Откройте кейсы во вкладке «Кейсы»!</div>`;
                 return;
             }
 
@@ -939,7 +1082,7 @@
                     break;
                 case 'hilo':
                     titleEl.innerText = "📈 Выше / Ниже";
-                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее число выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" id="h-high-btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️️</button><button class="btn" id="h-low-btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="500"></div></div>`;
+                    area.innerHTML = `<div>Текущее число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Угадайте, следующее число будет выше или ниже 50?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" id="h-high-btn" style="background:#059669;" onclick="playHilo('high')">Выше (>50) ⬆</button><button class="btn" id="h-low-btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже (<50) ⬇</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="500"></div></div>`;
                     break;
             }
         }
@@ -1258,10 +1401,18 @@
 
             const nextNum = Math.floor(Math.random() * 100) + 1;
             document.getElementById('hilo-num').innerText = nextNum;
-            let win = (guess === 'high' && nextNum > 50) || (guess === 'low' && nextNum < 50);
+            
+            let win = false;
+            if (guess === 'high' && nextNum >= 50) win = true;
+            if (guess === 'low' && nextNum <= 50) win = true;
+
             if (win) {
-                let prize = Math.floor(bet * 1.8); balance += prize; showToast(`🎉 Верно! +${prize}`);
-            } else { showToast("😢 Не угадали"); }
+                let prize = Math.floor(bet * 1.8); 
+                balance += prize; 
+                showToast(`🎉 Верно! Выпало ${nextNum}. +${prize}`);
+            } else { 
+                showToast(`😢 Не угадали. Выпало ${nextNum}`); 
+            }
             updateBalance();
         }
     </script>
