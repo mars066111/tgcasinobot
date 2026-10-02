@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Hub & CS2 Cases (Updated)</title>
+    <title>Casino Hub & CS2 Cases (AutoSave & Limit)</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -84,7 +84,6 @@
         .container { max-width: 480px; margin: 0 auto; padding: 16px; display: none; }
         .container.active-tab { display: block; }
 
-        /* Нижняя навигация */
         nav.bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px);
@@ -126,16 +125,9 @@
             position: relative; overflow: hidden;
         }
         .game-card:active { transform: scale(0.96); }
-        .game-card.cooldown { opacity: 0.5; pointer-events: none; }
         .game-card .icon { font-size: 2.2rem; margin-bottom: 8px; }
         .game-card .title { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
-        
-        .cd-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(15,23,42,0.85);
-            font-size: 0.75rem; color: #38bdf8; padding: 4px; font-weight: bold; text-align: center;
-        }
 
-        /* Стили для CS2 Кейсов */
         .cases-grid {
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;
         }
@@ -149,8 +141,12 @@
         .case-img { font-size: 3rem; margin: 8px 0; }
         .case-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
         .case-price { font-size: 0.85rem; color: var(--accent-blue); font-weight: 600; }
+        
+        .cd-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(15,23,42,0.85);
+            font-size: 0.75rem; color: #38bdf8; padding: 4px; font-weight: bold; text-align: center;
+        }
 
-        /* Окно открытия кейса */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 200; overflow-y: auto; padding: 20px; flex-direction: column;
@@ -180,6 +176,7 @@
             padding: 6px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem;
         }
         .count-btn.active { background: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); }
+        .count-btn.disabled { opacity: 0.4; pointer-events: none; }
 
         .case-opening-container {
             position: relative; width: 100%; height: 140px; background: #090d16;
@@ -202,7 +199,6 @@
         .skin-ticket .s-icon { font-size: 2.2rem; margin-bottom: 4px; }
         .skin-ticket .s-name { font-size: 0.75rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-        /* Инвентарь */
         .inventory-grid {
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: calc(100vh - 220px); overflow-y: auto; padding-right: 4px;
         }
@@ -328,33 +324,28 @@
         <div class="section-title"><span>Игры</span><span>⚡️ Top</span></div>
 
         <div class="games-grid" id="games-grid-container">
-            <div class="game-card" id="card-slots" onclick="openGame('slots')"><div class="icon">🎰</div><div class="title">Слоты 777</div></div>
-            <div class="game-card" id="card-plane" onclick="openGame('plane')"><div class="icon">✈</div><div class="title">Самолетик (Aviator)</div></div>
-            <div class="game-card" id="card-mines" onclick="openGame('mines')"><div class="icon">💣</div><div class="title">Мины (Сапер)</div></div>
-            <div class="game-card" id="card-dice" onclick="openGame('dice')"><div class="icon">🎲</div><div class="title">Кости (Выбор)</div></div>
-            <div class="game-card" id="card-roulette" onclick="openGame('roulette')"><div class="icon">🎡</div><div class="title">Рулетка</div></div>
-            <div class="game-card" id="card-coinflip" onclick="openGame('coinflip')"><div class="icon">🪙</div><div class="title">Монетка</div></div>
-            <div class="game-card" id="card-hilo" onclick="openGame('hilo')"><div class="icon">📈</div><div class="title">Выше / Ниже</div></div>
+            <div class="game-card" onclick="openGame('slots')"><div class="icon">🎰</div><div class="title">Слоты 777</div></div>
+            <div class="game-card" onclick="openGame('plane')"><div class="icon">✈</div><div class="title">Самолетик (Aviator)</div></div>
+            <div class="game-card" onclick="openGame('mines')"><div class="icon">💣</div><div class="title">Мины (Сапер)</div></div>
+            <div class="game-card" onclick="openGame('dice')"><div class="icon">🎲</div><div class="title">Кости (Выбор)</div></div>
+            <div class="game-card" onclick="openGame('roulette')"><div class="icon">🎡</div><div class="title">Рулетка</div></div>
+            <div class="game-card" onclick="openGame('coinflip')"><div class="icon">🪙</div><div class="title">Монетка</div></div>
+            <div class="game-card" onclick="openGame('hilo')"><div class="icon">📈</div><div class="title">Выше / Ниже</div></div>
         </div>
     </div>
 
     <!-- ВКЛАДКА 2: КЕЙСЫ CS2 -->
     <div class="container" id="tab-cases">
         <div class="section-title"><span>CS2 Кейсы</span><span>📦 Премиум Цены</span></div>
-        <div class="cases-grid" id="cases-list-grid">
-            <!-- Динамически заполняется -->
-        </div>
+        <div class="cases-grid" id="cases-list-grid"></div>
     </div>
 
     <!-- ВКЛАДКА 3: ИНВЕНТАРЬ -->
     <div class="container" id="tab-inventory">
-        <div class="section-title"><span>Ваш инвентарь CS2</span><span id="inv-count">0 предметов</span></div>
-        <div class="inventory-grid" id="inventory-grid-container">
-            <!-- Динамически заполняется -->
-        </div>
+        <div class="section-title"><span>Ваш инвентарь CS2</span><span id="inv-count">0 / 30 предметов</span></div>
+        <div class="inventory-grid" id="inventory-grid-container"></div>
     </div>
 
-    <!-- Нижняя панель навигации -->
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('casino', this)"><span>🎰</span>Казино</button>
         <button class="nav-item" onclick="switchTab('cases', this)"><span>📦</span>Кейсы CS2</button>
@@ -426,11 +417,11 @@
             }
         ];
 
-        // Принудительный сброс баланса и инвентаря под новые требования
-        let balance = 5000;
-        let inventory = [];
-        localStorage.setItem('casino_balance', balance);
-        localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
+        const MAX_INVENTORY_SIZE = 30;
+
+        // Загрузка сохраненных данных или инициализация по умолчанию
+        let balance = localStorage.getItem('casino_balance') !== null ? parseInt(localStorage.getItem('casino_balance')) : 5000;
+        let inventory = localStorage.getItem('cs2_inventory') !== null ? JSON.parse(localStorage.getItem('cs2_inventory')) : [];
         
         const balanceEl = document.getElementById('user-balance');
         const eloEl = document.getElementById('user-elo');
@@ -443,9 +434,15 @@
             startBonusTimer();
         });
 
+        // Функция автосохранения
+        function saveGame() {
+            localStorage.setItem('casino_balance', balance);
+            localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
+        }
+
         function updateBalance() {
             balanceEl.innerText = balance;
-            localStorage.setItem('casino_balance', balance);
+            saveGame();
         }
 
         function calculateElo() {
@@ -483,7 +480,6 @@
             }
         }
 
-        // Общая система 5-секундного кулдауна
         function triggerCooldown(key) {
             const card = document.getElementById(key);
             if(card) {
@@ -580,21 +576,31 @@
         function startCaseOpening(caseId) {
             const caseData = CS2_CASES.find(c => c.id === caseId);
             let totalCost = caseData.price * selectedCaseCount;
+
+            // Проверка лимита инвентаря
+            if (inventory.length + selectedCaseCount > MAX_INVENTORY_SIZE) {
+                showToast(`❌ Инвентарь полон! Максимум ${MAX_INVENTORY_SIZE} предметов.`);
+                return;
+            }
+
             if (balance < totalCost) {
                 showToast("❌ Недостаточно монет!");
                 return;
             }
+
             balance -= totalCost;
             updateBalance();
 
-            // Блокируем интерфейс во время прокрутки кейса
+            // Строгая блокировка ТОЛЬКО для кейсов во время прокрутки
             const btn = document.getElementById('open-case-btn');
             const backBtn = document.getElementById('modal-back-btn');
             const selectorGroup = document.getElementById('case-selectors-group');
             
             btn.classList.add('disabled');
             backBtn.classList.add('disabled');
-            if(selectorGroup) selectorGroup.style.pointerEvents = 'none';
+            if(selectorGroup) {
+                selectorGroup.querySelectorAll('button').forEach(b => b.classList.add('disabled'));
+            }
 
             const roller = document.getElementById('case-roller');
             
@@ -621,7 +627,6 @@
             targetTicket.querySelector('.s-icon').innerText = winningItem.icon;
             targetTicket.querySelector('.s-name').innerText = `${winningItem.weapon} | ${winningItem.name}`;
 
-            // Увеличено время прокрутки (6 секунд) и длина прокрутки для плавности
             let offsetPx = (45 * 120) - 130 + (Math.random() * 80 - 40);
             roller.style.transition = 'transform 6s cubic-bezier(0.08, 0.82, 0.12, 1)';
             roller.style.transform = `translateX(-${offsetPx}px)`;
@@ -630,7 +635,7 @@
                 wonItems.forEach(item => {
                     inventory.unshift({ ...item, id: Date.now() + Math.random() });
                 });
-                localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
+                saveGame();
                 updateElo();
 
                 let resultHtml = wonItems.map(item => `
@@ -640,7 +645,6 @@
                 document.getElementById('case-result-info').innerHTML = resultHtml;
                 showToast(`🎉 Успешно получено предметов: ${wonItems.length}!`);
                 
-                // Закрываем окно и запускаем обязательный 5-секундный таймер
                 setTimeout(() => {
                     closeGame();
                     triggerCooldown('card-' + caseId);
@@ -650,7 +654,7 @@
 
         function renderInventory() {
             const container = document.getElementById('inventory-grid-container');
-            document.getElementById('inv-count').innerText = `${inventory.length} предметов`;
+            document.getElementById('inv-count').innerText = `${inventory.length} / ${MAX_INVENTORY_SIZE} предметов`;
 
             if (inventory.length === 0) {
                 container.innerHTML = `<div class="empty-inv">Ваш инвентарь пуст. Откройте кейсы во вкладке «CS2 Кейсы»!</div>`;
@@ -671,10 +675,9 @@
         function sellSkin(index) {
             let soldItem = inventory[index];
             balance += soldItem.price;
-            updateBalance();
-
             inventory.splice(index, 1);
-            localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
+            saveGame();
+            updateBalance();
             updateElo();
             renderInventory();
             showToast(`💵 Скин продан за ${soldItem.price} монет!`);
@@ -686,7 +689,7 @@
             const area = document.getElementById('game-content-area');
             modal.classList.add('active');
             
-            // Разблокируем кнопку назад при открытии любой мини-игры
+            // В мини-играх кнопка Назад доступна всегда
             document.getElementById('modal-back-btn').classList.remove('disabled');
 
             switch(gameKey) {
@@ -775,11 +778,6 @@
                         showToast("😢 Мимо!");
                     }
                     updateBalance();
-                    
-                    setTimeout(() => {
-                        closeGame();
-                        triggerCooldown('card-slots');
-                    }, 1500);
                 }
             }, 70);
         }
@@ -862,10 +860,6 @@
                 let win = Math.floor(bet * currentPlaneMult); balance += win; updateBalance();
                 showToast(`🎉 Успешно забрано! +${win}`);
                 resetPlane();
-                setTimeout(() => {
-                    closeGame();
-                    triggerCooldown('card-plane');
-                }, 1500);
             };
 
             planeInterval = setInterval(() => {
@@ -882,10 +876,6 @@
                     multEl.innerText = "УЛЕТЕЛ ✈";
                     showToast("😢 Самолетик улетел!");
                     resetPlane();
-                    setTimeout(() => {
-                        closeGame();
-                        triggerCooldown('card-plane');
-                    }, 1500);
                 }
             }, 80);
         }
@@ -944,10 +934,6 @@
                 cells[index].innerText = '💥'; cells[index].style.background = '#dc2626';
                 showToast("💥 Вы подорвались!");
                 endMines25();
-                setTimeout(() => {
-                    closeGame();
-                    triggerCooldown('card-mines');
-                }, 1500);
             } else {
                 cells[index].innerText = '💎'; cells[index].style.background = '#059669';
                 currentMinesMult += 0.15; openedMinesCount++;
@@ -962,10 +948,6 @@
             balance += win; updateBalance();
             showToast(`🎉 Вы забрали: +${win}`);
             endMines25();
-            setTimeout(() => {
-                closeGame();
-                triggerCooldown('card-mines');
-            }, 1500);
         }
 
         function endMines25() {
@@ -1013,10 +995,6 @@
                     showToast(`😢 Сумма ${sum}. Проигрыш.`);
                 }
                 updateBalance();
-                setTimeout(() => {
-                    closeGame();
-                    triggerCooldown('card-dice');
-                }, 1500);
             }, 600);
         }
 
@@ -1033,10 +1011,6 @@
                     let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
                 } else { showToast("😢 Проигрыш"); }
                 updateBalance();
-                setTimeout(() => {
-                    closeGame();
-                    triggerCooldown('card-roulette');
-                }, 1500);
             }, 700);
         }
 
@@ -1053,10 +1027,6 @@
                     let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
                 } else { showToast("😢 Мимо"); }
                 updateBalance();
-                setTimeout(() => {
-                    closeGame();
-                    triggerCooldown('card-coinflip');
-                }, 1500);
             }, 500);
         }
 
@@ -1071,10 +1041,6 @@
                 let prize = Math.floor(bet * 1.8); balance += prize; showToast(`🎉 Верно! +${prize}`);
             } else { showToast("😢 Не угадали"); }
             updateBalance();
-            setTimeout(() => {
-                closeGame();
-                triggerCooldown('card-hilo');
-            }, 1500);
         }
     </script>
 </body>
