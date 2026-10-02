@@ -129,6 +129,7 @@
         .game-card.cooldown { opacity: 0.5; pointer-events: none; }
         .game-card .icon { font-size: 2.2rem; margin-bottom: 8px; }
         .game-card .title { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
+        
         .cd-overlay {
             position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(15,23,42,0.85);
             font-size: 0.75rem; color: #38bdf8; padding: 4px; font-weight: bold; text-align: center;
@@ -162,6 +163,7 @@
             background: var(--card-bg); border: 1px solid rgba(56, 189, 248, 0.2);
             color: var(--accent-blue); padding: 8px 14px; border-radius: 12px; font-weight: 600; cursor: pointer;
         }
+        .back-btn.disabled { opacity: 0.4; pointer-events: none; }
 
         .game-arena {
             background: var(--card-bg); border-radius: var(--radius); padding: 16px;
@@ -170,7 +172,6 @@
             max-width: 440px; margin: 0 auto; width: 100%; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
 
-        /* Выбор количества кейсов */
         .case-count-selector {
             display: flex; gap: 8px; justify-content: center; margin-bottom: 10px;
         }
@@ -180,7 +181,6 @@
         }
         .count-btn.active { background: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); }
 
-        /* Рулетка скинов CS2 */
         .case-opening-container {
             position: relative; width: 100%; height: 140px; background: #090d16;
             border-radius: 12px; overflow: hidden; border: 2px solid rgba(56,189,248,0.3);
@@ -231,6 +231,7 @@
             box-shadow: 0 4px 12px var(--accent-blue-glow); transition: opacity 0.2s;
         }
         .btn:active { opacity: 0.8; }
+        .btn.disabled { opacity: 0.4; pointer-events: none; }
 
         .bet-control {
             display: flex; justify-content: space-between; align-items: center;
@@ -294,7 +295,6 @@
         }
         .dice-opt-btn.active { background: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); }
 
-        /* Уведомление поднято выше для видимости */
         #toast {
             position: fixed; bottom: 180px; left: 50%; transform: translateX(-50%) translateY(100px);
             background: #1e293b; color: white; border: 1px solid rgba(56,189,248,0.3);
@@ -364,7 +364,7 @@
     <!-- МОДАЛКА ИГР / ОТКРЫТИЯ КЕЙСОВ -->
     <div class="modal" id="game-modal">
         <div class="modal-header">
-            <button class="back-btn" onclick="closeGame()">← Назад</button>
+            <button class="back-btn" id="modal-back-btn" onclick="closeGame()">← Назад</button>
             <h3 id="modal-game-title">Игра</h3>
             <div style="width: 50px;"></div>
         </div>
@@ -374,7 +374,6 @@
     <div id="toast">Уведомление</div>
 
     <script>
-        // Повышенные реальные цены кейсов + добавлен Ножевой кейс за 100000
         const CS2_CASES = [
             {
                 id: 'case_weapon_1', name: 'CS:GO Weapon Case', icon: '📦', price: 5000,
@@ -411,7 +410,7 @@
                     { name: 'Night Terror', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 6500, icon: '🌙' },
                     { name: 'Mantis', weapon: 'XM1014', rarity: 'restricted', color: '#d32ce6', price: 3000, icon: '🐛' },
                     { name: 'Helix', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 18000, icon: '👁' },
-                    { name: 'Doppler', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 650000, icon: '🗡️️' }
+                    { name: 'Doppler', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 650000, icon: '🗡' }
                 ]
             },
             {
@@ -427,8 +426,11 @@
             }
         ];
 
-        let balance = localStorage.getItem('casino_balance') !== null ? parseInt(localStorage.getItem('casino_balance')) : 5000;
-        let inventory = JSON.parse(localStorage.getItem('cs2_inventory')) || [];
+        // Принудительный сброс баланса и инвентаря под новые требования
+        let balance = 5000;
+        let inventory = [];
+        localStorage.setItem('casino_balance', balance);
+        localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
         
         const balanceEl = document.getElementById('user-balance');
         const eloEl = document.getElementById('user-elo');
@@ -482,8 +484,6 @@
         }
 
         // Общая система 5-секундного кулдауна
-        let globalCooldown = false;
-
         function triggerCooldown(key) {
             const card = document.getElementById(key);
             if(card) {
@@ -532,7 +532,7 @@
 
             area.innerHTML = `
                 <div>
-                    <div class="case-count-selector">
+                    <div class="case-count-selector" id="case-selectors-group">
                         <button class="count-btn active" onclick="setCaseCount(1, this)">1 кейс</button>
                         <button class="count-btn" onclick="setCaseCount(3, this)">3 кейса</button>
                         <button class="count-btn" onclick="setCaseCount(5, this)">5 кейсов</button>
@@ -564,7 +564,7 @@
         function initRollerItems(caseData) {
             const roller = document.getElementById('case-roller');
             let html = '';
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 60; i++) {
                 let randItem = caseData.items[Math.floor(Math.random() * caseData.items.length)];
                 html += `
                     <div class="skin-ticket" style="border-bottom-color: ${randItem.color}">
@@ -587,13 +587,17 @@
             balance -= totalCost;
             updateBalance();
 
+            // Блокируем интерфейс во время прокрутки кейса
             const btn = document.getElementById('open-case-btn');
-            btn.disabled = true;
-            btn.style.opacity = "0.5";
+            const backBtn = document.getElementById('modal-back-btn');
+            const selectorGroup = document.getElementById('case-selectors-group');
+            
+            btn.classList.add('disabled');
+            backBtn.classList.add('disabled');
+            if(selectorGroup) selectorGroup.style.pointerEvents = 'none';
 
             const roller = document.getElementById('case-roller');
             
-            // Выборка скинов для мульти-открытия
             let wonItems = [];
             for(let cIdx = 0; cIdx < selectedCaseCount; cIdx++) {
                 let rollRand = Math.random() * 100;
@@ -612,13 +616,14 @@
             }
 
             let winningItem = wonItems[0];
-            let targetTicket = roller.children[35];
+            let targetTicket = roller.children[45];
             targetTicket.style.borderBottomColor = winningItem.color;
             targetTicket.querySelector('.s-icon').innerText = winningItem.icon;
             targetTicket.querySelector('.s-name').innerText = `${winningItem.weapon} | ${winningItem.name}`;
 
-            let offsetPx = (35 * 120) - 130 + (Math.random() * 80 - 40);
-            roller.style.transition = 'transform 4s cubic-bezier(0.15, 0.85, 0.15, 1)';
+            // Увеличено время прокрутки (6 секунд) и длина прокрутки для плавности
+            let offsetPx = (45 * 120) - 130 + (Math.random() * 80 - 40);
+            roller.style.transition = 'transform 6s cubic-bezier(0.08, 0.82, 0.12, 1)';
             roller.style.transform = `translateX(-${offsetPx}px)`;
 
             setTimeout(() => {
@@ -635,12 +640,12 @@
                 document.getElementById('case-result-info').innerHTML = resultHtml;
                 showToast(`🎉 Успешно получено предметов: ${wonItems.length}!`);
                 
-                // Закрываем окно и запускаем таймер перед кулдауном
+                // Закрываем окно и запускаем обязательный 5-секундный таймер
                 setTimeout(() => {
                     closeGame();
                     triggerCooldown('card-' + caseId);
                 }, 1500);
-            }, 4100);
+            }, 6100);
         }
 
         function renderInventory() {
@@ -680,6 +685,9 @@
             const titleEl = document.getElementById('modal-game-title');
             const area = document.getElementById('game-content-area');
             modal.classList.add('active');
+            
+            // Разблокируем кнопку назад при открытии любой мини-игры
+            document.getElementById('modal-back-btn').classList.remove('disabled');
 
             switch(gameKey) {
                 case 'slots':
@@ -768,7 +776,6 @@
                     }
                     updateBalance();
                     
-                    // Показываем результат 1.5 секунды, потом закрываем и включаем кулдаун
                     setTimeout(() => {
                         closeGame();
                         triggerCooldown('card-slots');
@@ -943,7 +950,6 @@
                 }, 1500);
             } else {
                 cells[index].innerText = '💎'; cells[index].style.background = '#059669';
-                // Уменьшенные честные иксы
                 currentMinesMult += 0.15; openedMinesCount++;
                 showToast(`💎 Алмаз! x${currentMinesMult.toFixed(2)}`);
             }
