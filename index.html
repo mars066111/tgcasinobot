@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Hub & CS2 Cases</title>
+    <title>Casino Hub & CS2 Cases (Real Market Prices)</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -277,11 +277,12 @@
         }
         .dice-opt-btn.active { background: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); }
 
+        /* Уведомление поднято выше, чтобы не перекрывать нижнюю навигацию */
         #toast {
-            position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%) translateY(100px);
+            position: fixed; bottom: 140px; left: 50%; transform: translateX(-50%) translateY(100px);
             background: #1e293b; color: white; border: 1px solid rgba(56,189,248,0.3);
             padding: 12px 24px; border-radius: 20px; transition: transform 0.3s ease; z-index: 1000;
-            font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.4); pointer-events: none;
         }
         #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
@@ -294,7 +295,7 @@
 
     <header>
         <div class="header-stats">
-            <div class="stat-badge"><span>🪙</span><span id="user-balance">1000</span></div>
+            <div class="stat-badge"><span>🪙</span><span id="user-balance">5000</span></div>
             <div class="stat-badge"><span>🏆 ELO</span><span id="user-elo">100</span></div>
         </div>
         <a href="https://t.me/Larp333you" target="_blank" class="user-link">@Larp333you</a>
@@ -322,7 +323,7 @@
 
     <!-- ВКЛАДКА 2: КЕЙСЫ CS2 -->
     <div class="container" id="tab-cases">
-        <div class="section-title"><span>CS2 Кейсы</span><span>📦 Оружие</span></div>
+        <div class="section-title"><span>CS2 Кейсы</span><span>📦 Реальный Рынок</span></div>
         <div class="cases-grid" id="cases-list-grid">
             <!-- Динамически заполняется -->
         </div>
@@ -343,7 +344,7 @@
         <button class="nav-item" onclick="switchTab('inventory', this)"><span>🎒</span>Инвентарь</button>
     </nav>
 
-    <!-- МОДАЛКА ИГР КАРИАЗО / ОТКРЫТИЯ КЕЙСОВ -->
+    <!-- МОДАЛКА ИГР / ОТКРЫТИЯ КЕЙСОВ -->
     <div class="modal" id="game-modal">
         <div class="modal-header">
             <button class="back-btn" onclick="closeGame()">← Назад</button>
@@ -356,51 +357,50 @@
     <div id="toast">Уведомление</div>
 
     <script>
-        // Данные скинов и кейсов CS2
         const CS2_CASES = [
             {
-                id: 'case_weapon_1', name: 'CS2 Weapon Case', icon: '📦', price: 150,
+                id: 'case_weapon_1', name: 'CS2 Weapon Case', icon: '📦', price: 850,
                 items: [
-                    { name: 'Safari Mesh', weapon: 'SSG 08', rarity: 'consumer', color: '#b0c3d9', price: 15, icon: '🎯' },
-                    { name: 'Sandstorm', weapon: 'Tec-9', rarity: 'milspec', color: '#4b69ff', price: 45, icon: '🔫' },
-                    { name: 'Magma', weapon: 'FAMAS', rarity: 'restricted', color: '#d32ce6', price: 120, icon: '🔫' },
-                    { name: 'Neon Rider', weapon: 'Mac-10', rarity: 'classified', color: '#eb4b4b', price: 380, icon: '⚡' },
-                    { name: 'Asiimov', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 1800, icon: '💥' }
+                    { name: 'Safari Mesh', weapon: 'SSG 08', rarity: 'consumer', color: '#b0c3d9', price: 40, icon: '🎯' },
+                    { name: 'Sandstorm', weapon: 'Tec-9', rarity: 'milspec', color: '#4b69ff', price: 180, icon: '🔫' },
+                    { name: 'Magma', weapon: 'FAMAS', rarity: 'restricted', color: '#d32ce6', price: 550, icon: '🔫' },
+                    { name: 'Neon Rider', weapon: 'Mac-10', rarity: 'classified', color: '#eb4b4b', price: 2100, icon: '⚡' },
+                    { name: 'Asiimov', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 14500, icon: '💥' }
                 ]
             },
             {
-                id: 'case_glove', name: 'Revolution Case', icon: '🎁', price: 300,
+                id: 'case_revolution', name: 'Revolution Case', icon: '🎁', price: 400,
                 items: [
-                    { name: 'Scorched', weapon: 'PP-Bizon', rarity: 'consumer', color: '#b0c3d9', price: 25, icon: '🔫' },
-                    { name: 'Night Stripe', weapon: 'MP9', rarity: 'milspec', color: '#4b69ff', price: 70, icon: '🔫' },
-                    { name: 'Mecha Industries', weapon: 'Galil AR', rarity: 'restricted', color: '#d32ce6', price: 250, icon: '🤖' },
-                    { name: 'Emperor', weapon: 'M4A4', rarity: 'classified', color: '#eb4b4b', price: 950, icon: '👑' },
-                    { name: 'Fade', weapon: 'Bayonet', rarity: 'special', color: '#ffd700', price: 6500, icon: '🔪' }
+                    { name: 'Scorched', weapon: 'PP-Bizon', rarity: 'consumer', color: '#b0c3d9', price: 30, icon: '🔫' },
+                    { name: 'Night Stripe', weapon: 'MP9', rarity: 'milspec', color: '#4b69ff', price: 120, icon: '🔫' },
+                    { name: 'Mecha Industries', weapon: 'Galil AR', rarity: 'restricted', color: '#d32ce6', price: 900, icon: '🤖' },
+                    { name: 'Emperor', weapon: 'M4A4', rarity: 'classified', color: '#eb4b4b', price: 6200, icon: '👑' },
+                    { name: 'Fade', weapon: 'Bayonet', rarity: 'special', color: '#ffd700', price: 115000, icon: '🔪' }
                 ]
             },
             {
-                id: 'case_dreams', name: 'Dreams & Nightmares', icon: '🔮', price: 450,
+                id: 'case_dreams', name: 'Dreams & Nightmares', icon: '🔮', price: 600,
                 items: [
-                    { name: 'Coordinates', weapon: 'P250', rarity: 'milspec', color: '#4b69ff', price: 60, icon: '🔫' },
-                    { name: 'UIColor', weapon: 'MP5-SD', rarity: 'milspec', color: '#4b69ff', price: 80, icon: '🔫' },
-                    { name: 'Night Terror', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 320, icon: '🌙' },
-                    { name: 'MLG / Helix', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 1200, icon: '👁️️' },
-                    { name: 'Doppler', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 9500, icon: '🗡️' }
+                    { name: 'Coordinates', weapon: 'P250', rarity: 'milspec', color: '#4b69ff', price: 90, icon: '🔫' },
+                    { name: 'UIColor', weapon: 'MP5-SD', rarity: 'milspec', color: '#4b69ff', price: 150, icon: '🔫' },
+                    { name: 'Night Terror', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 1100, icon: '🌙' },
+                    { name: 'Helix', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 4300, icon: '👁' },
+                    { name: 'Doppler', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 240000, icon: '🗡️' }
                 ]
             },
             {
-                id: 'case_glove_2', name: 'Operation Hydra', icon: '🎖️', price: 700,
+                id: 'case_hydra', name: 'Operation Hydra', icon: '🎖️', price: 2500,
                 items: [
-                    { name: 'Jungle DDPAT', weapon: 'Dual Berettas', rarity: 'milspec', color: '#4b69ff', price: 90, icon: '🔫' },
-                    { name: 'Blueprint', weapon: 'M4A4', rarity: 'restricted', color: '#d32ce6', price: 450, icon: '📐' },
-                    { name: 'Neo-Noir', weapon: 'AWP', rarity: 'classified', color: '#eb4b4b', price: 2400, icon: '💜' },
-                    { name: 'Dragon Lore', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 15000, icon: '🐉' },
-                    { name: 'Howl', weapon: 'M4A4', rarity: 'special', color: '#ffd700', price: 25000, icon: '🐺' }
+                    { name: 'Jungle DDPAT', weapon: 'Dual Berettas', rarity: 'milspec', color: '#4b69ff', price: 350, icon: '🔫' },
+                    { name: 'Blueprint', weapon: 'M4A4', rarity: 'restricted', color: '#d32ce6', price: 2400, icon: '📐' },
+                    { name: 'Neo-Noir', weapon: 'AWP', rarity: 'classified', color: '#eb4b4b', price: 12500, icon: '💜' },
+                    { name: 'Dragon Lore', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 850000, icon: '🐉' },
+                    { name: 'Howl', weapon: 'M4A4', rarity: 'special', color: '#ffd700', price: 1200000, icon: '🐺' }
                 ]
             }
         ];
 
-        let balance = localStorage.getItem('casino_balance') !== null ? parseInt(localStorage.getItem('casino_balance')) : 1000;
+        let balance = localStorage.getItem('casino_balance') !== null ? parseInt(localStorage.getItem('casino_balance')) : 5000;
         let inventory = JSON.parse(localStorage.getItem('cs2_inventory')) || [];
         
         const balanceEl = document.getElementById('user-balance');
@@ -419,11 +419,10 @@
             localStorage.setItem('casino_balance', balance);
         }
 
-        // Расчет ELO на основе стоимости скинов в инвентаре
         function calculateElo() {
             if (inventory.length === 0) return 100;
             let totalValue = inventory.reduce((sum, item) => sum + item.price, 0);
-            return 100 + Math.floor(totalValue / 30);
+            return 100 + Math.floor(totalValue / 1500);
         }
 
         function updateElo() {
@@ -439,9 +438,9 @@
 
         function startBonusTimer() {
             setInterval(() => {
-                balance += 1000;
+                balance += 2500;
                 updateBalance();
-                showToast("🎁 Бонус! Вам начислено +1000 монет!");
+                showToast("🎁 Бонус! Вам начислено +2500 монет!");
             }, 180000);
         }
 
@@ -455,7 +454,6 @@
             }
         }
 
-        // Отрисовка списка кейсов
         function renderCasesList() {
             const grid = document.getElementById('cases-list-grid');
             grid.innerHTML = CS2_CASES.map(c => `
@@ -467,7 +465,6 @@
             `).join('');
         }
 
-        // Открытие модального окна кейса (рулетка)
         function openCaseModal(caseId) {
             const caseData = CS2_CASES.find(c => c.id === caseId);
             const modal = document.getElementById('game-modal');
@@ -494,7 +491,6 @@
         function initRollerItems(caseData) {
             const roller = document.getElementById('case-roller');
             let html = '';
-            // Генерируем 50 элементов для плавной прокрутки
             for (let i = 0; i < 50; i++) {
                 let randItem = caseData.items[Math.floor(Math.random() * caseData.items.length)];
                 html += `
@@ -508,7 +504,6 @@
             roller.style.transform = 'translateX(0px)';
         }
 
-        // Процесс прокрутки кейса
         function startCaseOpening(caseId) {
             const caseData = CS2_CASES.find(c => c.id === caseId);
             if (balance < caseData.price) {
@@ -524,12 +519,10 @@
 
             const roller = document.getElementById('case-roller');
             
-            // Определяем выигрышный предмет заранее (примерно на 35-й позиции)
-            // Шансы: потребительское (50%), армейское (30%), запрещенное (12%), засекреченное (6%), тайное/нож (2%)
             let rollRand = Math.random() * 100;
             let targetRarity = 'consumer';
-            if (rollRand > 98) targetRarity = caseData.items[caseData.items.length - 1].rarity;
-            else if (rollRand > 92) targetRarity = 'classified';
+            if (rollRand > 98.5) targetRarity = caseData.items[caseData.items.length - 1].rarity;
+            else if (rollRand > 93) targetRarity = 'classified';
             else if (rollRand > 80) targetRarity = 'restricted';
             else if (rollRand > 50) targetRarity = 'milspec';
 
@@ -537,14 +530,12 @@
             if(pool.length === 0) pool = caseData.items;
             let winningItem = pool[Math.floor(Math.random() * pool.length)];
 
-            // Подменяем элемент на 35 позиции в генерации рулетки
             let tickets = roller.children;
             let targetTicket = tickets[35];
             targetTicket.style.borderBottomColor = winningItem.color;
             targetTicket.querySelector('.s-icon').innerText = winningItem.icon;
             targetTicket.querySelector('.s-name').innerText = `${winningItem.weapon} | ${winningItem.name}`;
 
-            // Рассчитываем смещение рулетки (ширина элемента 110px + gap 10px = 120px)
             let offsetPx = (35 * 120) - 130 + (Math.random() * 80 - 40);
             roller.style.transition = 'transform 4s cubic-bezier(0.15, 0.85, 0.15, 1)';
             roller.style.transform = `translateX(-${offsetPx}px)`;
@@ -558,14 +549,13 @@
                     <span style="color: ${winningItem.color}; font-weight:bold; font-size:1rem;">Выпало: ${winningItem.weapon} | ${winningItem.name}</span>
                     <span style="font-size:0.85rem; color: var(--accent-blue);">Цена: ${winningItem.price} монет</span>
                 `;
-                showToast(`🎉 Поздравляем! Получен скин ${winningItem.name}!`);
+                showToast(`🎉 Получен скин ${winningItem.name}!`);
                 btn.disabled = false;
                 btn.style.opacity = "1";
                 btn.innerText = "Открыть еще";
             }, 4100);
         }
 
-        // Отрисовка инвентаря
         function renderInventory() {
             const container = document.getElementById('inventory-grid-container');
             document.getElementById('inv-count').innerText = `${inventory.length} предметов`;
@@ -586,7 +576,6 @@
             `).join('');
         }
 
-        // Продажа скина (возврат монет и уменьшение ELO)
         function sellSkin(index) {
             let soldItem = inventory[index];
             balance += soldItem.price;
@@ -596,10 +585,9 @@
             localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
             updateElo();
             renderInventory();
-            showToast(`💵 Скин продан за ${soldItem.price} монет! ELO снизился.`);
+            showToast(`💵 Скин продан за ${soldItem.price} монет!`);
         }
 
-        // Управление мини-играми казино
         function openGame(gameKey) {
             const modal = document.getElementById('game-modal');
             const titleEl = document.getElementById('modal-game-title');
@@ -617,7 +605,7 @@
                                 <div class="slot-reel-box">🔔</div>
                             </div>
                         </div>
-                        <div class="bet-control"><span>Ставка:</span><input type="number" id="slot-bet" value="50"></div>
+                        <div class="bet-control"><span>Ставка:</span><input type="number" id="slot-bet" value="500"></div>
                     </div><button class="btn" onclick="playSlots()">Крутить автомат</button>`;
                     break;
                 case 'plane':
@@ -627,7 +615,7 @@
                             <div class="aviator-mult-display" id="plane-mult">1.00x</div>
                             <canvas id="aviator-canvas"></canvas>
                         </div>
-                        <div class="bet-control" id="plane-bet-box"><span>Ставка:</span><input type="number" id="plane-bet" value="50"></div>
+                        <div class="bet-control" id="plane-bet-box"><span>Ставка:</span><input type="number" id="plane-bet" value="500"></div>
                     </div><button class="btn" id="plane-btn" onclick="startPlane()">Запустить самолетик</button>`;
                     setTimeout(initPlaneCanvas, 50);
                     break;
@@ -635,7 +623,7 @@
                     titleEl.innerText = "💣 Мины (Сапер)";
                     area.innerHTML = `<div>
                         <div class="mines-grid-25" id="mines-grid">${Array(25).fill(0).map(() => `<div class="mine-cell-25">❓</div>`).join('')}</div>
-                        <div class="bet-control"><span>Ставка:</span><input type="number" id="mines-bet" value="50"></div>
+                        <div class="bet-control"><span>Ставка:</span><input type="number" id="mines-bet" value="500"></div>
                         <div class="bet-control">
                             <span>Бомбы:</span>
                             <select id="mines-count-select" style="background:transparent; color:#38bdf8; border:none; font-weight:bold; outline:none;">
@@ -648,26 +636,25 @@
                     break;
                 case 'dice':
                     titleEl.innerText = "🎲 Кости (Выбор)";
-                    area.innerHTML = `<div><div class="dice-options"><button class="dice-opt-btn active" onclick="setDiceMode(this, 'over7')">Больше 7</button><button class="dice-opt-btn" onclick="setDiceMode(this, 'under7')">Меньше 7</button><button class="dice-opt-btn" onclick="setDiceMode(this, 'exact7')">Ровно 7 (5x)</button></div><div class="display-screen" id="dice-screen"><span style="font-size:2.2rem;">🎲 ⚀ ⚁</span><span id="dice-mode-text">Режим: Сумма > 7</span></div><div class="bet-control"><span>Ставка:</span><input type="number" id="dice-bet" value="50"></div></div><button class="btn" onclick="playDice()">Бросить кости</button>`;
+                    area.innerHTML = `<div><div class="dice-options"><button class="dice-opt-btn active" onclick="setDiceMode(this, 'over7')">Больше 7</button><button class="dice-opt-btn" onclick="setDiceMode(this, 'under7')">Меньше 7</button><button class="dice-opt-btn" onclick="setDiceMode(this, 'exact7')">Ровно 7 (5x)</button></div><div class="display-screen" id="dice-screen"><span style="font-size:2.2rem;">🎲 ⚀ ⚁</span><span id="dice-mode-text">Режим: Сумма > 7</span></div><div class="bet-control"><span>Ставка:</span><input type="number" id="dice-bet" value="500"></div></div><button class="btn" onclick="playDice()">Бросить кости</button>`;
                     break;
                 case 'roulette':
                     titleEl.innerText = "🎡 Европейская Рулетка";
-                    area.innerHTML = `<div><div class="display-screen" id="roulette-screen"><span>🎡</span><span>Сделайте ставку на цвет</span></div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" style="background:#dc2626; color:white;" onclick="playRoulette('red')">Красное (2x)</button><button class="btn" style="background:#0f172a; border:1px solid #38bdf8; color:white;" onclick="playRoulette('black')">Черное (2x)</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="roulette-bet" value="50"></div></div>`;
+                    area.innerHTML = `<div><div class="display-screen" id="roulette-screen"><span>🎡</span><span>Сделайте ставку на цвет</span></div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" style="background:#dc2626; color:white;" onclick="playRoulette('red')">Красное (2x)</button><button class="btn" style="background:#0f172a; border:1px solid #38bdf8; color:white;" onclick="playRoulette('black')">Черное (2x)</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="roulette-bet" value="500"></div></div>`;
                     break;
                 case 'coinflip':
                     titleEl.innerText = "🪙 Монетка";
-                    area.innerHTML = `<div><div class="display-screen" id="coin-screen"><span style="font-size:2.2rem;">🪙</span><span>Выберите сторону</span></div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" onclick="playCoin('heads')">Орел</button><button class="btn" style="background:#334155; color:white;" onclick="playCoin('tails')">Решка</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="coin-bet" value="50"></div></div>`;
+                    area.innerHTML = `<div><div class="display-screen" id="coin-screen"><span style="font-size:2.2rem;">🪙</span><span>Выберите сторону</span></div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" onclick="playCoin('heads')">Орел</button><button class="btn" style="background:#334155; color:white;" onclick="playCoin('tails')">Решка</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="coin-bet" value="500"></div></div>`;
                     break;
                 case 'hilo':
                     titleEl.innerText = "📈 Выше / Ниже";
-                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее число выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️</button><button class="btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="50"></div></div>`;
+                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее число выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️</button><button class="btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="500"></div></div>`;
                     break;
             }
         }
 
         function closeGame() { document.getElementById('game-modal').classList.remove('active'); }
 
-        // Слоты
         function playSlots() {
             let bet = parseInt(document.getElementById('slot-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
@@ -697,7 +684,7 @@
             }, 70);
         }
 
-        // Самолетик (до 3.0x с плавным ростом)
+        // Самолетик (Aviator с ранними взрывами)
         let planeInterval = null, currentPlaneMult = 1.00;
         let planeCanvas, planeCtx;
 
@@ -731,7 +718,7 @@
             planeCtx.beginPath();
             planeCtx.moveTo(0, h);
             let currentX = progress * w;
-            let currentY = h - (multProgress * (h * 0.5));
+            let currentY = h - (multProgress * (h * 0.35));
             if(currentY < 15) currentY = 15;
 
             planeCtx.quadraticCurveTo(currentX * 0.5, h - 10, currentX, currentY);
@@ -762,8 +749,14 @@
             btn.innerText = "ЗАБРАТЬ КУШ";
             
             let flewAway = false;
-            let maxMult = parseFloat((Math.random() * 1.8 + 1.2).toFixed(2)); 
-            if (maxMult > 3.00) maxMult = 3.00;
+            
+            // Уменьшенный максимальный икс: очень часто самолетик будет улетать почти сразу (от 1.02x до 1.80x, реже выше)
+            let randRisk = Math.random();
+            let maxMult = 1.05 + Math.random() * 0.4; // базовая вероятность раннего улета
+            if (randRisk > 0.6) maxMult = 1.4 + Math.random() * 0.6;
+            if (randRisk > 0.9) maxMult = 2.0 + Math.random() * 0.5;
+            maxMult = parseFloat(maxMult.toFixed(2));
+
             let step = 0;
             
             btn.onclick = () => {
@@ -774,20 +767,20 @@
             };
 
             planeInterval = setInterval(() => {
-                currentPlaneMult += 0.015;
-                if (currentPlaneMult > 3.00) currentPlaneMult = 3.00;
-                step += 0.008;
+                currentPlaneMult += 0.02;
+                if (currentPlaneMult > maxMult) currentPlaneMult = maxMult;
+                step += 0.01;
                 if(step > 0.85) step = 0.85;
 
                 multEl.innerText = currentPlaneMult.toFixed(2) + 'x';
                 drawPlaneScene(step, currentPlaneMult - 1);
 
-                if (currentPlaneMult >= maxMult || currentPlaneMult >= 3.00) {
+                if (currentPlaneMult >= maxMult) {
                     clearInterval(planeInterval); flewAway = true;
                     multEl.innerText = "УЛЕТЕЛ ✈️";
                     showToast("😢 Самолетик улетел!"); resetPlane();
                 }
-            }, 90);
+            }, 80);
         }
 
         function resetPlane() {
@@ -799,7 +792,6 @@
             updateBalance();
         }
 
-        // Мины
         let minesActive = false, minePositions = [], currentMinesMult = 1, openedMinesCount = 0, totalBombsCount = 3;
 
         function startMines() {
@@ -865,7 +857,6 @@
             });
         }
 
-        // Кости
         let diceMode = 'over7';
         function setDiceMode(btn, mode) {
             document.querySelectorAll('.dice-opt-btn').forEach(b => b.classList.remove('active'));
@@ -902,7 +893,6 @@
             }, 600);
         }
 
-        // Рулетка
         function playRoulette(choice) {
             let bet = parseInt(document.getElementById('roulette-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
@@ -919,7 +909,6 @@
             }, 700);
         }
 
-        // Монетка
         function playCoin(choice) {
             let bet = parseInt(document.getElementById('coin-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
@@ -936,7 +925,6 @@
             }, 500);
         }
 
-        // Выше / Ниже
         function playHilo(guess) {
             let bet = parseInt(document.getElementById('hilo-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
