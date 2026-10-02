@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Hub & CS2 Cases (Fixed Header & Drop Rates)</title>
+    <title>Casino Hub & CS2 Cases (Persistent CD & Timers)</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -60,7 +60,7 @@
 
         header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 20px; background: rgba(30, 41, 59, 0.92);
+            padding: 14px 20px; background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(12px); position: fixed; top: 0; left: 0; width: 100%;
             border-bottom: 1px solid rgba(56, 189, 248, 0.1); z-index: 150;
         }
@@ -126,6 +126,7 @@
             position: relative; overflow: hidden;
         }
         .game-card:active { transform: scale(0.96); }
+        .game-card.cooldown { opacity: 0.5; pointer-events: none; }
         .game-card .icon { font-size: 2.2rem; margin-bottom: 8px; }
         .game-card .title { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
 
@@ -146,6 +147,7 @@
         .cd-overlay {
             position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(15,23,42,0.85);
             font-size: 0.75rem; color: #38bdf8; padding: 4px; font-weight: bold; text-align: center;
+            z-index: 5;
         }
 
         .modal {
@@ -200,7 +202,6 @@
         .skin-ticket .s-icon { font-size: 2.2rem; margin-bottom: 4px; }
         .skin-ticket .s-name { font-size: 0.75rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-        /* Таблица шансов кейсов */
         .drop-rates-box {
             background: #0f172a; border-radius: 10px; padding: 10px; margin: 10px 0;
             max-height: 140px; overflow-y: auto; border: 1px solid rgba(56,189,248,0.2); text-align: left;
@@ -319,7 +320,7 @@
         <div class="header-stats">
             <div class="stat-badge"><span>🪙</span><span id="user-balance">10000</span></div>
             <div class="stat-badge"><span>⏱</span><span id="bonus-timer">02:00</span></div>
-            <div class="stat-badge"><span>🏆 ELO</span><span id="user-elo">100</span></div>
+            <div class="stat-badge"><span>🏆 ELO</span><span id="user-elo">0</span></div>
         </div>
         <a href="https://t.me/Larp333you" target="_blank" class="user-link">@Larp333you</a>
     </header>
@@ -334,13 +335,13 @@
         <div class="section-title"><span>Игры</span><span>⚡️ Top</span></div>
 
         <div class="games-grid" id="games-grid-container">
-            <div class="game-card" onclick="openGame('slots')"><div class="icon">🎰</div><div class="title">Слоты 777</div></div>
-            <div class="game-card" onclick="openGame('plane')"><div class="icon">✈</div><div class="title">Самолетик (Aviator)</div></div>
-            <div class="game-card" onclick="openGame('mines')"><div class="icon">💣</div><div class="title">Мины (Сапер)</div></div>
-            <div class="game-card" onclick="openGame('dice')"><div class="icon">🎲</div><div class="title">Кости (Выбор)</div></div>
-            <div class="game-card" onclick="openGame('roulette')"><div class="icon">🎡</div><div class="title">Рулетка</div></div>
-            <div class="game-card" onclick="openGame('coinflip')"><div class="icon">🪙</div><div class="title">Монетка</div></div>
-            <div class="game-card" onclick="openGame('hilo')"><div class="icon">📈</div><div class="title">Выше / Ниже</div></div>
+            <div class="game-card" id="card-game-slots" onclick="openGame('slots')"><div class="icon">🎰</div><div class="title">Слоты 777</div></div>
+            <div class="game-card" id="card-game-plane" onclick="openGame('plane')"><div class="icon">✈</div><div class="title">Самолетик (Aviator)</div></div>
+            <div class="game-card" id="card-game-mines" onclick="openGame('mines')"><div class="icon">💣</div><div class="title">Мины (Сапер)</div></div>
+            <div class="game-card" id="card-game-dice" onclick="openGame('dice')"><div class="icon">🎲</div><div class="title">Кости (Выбор)</div></div>
+            <div class="game-card" id="card-game-roulette" onclick="openGame('roulette')"><div class="icon">🎡</div><div class="title">Рулетка</div></div>
+            <div class="game-card" id="card-game-coinflip" onclick="openGame('coinflip')"><div class="icon">🪙</div><div class="title">Монетка</div></div>
+            <div class="game-card" id="card-game-hilo" onclick="openGame('hilo')"><div class="icon">📈</div><div class="title">Выше / Ниже</div></div>
         </div>
     </div>
 
@@ -429,14 +430,18 @@
 
         let balance = 10000;
         let inventory = [];
-        
+        let cooldowns = {}; // Хранилище кулдаунов (ключ -> время окончания timestamp)
+
         if (localStorage.getItem('casino_balance') !== null) {
             balance = parseInt(localStorage.getItem('casino_balance'));
         }
         if (localStorage.getItem('cs2_inventory') !== null) {
             inventory = JSON.parse(localStorage.getItem('cs2_inventory'));
         }
-        
+        if (localStorage.getItem('casino_cooldowns') !== null) {
+            try { cooldowns = JSON.parse(localStorage.getItem('casino_cooldowns')); } catch(e) { cooldowns = {}; }
+        }
+
         const balanceEl = document.getElementById('user-balance');
         const eloEl = document.getElementById('user-elo');
 
@@ -445,12 +450,15 @@
             updateElo();
             renderCasesList();
             renderInventory();
-            startBonusTimerCountdown();
+            initPersistentCooldowns();
+            checkBonusTimer();
+            setInterval(globalTick, 1000);
         });
 
         function saveGame() {
             localStorage.setItem('casino_balance', balance);
             localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
+            localStorage.setItem('casino_cooldowns', JSON.stringify(cooldowns));
         }
 
         function updateBalance() {
@@ -459,9 +467,9 @@
         }
 
         function calculateElo() {
-            if (inventory.length === 0) return 100;
+            if (inventory.length === 0) return 0;
             let totalValue = inventory.reduce((sum, item) => sum + item.price, 0);
-            return 100 + Math.floor(totalValue / 15000);
+            return Math.floor(totalValue / 15000);
         }
 
         function updateElo() {
@@ -472,25 +480,108 @@
         function showToast(text) {
             const toast = document.getElementById('toast');
             toast.innerText = text; toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2500);
+            setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        // Таймер обратного отсчета (2 минуты = 120 секунд)
-        let timeLeftSeconds = 120;
-        function startBonusTimerCountdown() {
-            const timerEl = document.getElementById('bonus-timer');
-            setInterval(() => {
-                timeLeftSeconds--;
-                if (timeLeftSeconds <= 0) {
+        // Постоянный таймер (2 минуты = 120 секунд), автовыдача 2000 монет
+        const BONUS_TIME_KEY = 'casino_bonus_target_time';
+        function checkBonusTimer() {
+            let targetTime = localStorage.getItem(BONUS_TIME_KEY);
+            let now = Date.now();
+            if (!targetTime || targetTime < now) {
+                if (targetTime) {
                     balance += 2000;
                     updateBalance();
                     showToast("🎁 Бонус! Вам начислено +2000 монет!");
-                    timeLeftSeconds = 120;
                 }
-                let minutes = Math.floor(timeLeftSeconds / 60);
-                let seconds = timeLeftSeconds % 60;
+                targetTime = now + 120000;
+                localStorage.setItem(BONUS_TIME_KEY, targetTime);
+            }
+        }
+
+        function globalTick() {
+            // Проверка таймера бонуса
+            let targetTime = parseInt(localStorage.getItem(BONUS_TIME_KEY) || (Date.now() + 120000));
+            let now = Date.now();
+            let diffSec = Math.floor((targetTime - now) / 1000);
+
+            if (diffSec <= 0) {
+                balance += 2000;
+                updateBalance();
+                showToast("🎁 Бонус! Вам начислено +2000 монет!");
+                targetTime = Date.now() + 120000;
+                localStorage.setItem(BONUS_TIME_KEY, targetTime);
+                diffSec = 120;
+            }
+
+            let minutes = Math.floor(diffSec / 60);
+            let seconds = diffSec % 60;
+            const timerEl = document.getElementById('bonus-timer');
+            if(timerEl) {
                 timerEl.innerText = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-            }, 1000);
+            }
+
+            // Обработка глобальных кулдаунов элементов
+            let currentTime = Date.now();
+            for (let key in cooldowns) {
+                let endTime = cooldowns[key];
+                let left = Math.ceil((endTime - currentTime) / 1000);
+                const card = document.getElementById(key);
+                
+                if (left > 0) {
+                    if (card) {
+                        card.classList.add('cooldown');
+                        let ov = document.getElementById('cd-' + key);
+                        if (!ov) {
+                            ov = document.createElement('div');
+                            ov.className = 'cd-overlay';
+                            ov.id = 'cd-' + key;
+                            card.appendChild(ov);
+                        }
+                        ov.innerText = `Пауза: ${left}с`;
+                    }
+                } else {
+                    delete cooldowns[key];
+                    if (card) {
+                        card.classList.remove('cooldown');
+                        let ov = document.getElementById('cd-' + key);
+                        if (ov) ov.remove();
+                    }
+                    saveGame();
+                }
+            }
+        }
+
+        function initPersistentCooldowns() {
+            let currentTime = Date.now();
+            for (let key in cooldowns) {
+                if (cooldowns[key] > currentTime) {
+                    const card = document.getElementById(key);
+                    if (card) {
+                        card.classList.add('cooldown');
+                        let ov = document.createElement('div');
+                        ov.className = 'cd-overlay';
+                        ov.id = 'cd-' + key;
+                        card.appendChild(ov);
+                    }
+                }
+            }
+        }
+
+        function setCooldownFor(key, seconds) {
+            cooldowns[key] = Date.now() + (seconds * 1000);
+            saveGame();
+            const card = document.getElementById(key);
+            if (card) {
+                card.classList.add('cooldown');
+                let ov = document.getElementById('cd-' + key);
+                if (!ov) {
+                    ov = document.createElement('div');
+                    ov.className = 'cd-overlay';
+                    ov.id = 'cd-' + key;
+                    card.appendChild(ov);
+                }
+            }
         }
 
         function switchTab(tabId, btn) {
@@ -503,33 +594,10 @@
             }
         }
 
-        function triggerCooldown(key) {
-            const card = document.getElementById(key);
-            if(card) {
-                card.classList.add('cooldown');
-                let timeLeft = 5;
-                let overlay = document.createElement('div');
-                overlay.className = 'cd-overlay';
-                overlay.id = 'cd-' + key;
-                overlay.innerText = `Пауза: ${timeLeft}с`;
-                card.appendChild(overlay);
-
-                let timer = setInterval(() => {
-                    timeLeft--;
-                    let ov = document.getElementById('cd-' + key);
-                    if(ov) ov.innerText = `Пауза: ${timeLeft}с`;
-                    if(timeLeft <= 0) {
-                        clearInterval(timer);
-                        card.classList.remove('cooldown');
-                        if(ov) ov.remove();
-                    }
-                }, 1000);
-            }
-        }
-
-        // Универсальный кулдаун на игровые кнопки (5 секунд)
-        function applyGameCooldown(btnElement) {
+        // Кулдаун на игровые кнопки внутри модалки
+        function applyGameCooldown(btnElement, gameKey) {
             if(!btnElement) return;
+            setCooldownFor('card-game-' + gameKey, 5);
             let originalText = btnElement.innerText;
             btnElement.classList.add('disabled');
             let cd = 5;
@@ -549,17 +617,24 @@
         function renderCasesList() {
             const grid = document.getElementById('cases-list-grid');
             grid.innerHTML = CS2_CASES.map(c => `
-                <div class="case-card" id="card-${c.id}" onclick="openCaseModal('${c.id}')">
+                <div class="case-card" id="card-case-${c.id}" onclick="openCaseModal('${c.id}')">
                     <div class="case-img">${c.icon}</div>
                     <div class="case-name">${c.name}</div>
                     <div class="case-price">${c.price} 🪙</div>
                 </div>
             `).join('');
+            initPersistentCooldowns();
         }
 
         let selectedCaseCount = 1;
 
         function openCaseModal(caseId) {
+            const cardKey = 'card-case-' + caseId;
+            if (cooldowns[cardKey] && cooldowns[cardKey] > Date.now()) {
+                showToast("⏳ Подождите окончания кулдауна кейса!");
+                return;
+            }
+
             const caseData = CS2_CASES.find(c => c.id === caseId);
             const modal = document.getElementById('game-modal');
             const titleEl = document.getElementById('modal-game-title');
@@ -568,13 +643,11 @@
             titleEl.innerText = caseData.name;
             selectedCaseCount = 1;
 
-            // Формируем таблицу шансов выпадения
             let dropRatesHtml = `
                 <div class="drop-rates-box">
                     <div class="drop-rates-title">📊 Шансы выпадения скинов</div>
             `;
             
-            // Подсчет приблизительных шансов по редкостям в зависимости от состава кейса
             let hasConsumer = caseData.items.some(i => i.rarity === 'consumer');
             let hasMilspec = caseData.items.some(i => i.rarity === 'milspec');
             let hasRestricted = caseData.items.some(i => i.rarity === 'restricted');
@@ -704,9 +777,11 @@
                 document.getElementById('case-result-info').innerHTML = resultHtml;
                 showToast(`🎉 Успешно получено предметов: ${wonItems.length}!`);
                 
+                // Устанавливаем кулдаун 5 секунд на открытие этого кейса с сохранением
+                setCooldownFor('card-case-' + caseId, 5);
+
                 setTimeout(() => {
                     closeGame();
-                    triggerCooldown('card-' + caseId);
                 }, 1500);
             }, 6100);
         }
@@ -743,6 +818,12 @@
         }
 
         function openGame(gameKey) {
+            const cardKey = 'card-game-' + gameKey;
+            if (cooldowns[cardKey] && cooldowns[cardKey] > Date.now()) {
+                showToast("⏳ Подождите окончания кулдауна игры!");
+                return;
+            }
+
             const modal = document.getElementById('game-modal');
             const titleEl = document.getElementById('modal-game-title');
             const area = document.getElementById('game-content-area');
@@ -816,7 +897,7 @@
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
             
-            applyGameCooldown(document.getElementById('slots-play-btn'));
+            applyGameCooldown(document.getElementById('slots-play-btn'), 'slots');
 
             const symbols = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
             const boxes = document.querySelectorAll('.slot-reel-box');
@@ -944,7 +1025,7 @@
         function resetPlane() {
             const btn = document.getElementById('plane-btn');
             if(btn) { 
-                applyGameCooldown(btn);
+                applyGameCooldown(btn, 'plane');
                 setTimeout(() => {
                     btn.innerText = "Запустить самолетик";
                     btn.onclick = startPlane;
@@ -1023,7 +1104,7 @@
             if(sel) sel.disabled = false;
             const mainBtn = document.getElementById('mines-start-btn');
             if(mainBtn) { 
-                applyGameCooldown(mainBtn);
+                applyGameCooldown(mainBtn, 'mines');
                 setTimeout(() => {
                     mainBtn.innerText = "Начать игру";
                 }, 5000);
@@ -1048,7 +1129,7 @@
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
             
-            applyGameCooldown(document.getElementById('dice-play-btn'));
+            applyGameCooldown(document.getElementById('dice-play-btn'), 'dice');
 
             const diceChars = ['⚀','⚁','⚂','⚃','⚄','⚅'];
             const screen = document.getElementById('dice-screen');
@@ -1078,8 +1159,8 @@
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
             
-            applyGameCooldown(document.getElementById('r-red-btn'));
-            applyGameCooldown(document.getElementById('r-black-btn'));
+            applyGameCooldown(document.getElementById('r-red-btn'), 'roulette');
+            applyGameCooldown(document.getElementById('r-black-btn'), 'roulette');
 
             const screen = document.getElementById('roulette-screen');
             screen.innerHTML = `<span>🎡</span><span>Шарик крутится...</span>`;
@@ -1098,8 +1179,8 @@
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
             
-            applyGameCooldown(document.getElementById('c-heads-btn'));
-            applyGameCooldown(document.getElementById('c-tails-btn'));
+            applyGameCooldown(document.getElementById('c-heads-btn'), 'coinflip');
+            applyGameCooldown(document.getElementById('c-tails-btn'), 'coinflip');
 
             const screen = document.getElementById('coin-screen');
             screen.innerHTML = `<span style="font-size:2.2rem;">🪙</span><span>Монетка летит...</span>`;
@@ -1118,8 +1199,8 @@
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
             
-            applyGameCooldown(document.getElementById('h-high-btn'));
-            applyGameCooldown(document.getElementById('h-low-btn'));
+            applyGameCooldown(document.getElementById('h-high-btn'), 'hilo');
+            applyGameCooldown(document.getElementById('h-low-btn'), 'hilo');
 
             const nextNum = Math.floor(Math.random() * 100) + 1;
             document.getElementById('hilo-num').innerText = nextNum;
