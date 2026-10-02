@@ -65,13 +65,13 @@
         }
 
         .header-stats {
-            display: flex; gap: 10px; align-items: center;
+            display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
         }
 
         .stat-badge {
-            display: flex; align-items: center; gap: 6px;
-            background: rgba(56, 189, 248, 0.1); padding: 6px 12px; border-radius: 20px;
-            border: 1px solid rgba(56, 189, 248, 0.2); font-size: 0.9rem; font-weight: 700;
+            display: flex; align-items: center; gap: 5px;
+            background: rgba(56, 189, 248, 0.1); padding: 5px 10px; border-radius: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.2); font-size: 0.85rem; font-weight: 700;
         }
         .stat-badge span { color: var(--accent-blue); }
 
@@ -308,7 +308,8 @@
 
     <header>
         <div class="header-stats">
-            <div class="stat-badge"><span>🪙</span><span id="user-balance">5000</span></div>
+            <div class="stat-badge"><span>🪙</span><span id="user-balance">10000</span></div>
+            <div class="stat-badge"><span>⏱</span><span id="bonus-timer">02:00</span></div>
             <div class="stat-badge"><span>🏆 ELO</span><span id="user-elo">100</span></div>
         </div>
         <a href="https://t.me/Larp333you" target="_blank" class="user-link">@Larp333you</a>
@@ -342,7 +343,7 @@
 
     <!-- ВКЛАДКА 3: ИНВЕНТАРЬ -->
     <div class="container" id="tab-inventory">
-        <div class="section-title"><span>Ваш инвентарь CS2</span><span id="inv-count">0 / 30 предметов</span></div>
+        <div class="section-title"><span>Ваш инвентарь CS2</span><span id="inv-count">0 / 100 предметов</span></div>
         <div class="inventory-grid" id="inventory-grid-container"></div>
     </div>
 
@@ -417,11 +418,22 @@
             }
         ];
 
-        const MAX_INVENTORY_SIZE = 30;
+        const MAX_INVENTORY_SIZE = 100;
 
-        // Загрузка сохраненных данных или инициализация по умолчанию
-        let balance = localStorage.getItem('casino_balance') !== null ? parseInt(localStorage.getItem('casino_balance')) : 5000;
-        let inventory = localStorage.getItem('cs2_inventory') !== null ? JSON.parse(localStorage.getItem('cs2_inventory')) : [];
+        // Сброс баланса до 10000 (если пользователь хочет принудительный сброс, можно очистить или обновить через localStorage)
+        let balance = 10000;
+        let inventory = [];
+        
+        if (localStorage.getItem('casino_balance_reset_v2') === null) {
+            balance = 10000;
+            inventory = [];
+            localStorage.setItem('casino_balance', balance);
+            localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
+            localStorage.setItem('casino_balance_reset_v2', 'true');
+        } else {
+            balance = localStorage.getItem('casino_balance') !== null ? parseInt(localStorage.getItem('casino_balance')) : 10000;
+            inventory = localStorage.getItem('cs2_inventory') !== null ? JSON.parse(localStorage.getItem('cs2_inventory')) : [];
+        }
         
         const balanceEl = document.getElementById('user-balance');
         const eloEl = document.getElementById('user-elo');
@@ -431,7 +443,7 @@
             updateElo();
             renderCasesList();
             renderInventory();
-            startBonusTimer();
+            startBonusTimerCountdown();
         });
 
         // Функция автосохранения
@@ -462,12 +474,22 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        function startBonusTimer() {
+        // Таймер обратного отсчета (2 минуты = 120 секунд)
+        let timeLeftSeconds = 120;
+        function startBonusTimerCountdown() {
+            const timerEl = document.getElementById('bonus-timer');
             setInterval(() => {
-                balance += 2500;
-                updateBalance();
-                showToast("🎁 Бонус! Вам начислено +2500 монет!");
-            }, 180000);
+                timeLeftSeconds--;
+                if (timeLeftSeconds <= 0) {
+                    balance += 2000;
+                    updateBalance();
+                    showToast("🎁 Бонус! Вам начислено +2000 монет!");
+                    timeLeftSeconds = 120;
+                }
+                let minutes = Math.floor(timeLeftSeconds / 60);
+                let seconds = timeLeftSeconds % 60;
+                timerEl.innerText = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            }, 1000);
         }
 
         function switchTab(tabId, btn) {
@@ -577,7 +599,6 @@
             const caseData = CS2_CASES.find(c => c.id === caseId);
             let totalCost = caseData.price * selectedCaseCount;
 
-            // Проверка лимита инвентаря
             if (inventory.length + selectedCaseCount > MAX_INVENTORY_SIZE) {
                 showToast(`❌ Инвентарь полон! Максимум ${MAX_INVENTORY_SIZE} предметов.`);
                 return;
@@ -591,7 +612,6 @@
             balance -= totalCost;
             updateBalance();
 
-            // Строгая блокировка ТОЛЬКО для кейсов во время прокрутки
             const btn = document.getElementById('open-case-btn');
             const backBtn = document.getElementById('modal-back-btn');
             const selectorGroup = document.getElementById('case-selectors-group');
@@ -689,7 +709,6 @@
             const area = document.getElementById('game-content-area');
             modal.classList.add('active');
             
-            // В мини-играх кнопка Назад доступна всегда
             document.getElementById('modal-back-btn').classList.remove('disabled');
 
             switch(gameKey) {
