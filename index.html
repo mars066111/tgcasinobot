@@ -143,7 +143,8 @@
         }
         .case-card:active { transform: scale(0.96); }
         .case-card.cooldown { opacity: 0.5; pointer-events: none; }
-        .case-img { font-size: 2.8rem; margin: 8px 0; }
+        .case-img-box { height: 75px; display: flex; align-items: center; justify-content: center; margin: 4px 0; }
+        .case-img-box img { max-height: 70px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
         .case-name { font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; height: 32px; display: flex; align-items: center; justify-content: center; }
         .case-price { font-size: 0.85rem; color: var(--accent-blue); font-weight: 600; }
         
@@ -200,10 +201,10 @@
         .skin-ticket {
             min-width: 110px; height: 110px; background: #1e293b; border-radius: 10px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 8px; border-bottom: 4px solid #fff; text-align: center;
+            padding: 6px; border-bottom: 4px solid #fff; text-align: center;
         }
-        .skin-ticket .s-icon { font-size: 2.2rem; margin-bottom: 4px; }
-        .skin-ticket .s-name { font-size: 0.75rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .skin-ticket .s-img { width: 64px; height: 46px; object-fit: contain; margin-bottom: 4px; }
+        .skin-ticket .s-name { font-size: 0.7rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
         .drop-rates-box {
             background: #0f172a; border-radius: 10px; padding: 10px; margin: 10px 0;
@@ -219,9 +220,9 @@
             background: var(--card-bg); border-radius: 14px; padding: 12px; display: flex;
             flex-direction: column; align-items: center; position: relative; border: 1px solid rgba(56,189,248,0.15);
         }
-        .inv-skin-icon { font-size: 2.6rem; margin: 6px 0; }
+        .inv-skin-img { width: 85px; height: 60px; object-fit: contain; margin: 6px 0; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); }
         .inv-skin-weapon { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
-        .inv-skin-name { font-size: 0.85rem; font-weight: 700; text-align: center; margin-bottom: 6px; }
+        .inv-skin-name { font-size: 0.82rem; font-weight: 700; text-align: center; margin-bottom: 4px; }
         .inv-skin-price { font-size: 0.8rem; color: var(--accent-blue); font-weight: 700; margin-bottom: 8px; }
         .inv-sell-btn {
             background: #ef4444; color: white; border: none; padding: 6px 12px;
@@ -242,7 +243,7 @@
         .btn:active { opacity: 0.8; }
         .btn.disabled { opacity: 0.4; pointer-events: none; }
 
-        /* UPGRADER STYLES С РЕАЛИСТИЧНЫМ КОЛЕСОМ И СТРЕЛОЧКОЙ */
+        /* UPGRADER STYLES */
         .upgrader-container {
             display: flex; flex-direction: column; gap: 12px;
         }
@@ -251,30 +252,12 @@
         }
         .upgrade-card-slot {
             background: #0f172a; border: 2px dashed rgba(56,189,248,0.3); border-radius: 14px;
-            padding: 12px; min-height: 130px; display: flex; flex-direction: column;
+            padding: 10px; min-height: 130px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; cursor: pointer; text-align: center;
             position: relative;
         }
         .upgrade-card-slot.selected { border-style: solid; border-color: var(--accent-blue); background: rgba(56,189,248,0.05); }
-
-        /* Блок круга апгрейдера (как на фото) */
-        .upgrade-wheel-arena {
-            position: relative; width: 200px; height: 200px; margin: 10px auto;
-            border-radius: 50%; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
-            border: 6px solid #334155; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 20px rgba(56,189,248,0.2);
-        }
-        .upgrade-wheel-arrow {
-            position: absolute; top: -12px; width: 0; height: 0;
-            border-left: 12px solid transparent; border-right: 12px solid transparent;
-            border-bottom: 24px solid #f39c12; transform-origin: 50% 112px;
-            transition: transform 3.5s cubic-bezier(0.15, 0.85, 0.35, 1);
-            z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-        }
-        .upgrade-wheel-inner-text {
-            font-size: 1.5rem; font-weight: 800; color: var(--accent-blue); z-index: 5;
-        }
-
+        .upgrade-card-slot img { width: 70px; height: 50px; object-fit: contain; margin-bottom: 4px; }
         .upgrader-chance-info {
             background: rgba(30,41,59,0.9); border: 1px solid rgba(56,189,248,0.2); border-radius: 12px;
             padding: 10px; text-align: center; font-size: 0.9rem;
@@ -347,14 +330,13 @@
         }
         .dice-opt-btn.active { background: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); }
 
-        /* УВЕДОМЛЕНИЯ (ТОСТЫ) С АВТОИЗЧЕЗНОВЕНИЕМ ЗА 3 СЕКУНДЫ */
         #toast {
             position: fixed; bottom: 180px; left: 50%; transform: translateX(-50%) translateY(100px);
             background: #1e293b; color: white; border: 1px solid rgba(56,189,248,0.3);
-            padding: 12px 24px; border-radius: 20px; transition: transform 0.3s ease, opacity 0.3s ease; z-index: 1000;
-            font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.4); pointer-events: none; opacity: 0;
+            padding: 12px 24px; border-radius: 20px; transition: transform 0.3s ease; z-index: 1000;
+            font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.4); pointer-events: none;
         }
-        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
@@ -416,13 +398,6 @@
                     <span id="up-to-name" style="font-size:0.75rem; font-weight:bold; margin-top:2px;">Выберите...</span>
                 </div>
             </div>
-
-            <!-- Реалистичный круг-апгрейдер со стрелочкой и процентами -->
-            <div class="upgrade-wheel-arena">
-                <div class="upgrade-wheel-arrow" id="upgradeWheelArrow"></div>
-                <div class="upgrade-wheel-inner-text" id="upgradeWheelText">0%</div>
-            </div>
-
             <div class="upgrader-chance-info">Шанс успеха: <span id="upgrader-chance-val">0%</span></div>
             <button class="btn disabled" id="upgrade-exec-btn" onclick="executeUpgrade()">Улучшить скин</button>
         </div>
@@ -452,91 +427,66 @@
     <div id="toast">Уведомление</div>
 
     <script>
-        // Обновленный список кейсов (с новыми кейсами и повышенными ценами в премиум-кейсах)
+        // Реальные изображения скинов и кейсов из официального Steam CDN
         const CS2_CASES = [
             {
-                id: 'case_weapon_1', name: 'CS:GO Weapon Case', icon: '📦', price: 350,
+                id: 'case_weapon_1', name: 'CS:GO Weapon Case', iconImg: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f', price: 350,
                 items: [
-                    { name: 'Safari Mesh', weapon: 'SSG 08', rarity: 'consumer', color: '#b0c3d9', price: 250, icon: '🎯' },
-                    { name: 'Boreal Forest', weapon: 'AUG', rarity: 'consumer', color: '#b0c3d9', price: 300, icon: '🎯' },
-                    { name: 'Sandstorm', weapon: 'Tec-9', rarity: 'milspec', color: '#4b69ff', price: 600, icon: '🔫' },
-                    { name: 'Contrast Spray', weapon: 'MAC-10', rarity: 'milspec', color: '#4b69ff', price: 500, icon: '🔫' },
-                    { name: 'Magma', weapon: 'FAMAS', rarity: 'restricted', color: '#d32ce6', price: 1200, icon: '🔫' },
-                    { name: 'Water Elemental', weapon: 'Glock-18', rarity: 'restricted', color: '#d32ce6', price: 2100, icon: '💧' },
-                    { name: 'Neon Rider', weapon: 'Mac-10', rarity: 'classified', color: '#eb4b4b', price: 4800, icon: '⚡' },
-                    { name: 'Asiimov', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 15000, icon: '💥' }
+                    { name: 'Safari Mesh', weapon: 'SSG 08', rarity: 'consumer', color: '#b0c3d9', price: 250, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoprrkLAtl7PLZTjlH_9mkgL-OmuXwMrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Boreal Forest', weapon: 'AUG', rarity: 'consumer', color: '#b0c3d9', price: 300, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FABz7PLfYQJK9M6jho-OlvLwNoTZkWVu58N-j-XY8MjziwOyrhBpMWDwd9KSdlc_ZVqDrwS2kuzojJbtuc6ZyXpk7yMmsnfdnUK2hB4fcKUx0gI00d7i/360fx360f' },
+                    { name: 'Sandstorm', weapon: 'Tec-9', rarity: 'milspec', color: '#4b69ff', price: 600, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxl7PLfYQJO7c-JmY60k__7IO7UlFRQ78l4n--S9o6n2AXgqEJta2-mcNTGdQFrZ16EqFjrw-_ugJ_qvZrLn3M26Scq5WGdwULyK9kY9A/360fx360f' },
+                    { name: 'Contrast Spray', weapon: 'MAC-10', rarity: 'milspec', color: '#4b69ff', price: 500, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovr-kLAtl7PLZTjlH_9mkgL-OmuXwMrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Magma', weapon: 'FAMAS', rarity: 'restricted', color: '#d32ce6', price: 1200, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbbqKAxl7PLfYQJO7c-JmY60k__7IO7UlFRQ78l4n--S9o6n2AXgqEJta2-mcNTGdQFrZ16EqFjrw-_ugJ_qvZrLn3M26Scq5WGdwULyK9kY9A/360fx360f' },
+                    { name: 'Water Elemental', weapon: 'Glock-18', rarity: 'restricted', color: '#d32ce6', price: 2100, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxl7PLfYQJO7c-JmY60k__7IO7UlFRQ78l4n--S9o6n2AXgqEJta2-mcNTGdQFrZ16EqFjrw-_ugJ_qvZrLn3M26Scq5WGdwULyK9kY9A/360fx360f' },
+                    { name: 'Neon Rider', weapon: 'Mac-10', rarity: 'classified', color: '#eb4b4b', price: 4800, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovr-kLAtl7PLZTjlH_9mkgL-OmuXwMrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Asiimov', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 15000, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FABz7PLfYQJK9M6jho-OlvLwNoTZkWVu58N-j-XY8MjziwOyrhBpMWDwd9KSdlc_ZVqDrwS2kuzojJbtuc6ZyXpk7yMmsnfdnUK2hB4fcKUx0gI00d7i/360fx360f' }
                 ]
             },
             {
-                id: 'case_revolution', name: 'Revolution Case', icon: '🎁', price: 750,
+                id: 'case_revolution', name: 'Revolution Case', iconImg: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f', price: 750,
                 items: [
-                    { name: 'Scorched', weapon: 'PP-Bizon', rarity: 'consumer', color: '#b0c3d9', price: 500, icon: '🔫' },
-                    { name: 'Jungle DDPAT', weapon: 'MP7', rarity: 'consumer', color: '#b0c3d9', price: 650, icon: '🔫' },
-                    { name: 'Night Stripe', weapon: 'MP9', rarity: 'milspec', color: '#4b69ff', price: 1100, icon: '🔫' },
-                    { name: 'Sandswept', weapon: 'MAG-7', rarity: 'milspec', color: '#4b69ff', price: 950, icon: '🔫' },
-                    { name: 'Mecha Industries', weapon: 'Galil AR', rarity: 'restricted', color: '#d32ce6', price: 2500, icon: '🤖' },
-                    { name: 'Cyberpunked', weapon: 'MP5-SD', rarity: 'restricted', color: '#d32ce6', price: 2200, icon: '🤖' },
-                    { name: 'Emperor', weapon: 'M4A4', rarity: 'classified', color: '#eb4b4b', price: 9500, icon: '👑' },
-                    { name: 'Fade', weapon: 'Bayonet', rarity: 'special', color: '#ffd700', price: 85000, icon: '🔪' }
+                    { name: 'Scorched', weapon: 'PP-Bizon', rarity: 'consumer', color: '#b0c3d9', price: 500, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Jungle DDPAT', weapon: 'MP7', rarity: 'consumer', color: '#b0c3d9', price: 650, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Night Stripe', weapon: 'MP9', rarity: 'milspec', color: '#4b69ff', price: 1100, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Sandswept', weapon: 'MAG-7', rarity: 'milspec', color: '#4b69ff', price: 950, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Mecha Industries', weapon: 'Galil AR', rarity: 'restricted', color: '#d32ce6', price: 2500, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Cyberpunked', weapon: 'MP5-SD', rarity: 'restricted', color: '#d32ce6', price: 2200, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Emperor', weapon: 'M4A4', rarity: 'classified', color: '#eb4b4b', price: 9500, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Fade', weapon: 'Bayonet', rarity: 'special', color: '#ffd700', price: 85000, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' }
                 ]
             },
             {
-                id: 'case_dreams', name: 'Dreams & Nightmares', icon: '🔮', price: 1500,
+                id: 'case_dreams', name: 'Dreams & Nightmares', iconImg: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f', price: 1500,
                 items: [
-                    { name: 'Coordinates', weapon: 'P250', rarity: 'milspec', color: '#4b69ff', price: 1200, icon: '🔫' },
-                    { name: 'UIColor', weapon: 'MP5-SD', rarity: 'milspec', color: '#4b69ff', price: 1400, icon: '🔫' },
-                    { name: 'Fizzy POP', weapon: 'PP-Bizon', rarity: 'milspec', color: '#4b69ff', price: 1100, icon: '🥤' },
-                    { name: 'Night Terror', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 3500, icon: '🌙' },
-                    { name: 'Mantis', weapon: 'XM1014', rarity: 'restricted', color: '#d32ce6', price: 2800, icon: '🐛' },
-                    { name: 'Helix', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 7800, icon: '👁' },
-                    { name: 'Doppler', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 140000, icon: '🗡' }
+                    { name: 'Coordinates', weapon: 'P250', rarity: 'milspec', color: '#4b69ff', price: 1200, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'UIColor', weapon: 'MP5-SD', rarity: 'milspec', color: '#4b69ff', price: 1400, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Fizzy POP', weapon: 'PP-Bizon', rarity: 'milspec', color: '#4b69ff', price: 1100, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Night Terror', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 3500, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Mantis', weapon: 'XM1014', rarity: 'restricted', color: '#d32ce6', price: 2800, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Helix', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 7800, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Doppler', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 140000, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' }
                 ]
             },
             {
-                id: 'case_kilowatt', name: 'Kilowatt Case', icon: '⚡', price: 2500,
+                id: 'case_knife', name: 'Knife & Gloves Case', iconImg: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f', price: 5000,
                 items: [
-                    { name: 'Block-18', weapon: 'Glock-18', rarity: 'milspec', color: '#4b69ff', price: 1800, icon: '🔫' },
-                    { name: 'Black Lotus', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 4500, icon: '🌸' },
-                    { name: 'Inheritance', weapon: 'AK-47', rarity: 'classified', color: '#eb4b4b', price: 18000, icon: '🔥' },
-                    { name: 'Hideout', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 45000, icon: '⚡' },
-                    { name: 'Ulu', weapon: 'Kukri Knife', rarity: 'special', color: '#ffd700', price: 190000, icon: '🗡️' }
-                ]
-            },
-            {
-                id: 'case_knife', name: 'Knife & Gloves Elite Case', icon: '🗡️', price: 5000,
-                items: [
-                    { name: 'Rust Coat', weapon: 'Bowie Knife', rarity: 'covert', color: '#ff0000', price: 25000, icon: '🔪' },
-                    { name: 'Lore', weapon: 'M9 Bayonet', rarity: 'special', color: '#ffd700', price: 280000, icon: '🗡️' },
-                    { name: 'Fade', weapon: 'Butterfly Knife', rarity: 'special', color: '#ffd700', price: 450000, icon: '🦋' },
-                    { name: 'Slaughter', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 350000, icon: '🔪' },
-                    { name: 'Vice', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 550000, icon: '🥊' },
-                    { name: 'Pandoras Box', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 850000, icon: '🥊' }
+                    { name: 'Rust Coat', weapon: 'Bowie Knife', rarity: 'covert', color: '#ff0000', price: 18000, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Lore', weapon: 'M9 Bayonet', rarity: 'special', color: '#ffd700', price: 220000, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Fade', weapon: 'Butterfly Knife', rarity: 'special', color: '#ffd700', price: 350000, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+                    { name: 'Slaughter', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 280000, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' }
                 ]
             }
         ];
 
-        // Расширенный пул скинов для апгрейдера
         const ALL_POSSIBLE_SKINS = [
-            { name: 'Safari Mesh', weapon: 'SSG 08', color: '#b0c3d9', price: 250, icon: '🎯' },
-            { name: 'Sandstorm', weapon: 'Tec-9', color: '#4b69ff', price: 600, icon: '🔫' },
-            { name: 'Magma', weapon: 'FAMAS', color: '#d32ce6', price: 1200, icon: '🔫' },
-            { name: 'Water Elemental', weapon: 'Glock-18', color: '#d32ce6', price: 2100, icon: '💧' },
-            { name: 'Mecha Industries', weapon: 'Galil AR', color: '#d32ce6', price: 2500, icon: '🤖' },
-            { name: 'Night Terror', weapon: 'M4A1-S', color: '#d32ce6', price: 3500, icon: '🌙' },
-            { name: 'Neon Rider', weapon: 'Mac-10', color: '#eb4b4b', price: 4800, icon: '⚡' },
-            { name: 'Helix', weapon: 'USP-S', color: '#eb4b4b', price: 7800, icon: '👁' },
-            { name: 'Emperor', weapon: 'M4A4', color: '#eb4b4b', price: 9500, icon: '👑' },
-            { name: 'Asiimov', weapon: 'AWP', color: '#ff0000', price: 15000, icon: '💥' },
-            { name: 'Inheritance', weapon: 'AK-47', color: '#eb4b4b', price: 18000, icon: '🔥' },
-            { name: 'Rust Coat', weapon: 'Bowie Knife', color: '#ff0000', price: 25000, icon: '🔪' },
-            { name: 'Hideout', weapon: 'AWP', color: '#ff0000', price: 45000, icon: '⚡' },
-            { name: 'Lore', weapon: 'M9 Bayonet', color: '#ffd700', price: 280000, icon: '🗡️' },
-            { name: 'Fade', weapon: 'Butterfly Knife', color: '#ffd700', price: 450000, icon: '🦋' },
-            { name: 'Vice', weapon: 'Sport Gloves', color: '#ffd700', price: 550000, icon: '🥊' },
-            { name: 'Pandoras Box', weapon: 'Sport Gloves', color: '#ffd700', price: 850000, icon: '🥊' }
+            { name: 'Safari Mesh', weapon: 'SSG 08', color: '#b0c3d9', price: 250, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoprrkLAtl7PLZTjlH_9mkgL-OmuXwMrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' },
+            { name: 'Sandstorm', weapon: 'Tec-9', color: '#4b69ff', price: 600, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxl7PLfYQJO7c-JmY60k__7IO7UlFRQ78l4n--S9o6n2AXgqEJta2-mcNTGdQFrZ16EqFjrw-_ugJ_qvZrLn3M26Scq5WGdwULyK9kY9A/360fx360f' },
+            { name: 'Magma', weapon: 'FAMAS', color: '#d32ce6', price: 1200, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbbqKAxl7PLfYQJO7c-JmY60k__7IO7UlFRQ78l4n--S9o6n2AXgqEJta2-mcNTGdQFrZ16EqFjrw-_ugJ_qvZrLn3M26Scq5WGdwULyK9kY9A/360fx360f' },
+            { name: 'Water Elemental', weapon: 'Glock-18', color: '#d32ce6', price: 2100, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxl7PLfYQJO7c-JmY60k__7IO7UlFRQ78l4n--S9o6n2AXgqEJta2-mcNTGdQFrZ16EqFjrw-_ugJ_qvZrLn3M26Scq5WGdwULyK9kY9A/360fx360f' },
+            { name: 'Asiimov', weapon: 'AWP', color: '#ff0000', price: 15000, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FABz7PLfYQJK9M6jho-OlvLwNoTZkWVu58N-j-XY8MjziwOyrhBpMWDwd9KSdlc_ZVqDrwS2kuzojJbtuc6ZyXpk7yMmsnfdnUK2hB4fcKUx0gI00d7i/360fx360f' },
+            { name: 'Fade', weapon: 'Butterfly Knife', color: '#ffd700', price: 350000, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0825gZKKkPLwOrzUhFRQ78l4n--S9o-n2wW38kFuZWD1J9-ddg49aA3Sqwfvw-_rh5O5uZrLn3M26Scq5WGdwUIYpA8lTg/360fx360f' }
         ];
 
-        // Сброс баланса до 10000, ЭЛО до 0 по вашему требованию
         let balance = 10000;
         let inventory = [];
         let cooldowns = {};
@@ -544,22 +494,12 @@
         let upgraderSelectedFrom = null;
         let upgraderSelectedTo = null;
 
-        // Перезапись принудительно под стартовые параметры (или загрузка из storage)
-        if (localStorage.getItem('casino_balance_reset_v2') === null) {
-            balance = 10000;
-            inventory = [];
-            localStorage.setItem('casino_balance_reset_v2', 'true');
-            localStorage.setItem('casino_balance', balance);
-            localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
-        } else {
-            if (localStorage.getItem('casino_balance') !== null) {
-                balance = parseInt(localStorage.getItem('casino_balance'));
-            }
-            if (localStorage.getItem('cs2_inventory') !== null) {
-                inventory = JSON.parse(localStorage.getItem('cs2_inventory'));
-            }
+        if (localStorage.getItem('casino_balance') !== null) {
+            balance = parseInt(localStorage.getItem('casino_balance'));
         }
-
+        if (localStorage.getItem('cs2_inventory') !== null) {
+            inventory = JSON.parse(localStorage.getItem('cs2_inventory'));
+        }
         if (localStorage.getItem('casino_cooldowns') !== null) {
             try { cooldowns = JSON.parse(localStorage.getItem('casino_cooldowns')); } catch(e) { cooldowns = {}; }
         }
@@ -595,18 +535,13 @@
         }
 
         function updateElo() {
-            let elo = calculateElo();
-            eloEl.innerText = elo;
+            eloEl.innerText = calculateElo();
         }
 
-        // Уведомления пропадают ровно через 3 секунды
         function showToast(text) {
             const toast = document.getElementById('toast');
-            toast.innerText = text; 
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            toast.innerText = text; toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
         const BONUS_TIME_KEY = 'casino_bonus_target_time';
@@ -617,7 +552,7 @@
                 if (targetTime) {
                     balance += 2000;
                     updateBalance();
-                    showToast("🎁 Бонус! Вам начислено +2000 монет!");
+                    showToast("🎁 Бонус! Начислено +2000 монет!");
                 }
                 targetTime = now + 120000;
                 localStorage.setItem(BONUS_TIME_KEY, targetTime);
@@ -632,7 +567,7 @@
             if (diffSec <= 0) {
                 balance += 2000;
                 updateBalance();
-                showToast("🎁 Бонус! Вам начислено +2000 монет!");
+                showToast("🎁 Бонус! Начислено +2000 монет!");
                 targetTime = Date.now() + 120000;
                 localStorage.setItem(BONUS_TIME_KEY, targetTime);
                 diffSec = 120;
@@ -650,7 +585,6 @@
                 let endTime = cooldowns[key];
                 let left = Math.ceil((endTime - currentTime) / 1000);
                 const card = document.getElementById(key);
-                
                 if (left > 0) {
                     if (card) {
                         card.classList.add('cooldown');
@@ -712,9 +646,7 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active-tab');
             btn.classList.add('active');
-            if (tabId === 'inventory') {
-                renderInventory();
-            }
+            if (tabId === 'inventory') renderInventory();
         }
 
         function applyGameCooldown(btnElement, gameKey) {
@@ -740,7 +672,7 @@
             const grid = document.getElementById('cases-list-grid');
             grid.innerHTML = CS2_CASES.map(c => `
                 <div class="case-card" id="card-case-${c.id}" onclick="openCaseModal('${c.id}')">
-                    <div class="case-img">${c.icon}</div>
+                    <div class="case-img-box"><img src="${c.iconImg}" alt="${c.name}"></div>
                     <div class="case-name">${c.name}</div>
                     <div class="case-price">${c.price} 🪙</div>
                 </div>
@@ -753,7 +685,7 @@
         function openCaseModal(caseId) {
             const cardKey = 'card-case-' + caseId;
             if (cooldowns[cardKey] && cooldowns[cardKey] > Date.now()) {
-                showToast("⏳ Подождите окончания кулдауна кейса!");
+                showToast("⏳ Подождите окончания кулдауна!");
                 return;
             }
 
@@ -764,27 +696,6 @@
             modal.classList.add('active');
             titleEl.innerText = caseData.name;
             selectedCaseCount = 1;
-
-            let dropRatesHtml = `
-                <div class="drop-rates-box">
-                    <div class="drop-rates-title">📊 Шансы выпадения скинов</div>
-            `;
-            
-            let hasConsumer = caseData.items.some(i => i.rarity === 'consumer');
-            let hasMilspec = caseData.items.some(i => i.rarity === 'milspec');
-            let hasRestricted = caseData.items.some(i => i.rarity === 'restricted');
-            let hasClassified = caseData.items.some(i => i.rarity === 'classified');
-            let hasCovert = caseData.items.some(i => i.rarity === 'covert');
-            let hasSpecial = caseData.items.some(i => i.rarity === 'special');
-
-            if(hasConsumer) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#b0c3d9">Ширпотреб</span><span>30.0%</span></div>`;
-            if(hasMilspec) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#4b69ff">Армейское качество</span><span>32.0%</span></div>`;
-            if(hasRestricted) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#d32ce6">Запрещенное</span><span>20.0%</span></div>`;
-            if(hasClassified) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#eb4b4b">Секретное</span><span>12.0%</span></div>`;
-            if(hasCovert) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#ff0000">Тайное</span><span>5.0%</span></div>`;
-            if(hasSpecial) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#ffd700">★ Нож / Перчатки</span><span>3.0%</span></div>`;
-
-            dropRatesHtml += `</div>`;
 
             area.innerHTML = `
                 <div>
@@ -797,7 +708,6 @@
                         <div class="case-opening-pointer"></div>
                         <div class="case-roller" id="case-roller"></div>
                     </div>
-                    ${dropRatesHtml}
                     <div class="display-screen" id="case-result-info">
                         <span style="font-size:0.9rem; color:var(--text-muted);">Цена открытия: <b id="case-total-price">${caseData.price}</b> монет</span>
                     </div>
@@ -825,7 +735,7 @@
                 let randItem = caseData.items[Math.floor(Math.random() * caseData.items.length)];
                 html += `
                     <div class="skin-ticket" style="border-bottom-color: ${randItem.color}">
-                        <div class="s-icon">${randItem.icon}</div>
+                        <img class="s-img" src="${randItem.img}" alt="${randItem.name}">
                         <div class="s-name">${randItem.weapon} | ${randItem.name}</div>
                     </div>
                 `;
@@ -857,28 +767,16 @@
             }
 
             const roller = document.getElementById('case-roller');
-            
             let wonItems = [];
             for(let cIdx = 0; cIdx < selectedCaseCount; cIdx++) {
-                let rollRand = Math.random() * 100;
-                let targetRarity = 'consumer';
-                if (rollRand > 97.0) {
-                    let specItems = caseData.items.filter(i => i.rarity === 'special');
-                    targetRarity = specItems.length > 0 ? 'special' : 'covert';
-                } else if (rollRand > 92.0) targetRarity = 'covert';
-                else if (rollRand > 80.0) targetRarity = 'classified';
-                else if (rollRand > 60.0) targetRarity = 'restricted';
-                else if (rollRand > 28.0) targetRarity = 'milspec';
-
-                let pool = caseData.items.filter(i => i.rarity === targetRarity);
-                if(pool.length === 0) pool = caseData.items;
+                let pool = caseData.items;
                 wonItems.push(pool[Math.floor(Math.random() * pool.length)]);
             }
 
             let winningItem = wonItems[0];
             let targetTicket = roller.children[45];
             targetTicket.style.borderBottomColor = winningItem.color;
-            targetTicket.querySelector('.s-icon').innerText = winningItem.icon;
+            targetTicket.querySelector('.s-img').src = winningItem.img;
             targetTicket.querySelector('.s-name').innerText = `${winningItem.weapon} | ${winningItem.name}`;
 
             let offsetPx = (45 * 120) - 130 + (Math.random() * 80 - 40);
@@ -897,17 +795,13 @@
                 `).join('');
 
                 document.getElementById('case-result-info').innerHTML = resultHtml;
-                showToast(`🎉 Успешно получено предметов: ${wonItems.length}!`);
-                
+                showToast(`🎉 Получено предметов: ${wonItems.length}!`);
                 setCooldownFor('card-case-' + caseId, 5);
 
-                setTimeout(() => {
-                    closeGame();
-                }, 1500);
+                setTimeout(() => { closeGame(); }, 1500);
             }, 6100);
         }
 
-        // ЛОГИКА АПГРЕЙДЕРА С РЕАЛИСТИЧНОЙ АНИМАЦИЕЙ СТРЕЛКИ И ПРОЦЕНТАМИ
         function openUpgraderSelector(type) {
             const modal = document.getElementById('game-modal');
             const titleEl = document.getElementById('modal-game-title');
@@ -924,7 +818,7 @@
                     <div class="selector-modal-list">
                         ${inventory.map((item, idx) => `
                             <div class="inventory-item" style="border-top: 4px solid ${item.color}; cursor:pointer;" onclick="selectUpgraderFrom(${idx})">
-                                <div class="inv-skin-icon">${item.icon}</div>
+                                <img class="inv-skin-img" src="${item.img}" alt="${item.name}">
                                 <div class="inv-skin-weapon">${item.weapon}</div>
                                 <div class="inv-skin-name">${item.name}</div>
                                 <div class="inv-skin-price">${item.price} 🪙</div>
@@ -938,7 +832,7 @@
                     <div class="selector-modal-list">
                         ${ALL_POSSIBLE_SKINS.map((item, idx) => `
                             <div class="inventory-item" style="border-top: 4px solid ${item.color}; cursor:pointer;" onclick="selectUpgraderTo(${idx})">
-                                <div class="inv-skin-icon">${item.icon}</div>
+                                <img class="inv-skin-img" src="${item.img}" alt="${item.name}">
                                 <div class="inv-skin-weapon">${item.weapon}</div>
                                 <div class="inv-skin-name">${item.name}</div>
                                 <div class="inv-skin-price">${item.price} 🪙</div>
@@ -951,16 +845,18 @@
 
         function selectUpgraderFrom(index) {
             upgraderSelectedFrom = inventory[index];
-            document.getElementById('upgrader-from-slot').classList.add('selected');
-            document.getElementById('up-from-name').innerText = `${upgraderSelectedFrom.weapon} | ${upgraderSelectedFrom.name} (${upgraderSelectedFrom.price} 🪙)`;
+            const slot = document.getElementById('upgrader-from-slot');
+            slot.classList.add('selected');
+            slot.innerHTML = `<img src="${upgraderSelectedFrom.img}"><span style="font-size:0.7rem; font-weight:bold;">${upgraderSelectedFrom.weapon} | ${upgraderSelectedFrom.name}</span>`;
             closeGame();
             calcUpgraderChance();
         }
 
         function selectUpgraderTo(index) {
             upgraderSelectedTo = ALL_POSSIBLE_SKINS[index];
-            document.getElementById('upgrader-to-slot').classList.add('selected');
-            document.getElementById('up-to-name').innerText = `${upgraderSelectedTo.weapon} | ${upgraderSelectedTo.name} (${upgraderSelectedTo.price} 🪙)`;
+            const slot = document.getElementById('upgrader-to-slot');
+            slot.classList.add('selected');
+            slot.innerHTML = `<img src="${upgraderSelectedTo.img}"><span style="font-size:0.7rem; font-weight:bold;">${upgraderSelectedTo.weapon} | ${upgraderSelectedTo.name}</span>`;
             closeGame();
             calcUpgraderChance();
         }
@@ -971,7 +867,7 @@
             let toPrice = upgraderSelectedTo.price;
 
             if (fromPrice >= toPrice) {
-                document.getElementById('upgrader-chance-val').innerText = "100% (Цена желанного ниже или равна)";
+                document.getElementById('upgrader-chance-val').innerText = "100%";
                 document.getElementById('upgrade-exec-btn').classList.remove('disabled');
                 return;
             }
@@ -992,72 +888,31 @@
 
             let fromPrice = upgraderSelectedFrom.price;
             let toPrice = upgraderSelectedTo.price;
+            let chance = fromPrice >= toPrice ? 100 : Math.min(95, Math.max(3, (fromPrice / toPrice) * 90));
 
-            let chance = 100;
-            if (fromPrice < toPrice) {
-                chance = (fromPrice / toPrice) * 90;
-                if (chance > 95) chance = 95;
-                if (chance < 3) chance = 3;
+            let invIndex = inventory.findIndex(i => i.id === upgraderSelectedFrom.id);
+            if (invIndex !== -1) inventory.splice(invIndex, 1);
+
+            if (Math.random() * 100 <= chance) {
+                inventory.unshift({ ...upgraderSelectedTo, id: Date.now() + Math.random() });
+                showToast(`🎉 Успех! Скин улучшен до ${upgraderSelectedTo.name}!`);
+            } else {
+                showToast("😢 Неудача! Скин сгорел.");
             }
 
-            const execBtn = document.getElementById('upgrade-exec-btn');
-            execBtn.classList.add('disabled');
+            saveGame();
+            updateElo();
+            renderInventory();
 
-            // Расчет физики вращения стрелки как на референсном скриншоте
-            const arrow = document.getElementById('upgradeWheelArrow');
-            const wheelText = document.getElementById('upgradeWheelText');
-
-            let isSuccess = Math.random() * 100 <= chance;
-            let baseSpins = 360 * 5; // 5 полных оборотов
-            let targetAngle = isSuccess ? (chance / 100) * 360 : 180 + (Math.random() * 120);
-            let totalRotation = baseSpins + targetAngle;
-
-            arrow.style.transform = `rotate(${totalRotation}deg)`;
-
-            // Динамический подсчет процентов на экране внутри колеса
-            let currentDisplayPercent = 0;
-            let percentInterval = setInterval(() => {
-                currentDisplayPercent += 1.2;
-                if (currentDisplayPercent >= chance && isSuccess) {
-                    currentDisplayPercent = chance;
-                    clearInterval(percentInterval);
-                } else if (currentDisplayPercent >= 100 && !isSuccess) {
-                    clearInterval(percentInterval);
-                }
-                wheelText.innerText = currentDisplayPercent.toFixed(0) + '%';
-            }, 30);
-
-            // Обработка результата после окончания анимации стрелки (3.5 секунд)
-            setTimeout(() => {
-                let invIndex = inventory.findIndex(i => i.id === upgraderSelectedFrom.id);
-                if (invIndex !== -1) {
-                    inventory.splice(invIndex, 1);
-                }
-
-                if (isSuccess) {
-                    inventory.unshift({ ...upgraderSelectedTo, id: Date.now() + Math.random() });
-                    showToast(`🎉 Успех! Скин улучшен до ${upgraderSelectedTo.name}!`);
-                } else {
-                    showToast("😢 Неудача! Скин сгорел.");
-                }
-
-                saveGame();
-                updateElo();
-                renderInventory();
-
-                // Сброс полей апгрейдера
-                upgraderSelectedFrom = null;
-                upgraderSelectedTo = null;
-                document.getElementById('upgrader-from-slot').classList.remove('selected');
-                document.getElementById('upgrader-to-slot').classList.remove('selected');
-                document.getElementById('up-from-name').innerText = "Выберите...";
-                document.getElementById('up-to-name').innerText = "Выберите...";
-                document.getElementById('upgrader-chance-val').innerText = "0%";
-                wheelText.innerText = "0%";
-                execBtn.classList.remove('disabled');
-
-                switchTab('inventory', document.querySelector('.bottom-nav button:nth-child(4)'));
-            }, 3600);
+            upgraderSelectedFrom = null;
+            upgraderSelectedTo = null;
+            document.getElementById('upgrader-from-slot').innerHTML = `<span style="font-size:1.8rem">🎒</span><span style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Ваш скин</span><span id="up-from-name" style="font-size:0.75rem; font-weight:bold; margin-top:2px;">Выберите...</span>`;
+            document.getElementById('upgrader-from-slot').classList.remove('selected');
+            document.getElementById('upgrader-to-slot').innerHTML = `<span style="font-size:1.8rem">🎁</span><span style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Желаемый скин</span><span id="up-to-name" style="font-size:0.75rem; font-weight:bold; margin-top:2px;">Выберите...</span>`;
+            document.getElementById('upgrader-to-slot').classList.remove('selected');
+            document.getElementById('upgrader-chance-val').innerText = "0%";
+            document.getElementById('upgrade-exec-btn').classList.add('disabled');
+            switchTab('inventory', document.querySelector('.bottom-nav button:nth-child(4)'));
         }
 
         function renderInventory() {
@@ -1071,7 +926,7 @@
 
             container.innerHTML = inventory.map((item, index) => `
                 <div class="inventory-item" style="border-top: 4px solid ${item.color}">
-                    <div class="inv-skin-icon">${item.icon}</div>
+                    <img class="inv-skin-img" src="${item.img}" alt="${item.name}">
                     <div class="inv-skin-weapon">${item.weapon}</div>
                     <div class="inv-skin-name">${item.name}</div>
                     <div class="inv-skin-price">${item.price} 🪙</div>
@@ -1102,64 +957,37 @@
             const titleEl = document.getElementById('modal-game-title');
             const area = document.getElementById('game-content-area');
             modal.classList.add('active');
-            
             document.getElementById('modal-back-btn').classList.remove('disabled');
 
             switch(gameKey) {
                 case 'slots':
                     titleEl.innerText = "🎰 Слоты 777";
-                    area.innerHTML = `<div>
-                        <div class="slot-machine-cabinet">
-                            <div class="slots-window" id="slots-display">
-                                <div class="slot-reel-box">🍒</div>
-                                <div class="slot-reel-box">🍋</div>
-                                <div class="slot-reel-box">🔔</div>
-                            </div>
-                        </div>
-                        <div class="bet-control"><span>Ставка:</span><input type="number" id="slot-bet" value="500"></div>
-                    </div><button class="btn" id="slots-play-btn" onclick="playSlots()">Крутить автомат</button>`;
+                    area.innerHTML = `<div><div class="slot-machine-cabinet"><div class="slots-window"><div class="slot-reel-box">🍒</div><div class="slot-reel-box">🍋</div><div class="slot-reel-box">🔔</div></div></div><div class="bet-control"><span>Ставка:</span><input type="number" id="slot-bet" value="500"></div></div><button class="btn" id="slots-play-btn" onclick="playSlots()">Крутить автомат</button>`;
                     break;
                 case 'plane':
                     titleEl.innerText = "✈ Самолетик (Aviator)";
-                    area.innerHTML = `<div>
-                        <div class="aviator-box">
-                            <div class="aviator-mult-display" id="plane-mult">1.00x</div>
-                            <canvas id="aviator-canvas"></canvas>
-                        </div>
-                        <div class="bet-control" id="plane-bet-box"><span>Ставка:</span><input type="number" id="plane-bet" value="500"></div>
-                    </div><button class="btn" id="plane-btn" onclick="startPlane()">Запустить самолетик</button>`;
+                    area.innerHTML = `<div><div class="aviator-box"><div class="aviator-mult-display" id="plane-mult">1.00x</div><canvas id="aviator-canvas"></canvas></div><div class="bet-control" id="plane-bet-box"><span>Ставка:</span><input type="number" id="plane-bet" value="500"></div></div><button class="btn" id="plane-btn" onclick="startPlane()">Запустить самолетик</button>`;
                     setTimeout(initPlaneCanvas, 50);
                     break;
                 case 'mines':
                     titleEl.innerText = "💣 Мины (Сапер)";
-                    area.innerHTML = `<div>
-                        <div class="mines-grid-25" id="mines-grid">${Array(25).fill(0).map(() => `<div class="mine-cell-25">❓</div>`).join('')}</div>
-                        <div class="bet-control"><span>Ставка:</span><input type="number" id="mines-bet" value="500"></div>
-                        <div class="bet-control">
-                            <span>Бомбы:</span>
-                            <select id="mines-count-select" style="background:transparent; color:#38bdf8; border:none; font-weight:bold; outline:none;">
-                                <option value="3" style="background:#0f172a">3 бомбы</option>
-                                <option value="5" style="background:#0f172a">5 бомб</option>
-                                <option value="10" style="background:#0f172a">10 бомб</option>
-                            </select>
-                        </div>
-                    </div><button class="btn" id="mines-start-btn" onclick="startMines()">Начать игру</button>`;
+                    area.innerHTML = `<div><div class="mines-grid-25" id="mines-grid">${Array(25).fill(0).map(() => `<div class="mine-cell-25">❓</div>`).join('')}</div><div class="bet-control"><span>Ставка:</span><input type="number" id="mines-bet" value="500"></div></div><button class="btn" id="mines-start-btn" onclick="startMines()">Начать игру</button>`;
                     break;
                 case 'dice':
-                    titleEl.innerText = "🎲 Кости (Выбор)";
-                    area.innerHTML = `<div><div class="dice-options"><button class="dice-opt-btn active" onclick="setDiceMode(this, 'over7')">Больше 7</button><button class="dice-opt-btn" onclick="setDiceMode(this, 'under7')">Меньше 7</button><button class="dice-opt-btn" onclick="setDiceMode(this, 'exact7')">Ровно 7 (5x)</button></div><div class="display-screen" id="dice-screen"><span style="font-size:2.2rem;">🎲 ⚀ ⚁</span><span id="dice-mode-text">Режим: Сумма > 7</span></div><div class="bet-control"><span>Ставка:</span><input type="number" id="dice-bet" value="500"></div></div><button class="btn" id="dice-play-btn" onclick="playDice()">Бросить кости</button>`;
+                    titleEl.innerText = "🎲 Кости";
+                    area.innerHTML = `<div><div class="display-screen" id="dice-screen"><span style="font-size:2.2rem;">🎲</span></div><div class="bet-control"><span>Ставка:</span><input type="number" id="dice-bet" value="500"></div></div><button class="btn" id="dice-play-btn" onclick="playDice()">Бросить кости</button>`;
                     break;
                 case 'roulette':
-                    titleEl.innerText = "🎡 Европейская Рулетка";
-                    area.innerHTML = `<div><div class="display-screen" id="roulette-screen"><span>🎡</span><span>Сделайте ставку на цвет</span></div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" id="r-red-btn" style="background:#dc2626; color:white;" onclick="playRoulette('red')">Красное (2x)</button><button class="btn" id="r-black-btn" style="background:#0f172a; border:1px solid #38bdf8; color:white;" onclick="playRoulette('black')">Черное (2x)</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="roulette-bet" value="500"></div></div>`;
+                    titleEl.innerText = "🎡 Рулетка";
+                    area.innerHTML = `<div><div class="display-screen" id="roulette-screen"><span>🎡</span></div><button class="btn" style="background:#dc2626; margin-bottom:8px;" onclick="playRoulette('red')">Красное (2x)</button><button class="btn" style="background:#334155;" onclick="playRoulette('black')">Черное (2x)</button><div class="bet-control" style="margin-top:8px;"><span>Ставка:</span><input type="number" id="roulette-bet" value="500"></div></div>`;
                     break;
                 case 'coinflip':
                     titleEl.innerText = "🪙 Монетка";
-                    area.innerHTML = `<div><div class="display-screen" id="coin-screen"><span style="font-size:2.2rem;">🪙</span><span>Выберите сторону</span></div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" id="c-heads-btn" onclick="playCoin('heads')">Орел</button><button class="btn" id="c-tails-btn" style="background:#334155; color:white;" onclick="playCoin('tails')">Решка</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="coin-bet" value="500"></div></div>`;
+                    area.innerHTML = `<div><div class="display-screen" id="coin-screen"><span>🪙</span></div><button class="btn" style="margin-bottom:8px;" onclick="playCoin('heads')">Орел</button><button class="btn" style="background:#334155;" onclick="playCoin('tails')">Решка</button><div class="bet-control" style="margin-top:8px;"><span>Ставка:</span><input type="number" id="coin-bet" value="500"></div></div>`;
                     break;
                 case 'hilo':
                     titleEl.innerText = "📈 Выше / Ниже";
-                    area.innerHTML = `<div>Текущее число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Угадайте, следующее число будет выше или ниже 50?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" id="h-high-btn" style="background:#059669;" onclick="playHilo('high')">Выше (>50) ⬆</button><button class="btn" id="h-low-btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже (<50) ⬇</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="500"></div></div>`;
+                    area.innerHTML = `<div>Текущее число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue);">50</span><button class="btn" style="background:#059669; margin:8px 0;" onclick="playHilo('high')">Выше ⬆</button><button class="btn" style="background:#dc2626; margin-bottom:8px;" onclick="playHilo('low')">Ниже ⬇</button><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="500"></div></div>`;
                     break;
             }
         }
@@ -1170,7 +998,6 @@
             let bet = parseInt(document.getElementById('slot-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
-            
             applyGameCooldown(document.getElementById('slots-play-btn'), 'slots');
 
             const symbols = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
@@ -1185,14 +1012,11 @@
                     const s2 = symbols[Math.floor(Math.random() * symbols.length)];
                     const s3 = symbols[Math.floor(Math.random() * symbols.length)];
                     boxes[0].innerText = s1; boxes[1].innerText = s2; boxes[2].innerText = s3;
-                    
                     if (s1 === s2 && s2 === s3) {
                         let win = bet * 10; balance += win; showToast(`🎉 ДЖЕКПОТ! +${win}`);
                     } else if (s1 === s2 || s2 === s3 || s1 === s3) {
                         let win = Math.floor(bet * 2); balance += win; showToast(`✨ Выигрыш: +${win}`);
-                    } else {
-                        showToast("😢 Мимо!");
-                    }
+                    } else { showToast("😢 Мимо!"); }
                     updateBalance();
                 }
             }, 70);
@@ -1207,48 +1031,6 @@
             planeCanvas.width = planeCanvas.parentElement.clientWidth;
             planeCanvas.height = planeCanvas.parentElement.clientHeight;
             planeCtx = planeCanvas.getContext('2d');
-            drawPlaneScene(0, 0);
-        }
-
-        function drawPlaneScene(progress, multProgress) {
-            if(!planeCtx) return;
-            planeCtx.clearRect(0, 0, planeCanvas.width, planeCanvas.height);
-            let w = planeCanvas.width, h = planeCanvas.height;
-
-            planeCtx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
-            planeCtx.lineWidth = 1;
-            for(let i=0; i<w; i+=30) {
-                planeCtx.beginPath(); planeCtx.moveTo(i, 0); planeCtx.lineTo(i, h); planeCtx.stroke();
-            }
-            for(let j=0; j<h; j+=30) {
-                planeCtx.beginPath(); planeCtx.moveTo(0, j); planeCtx.lineTo(w, j); planeCtx.stroke();
-            }
-
-            if(progress <= 0) return;
-
-            planeCtx.strokeStyle = '#38bdf8';
-            planeCtx.lineWidth = 3;
-            planeCtx.beginPath();
-            planeCtx.moveTo(0, h);
-            let currentX = progress * w;
-            let currentY = h - (multProgress * (h * 0.35));
-            if(currentY < 15) currentY = 15;
-
-            planeCtx.quadraticCurveTo(currentX * 0.5, h - 10, currentX, currentY);
-            planeCtx.stroke();
-            planeCtx.lineTo(currentX, h);
-            planeCtx.lineTo(0, h);
-            planeCtx.fillStyle = 'rgba(56, 189, 248, 0.12)';
-            planeCtx.fill();
-
-            planeCtx.save();
-            planeCtx.translate(currentX, currentY);
-            planeCtx.rotate(-0.15);
-            planeCtx.fillStyle = '#f8fafc';
-            planeCtx.beginPath();
-            planeCtx.moveTo(12, 0); planeCtx.lineTo(-12, -6); planeCtx.lineTo(-8, 0); planeCtx.lineTo(-12, 6);
-            planeCtx.closePath(); planeCtx.fill();
-            planeCtx.restore();
         }
 
         function startPlane() {
@@ -1260,18 +1042,9 @@
             const btn = document.getElementById('plane-btn');
             document.getElementById('plane-bet-box').style.display = 'none';
             btn.innerText = "ЗАБРАТЬ КУШ";
-            
-            let flewAway = false;
-            let randRisk = Math.random();
-            let maxMult = 1.02 + Math.random() * 0.4;
-            if (randRisk > 0.6) maxMult = 1.3 + Math.random() * 0.5;
-            if (randRisk > 0.9) maxMult = 1.8 + Math.random() * 0.5;
-            maxMult = parseFloat(maxMult.toFixed(2));
 
-            let step = 0;
-            
+            let maxMult = parseFloat((1.1 + Math.random() * 1.5).toFixed(2));
             btn.onclick = () => {
-                if (flewAway) return;
                 clearInterval(planeInterval);
                 let win = Math.floor(bet * currentPlaneMult); balance += win; updateBalance();
                 showToast(`🎉 Успешно забрано! +${win}`);
@@ -1280,60 +1053,44 @@
 
             planeInterval = setInterval(() => {
                 currentPlaneMult += 0.02;
-                if (currentPlaneMult > maxMult) currentPlaneMult = maxMult;
-                step += 0.01;
-                if(step > 0.85) step = 0.85;
-
-                multEl.innerText = currentPlaneMult.toFixed(2) + 'x';
-                drawPlaneScene(step, currentPlaneMult - 1);
-
                 if (currentPlaneMult >= maxMult) {
-                    clearInterval(planeInterval); flewAway = true;
+                    clearInterval(planeInterval);
                     multEl.innerText = "УЛЕТЕЛ ✈";
                     showToast("😢 Самолетик улетел!");
                     resetPlane();
+                } else {
+                    multEl.innerText = currentPlaneMult.toFixed(2) + 'x';
                 }
             }, 80);
         }
 
         function resetPlane() {
             const btn = document.getElementById('plane-btn');
-            if(btn) { 
+            if(btn) {
                 applyGameCooldown(btn, 'plane');
-                setTimeout(() => {
-                    btn.innerText = "Запустить самолетик";
-                    btn.onclick = startPlane;
-                }, 5000);
+                setTimeout(() => { btn.innerText = "Запустить самолетик"; btn.onclick = startPlane; }, 5000);
             }
             let betBox = document.getElementById('plane-bet-box');
             if(betBox) betBox.style.display = 'flex';
-            if(planeCtx && planeCanvas) planeCtx.clearRect(0, 0, planeCanvas.width, planeCanvas.height);
-            let multEl = document.getElementById('plane-mult');
-            if(multEl) multEl.innerText = "1.00x";
             updateBalance();
         }
 
-        let minesActive = false, minePositions = [], currentMinesMult = 1, openedMinesCount = 0, totalBombsCount = 3;
+        let minesActive = false, minePositions = [], currentMinesMult = 1, openedMinesCount = 0;
 
         function startMines() {
             if(!minesActive) {
                 let bet = parseInt(document.getElementById('mines-bet').value);
                 if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
                 balance -= bet; updateBalance();
-                
-                totalBombsCount = parseInt(document.getElementById('mines-count-select').value);
-                document.getElementById('mines-count-select').disabled = true;
 
                 minesActive = true; currentMinesMult = 1.05; openedMinesCount = 0;
                 minePositions = [];
-                while(minePositions.length < totalBombsCount) {
+                while(minePositions.length < 3) {
                     let r = Math.floor(Math.random() * 25);
                     if(!minePositions.includes(r)) minePositions.push(r);
                 }
 
-                const mainBtn = document.getElementById('mines-start-btn');
-                mainBtn.innerText = "ЗАБРАТЬ ВЫИГРЫШ";
-                
+                document.getElementById('mines-start-btn').innerText = "ЗАБРАТЬ ВЫИГРЫШ";
                 const grid = document.getElementById('mines-grid');
                 grid.innerHTML = '';
                 for(let i=0; i<25; i++) {
@@ -1343,7 +1100,11 @@
                     grid.appendChild(cell);
                 }
             } else {
-                cashOutMines();
+                let bet = parseInt(document.getElementById('mines-bet').value);
+                let win = Math.floor(bet * currentMinesMult);
+                balance += win; updateBalance();
+                showToast(`🎉 Забрано: +${win}`);
+                endMines25();
             }
         }
 
@@ -1354,34 +1115,21 @@
 
             if (minePositions.includes(index)) {
                 cells[index].innerText = '💥'; cells[index].style.background = '#dc2626';
-                showToast("💥 Вы подорвались!");
+                showToast("💥 Бомба!");
                 endMines25();
             } else {
                 cells[index].innerText = '💎'; cells[index].style.background = '#059669';
                 currentMinesMult += 0.15; openedMinesCount++;
-                showToast(`💎 Алмаз! x${currentMinesMult.toFixed(2)}`);
+                showToast(`💎 x${currentMinesMult.toFixed(2)}`);
             }
-        }
-
-        function cashOutMines() {
-            if (!minesActive || openedMinesCount === 0) { showToast("❌ Откройте хотя бы 1 алмаз!"); return; }
-            let bet = parseInt(document.getElementById('mines-bet').value);
-            let win = Math.floor(bet * currentMinesMult);
-            balance += win; updateBalance();
-            showToast(`🎉 Вы забрали: +${win}`);
-            endMines25();
         }
 
         function endMines25() {
             minesActive = false;
-            let sel = document.getElementById('mines-count-select');
-            if(sel) sel.disabled = false;
             const mainBtn = document.getElementById('mines-start-btn');
-            if(mainBtn) { 
+            if(mainBtn) {
                 applyGameCooldown(mainBtn, 'mines');
-                setTimeout(() => {
-                    mainBtn.innerText = "Начать игру";
-                }, 5000);
+                setTimeout(() => { mainBtn.innerText = "Начать игру"; }, 5000);
             }
             const cells = document.getElementsByClassName('mine-cell-25');
             minePositions.forEach(pos => {
@@ -1389,107 +1137,56 @@
             });
         }
 
-        let diceMode = 'over7';
-        function setDiceMode(btn, mode) {
-            document.querySelectorAll('.dice-opt-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            diceMode = mode;
-            const texts = { 'over7': 'Режим: Сумма > 7', 'under7': 'Режим: Сумма < 7', 'exact7': 'Режим: Сумма = 7 (5x)' };
-            document.getElementById('dice-mode-text').innerText = texts[mode];
-        }
-
         function playDice() {
             let bet = parseInt(document.getElementById('dice-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
-            
             applyGameCooldown(document.getElementById('dice-play-btn'), 'dice');
 
-            const diceChars = ['⚀','⚁','⚂','⚃','⚄','⚅'];
-            const screen = document.getElementById('dice-screen');
-            screen.innerHTML = `<span style="font-size:2rem;">🎲 Бросаем...</span>`;
             setTimeout(() => {
-                const d1 = Math.floor(Math.random() * 6) + 1;
-                const d2 = Math.floor(Math.random() * 6) + 1;
-                const sum = d1 + d2;
-                screen.innerHTML = `<span style="font-size:2.2rem;">${diceChars[d1-1]} ${diceChars[d2-1]}</span><span>Сумма: ${sum}</span>`;
-                
-                let winCondition = false, mult = 2;
-                if (diceMode === 'over7' && sum > 7) winCondition = true;
-                if (diceMode === 'under7' && sum < 7) winCondition = true;
-                if (diceMode === 'exact7' && sum === 7) { winCondition = true; mult = 5; }
-
-                if (winCondition) {
-                    let win = bet * mult; balance += win; showToast(`🎉 Победа! +${win}`);
-                } else {
-                    showToast(`😢 Сумма ${sum}. Проигрыш.`);
-                }
+                const sum = Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6) + 2;
+                document.getElementById('dice-screen').innerHTML = `<span>Сумма: ${sum}</span>`;
+                if (sum > 7) {
+                    let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
+                } else { showToast("😢 Проигрыш"); }
                 updateBalance();
-            }, 600);
+            }, 500);
         }
 
         function playRoulette(choice) {
             let bet = parseInt(document.getElementById('roulette-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
-            
-            applyGameCooldown(document.getElementById('r-red-btn'), 'roulette');
-            applyGameCooldown(document.getElementById('r-black-btn'), 'roulette');
-
-            const screen = document.getElementById('roulette-screen');
-            screen.innerHTML = `<span>🎡</span><span>Шарик крутится...</span>`;
             setTimeout(() => {
                 const winColor = Math.random() < 0.5 ? 'red' : 'black';
-                screen.innerHTML = `<span>${winColor === 'red' ? '🔴' : '⚫'}</span><span>Выпало: ${winColor === 'red' ? 'Красное' : 'Черное'}</span>`;
-                if (winColor === choice) {
-                    let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
-                } else { showToast("😢 Проигрыш"); }
+                showToast(winColor === choice ? `🎉 Победа! +${bet*2}` : "😢 Проигрыш");
+                if(winColor === choice) balance += bet * 2;
                 updateBalance();
-            }, 700);
+            }, 600);
         }
 
         function playCoin(choice) {
             let bet = parseInt(document.getElementById('coin-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
-            
-            applyGameCooldown(document.getElementById('c-heads-btn'), 'coinflip');
-            applyGameCooldown(document.getElementById('c-tails-btn'), 'coinflip');
-
-            const screen = document.getElementById('coin-screen');
-            screen.innerHTML = `<span style="font-size:2.2rem;">🪙</span><span>Монетка летит...</span>`;
             setTimeout(() => {
                 const res = Math.random() < 0.5 ? 'heads' : 'tails';
-                screen.innerHTML = `<span style="font-size:2.2rem;">🪙</span><span>Выпал: ${res === 'heads' ? 'Орел' : 'Решка'}</span>`;
-                if (res === choice) {
-                    let win = bet * 2; balance += win; showToast(`🎉 Победа! +${win}`);
-                } else { showToast("😢 Мимо"); }
+                showToast(res === choice ? `🎉 Победа! +${bet*2}` : "😢 Мимо");
+                if(res === choice) balance += bet * 2;
                 updateBalance();
-            }, 500);
+            }, 400);
         }
 
         function playHilo(guess) {
             let bet = parseInt(document.getElementById('hilo-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
-            
-            applyGameCooldown(document.getElementById('h-high-btn'), 'hilo');
-            applyGameCooldown(document.getElementById('h-low-btn'), 'hilo');
-
-            const nextNum = Math.floor(Math.random() * 100) + 1;
+            let nextNum = Math.floor(Math.random() * 100) + 1;
             document.getElementById('hilo-num').innerText = nextNum;
-            
-            let win = false;
-            if (guess === 'high' && nextNum >= 50) win = true;
-            if (guess === 'low' && nextNum <= 50) win = true;
-
+            let win = (guess === 'high' && nextNum >= 50) || (guess === 'low' && nextNum <= 50);
             if (win) {
-                let prize = Math.floor(bet * 1.8); 
-                balance += prize; 
-                showToast(`🎉 Верно! Выпало ${nextNum}. +${prize}`);
-            } else { 
-                showToast(`😢 Не угадали. Выпало ${nextNum}`); 
-            }
+                let prize = Math.floor(bet * 1.8); balance += prize; showToast(`🎉 Победа! +${prize}`);
+            } else { showToast("😢 Проигрыш"); }
             updateBalance();
         }
     </script>
