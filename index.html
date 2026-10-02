@@ -242,7 +242,7 @@
         .btn:active { opacity: 0.8; }
         .btn.disabled { opacity: 0.4; pointer-events: none; }
 
-        /* UPGRADER STYLES */
+        /* UPGRADER STYLES С РЕАЛИСТИЧНЫМ КОЛЕСОМ И СТРЕЛОЧКОЙ */
         .upgrader-container {
             display: flex; flex-direction: column; gap: 12px;
         }
@@ -256,9 +256,25 @@
             position: relative;
         }
         .upgrade-card-slot.selected { border-style: solid; border-color: var(--accent-blue); background: rgba(56,189,248,0.05); }
-        .upgrader-arrow {
-            display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--accent-blue); font-weight: bold; margin: -4px 0;
+
+        /* Блок круга апгрейдера (как на фото) */
+        .upgrade-wheel-arena {
+            position: relative; width: 200px; height: 200px; margin: 10px auto;
+            border-radius: 50%; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            border: 6px solid #334155; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 20px rgba(56,189,248,0.2);
         }
+        .upgrade-wheel-arrow {
+            position: absolute; top: -12px; width: 0; height: 0;
+            border-left: 12px solid transparent; border-right: 12px solid transparent;
+            border-bottom: 24px solid #f39c12; transform-origin: 50% 112px;
+            transition: transform 3.5s cubic-bezier(0.15, 0.85, 0.35, 1);
+            z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        .upgrade-wheel-inner-text {
+            font-size: 1.5rem; font-weight: 800; color: var(--accent-blue); z-index: 5;
+        }
+
         .upgrader-chance-info {
             background: rgba(30,41,59,0.9); border: 1px solid rgba(56,189,248,0.2); border-radius: 12px;
             padding: 10px; text-align: center; font-size: 0.9rem;
@@ -283,7 +299,7 @@
             background: #0f172a; border-radius: 12px; padding: 15px;
             min-height: 100px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; margin: 8px 0;
-            border: 1px solid rgba(56, 189, 248, 0.2); color: var::text-main; gap: 6px;
+            border: 1px solid rgba(56, 189, 248, 0.2); color: var(--text-main); gap: 6px;
         }
 
         .slot-machine-cabinet {
@@ -331,13 +347,14 @@
         }
         .dice-opt-btn.active { background: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); }
 
+        /* УВЕДОМЛЕНИЯ (ТОСТЫ) С АВТОИЗЧЕЗНОВЕНИЕМ ЗА 3 СЕКУНДЫ */
         #toast {
             position: fixed; bottom: 180px; left: 50%; transform: translateX(-50%) translateY(100px);
             background: #1e293b; color: white; border: 1px solid rgba(56,189,248,0.3);
-            padding: 12px 24px; border-radius: 20px; transition: transform 0.3s ease; z-index: 1000;
-            font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.4); pointer-events: none;
+            padding: 12px 24px; border-radius: 20px; transition: transform 0.3s ease, opacity 0.3s ease; z-index: 1000;
+            font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.4); pointer-events: none; opacity: 0;
         }
-        #toast.show { transform: translateX(-50%) translateY(0); }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
 </head>
 <body>
@@ -399,6 +416,13 @@
                     <span id="up-to-name" style="font-size:0.75rem; font-weight:bold; margin-top:2px;">Выберите...</span>
                 </div>
             </div>
+
+            <!-- Реалистичный круг-апгрейдер со стрелочкой и процентами -->
+            <div class="upgrade-wheel-arena">
+                <div class="upgrade-wheel-arrow" id="upgradeWheelArrow"></div>
+                <div class="upgrade-wheel-inner-text" id="upgradeWheelText">0%</div>
+            </div>
+
             <div class="upgrader-chance-info">Шанс успеха: <span id="upgrader-chance-val">0%</span></div>
             <button class="btn disabled" id="upgrade-exec-btn" onclick="executeUpgrade()">Улучшить скин</button>
         </div>
@@ -428,6 +452,7 @@
     <div id="toast">Уведомление</div>
 
     <script>
+        // Обновленный список кейсов (с новыми кейсами и повышенными ценами в премиум-кейсах)
         const CS2_CASES = [
             {
                 id: 'case_weapon_1', name: 'CS:GO Weapon Case', icon: '📦', price: 350,
@@ -468,19 +493,29 @@
                 ]
             },
             {
-                id: 'case_knife', name: 'Knife & Gloves Case', icon: '🗡️', price: 5000,
+                id: 'case_kilowatt', name: 'Kilowatt Case', icon: '⚡', price: 2500,
                 items: [
-                    { name: 'Rust Coat', weapon: 'Bowie Knife', rarity: 'covert', color: '#ff0000', price: 18000, icon: '🔪' },
-                    { name: 'Lore', weapon: 'M9 Bayonet', rarity: 'special', color: '#ffd700', price: 220000, icon: '🗡️' },
-                    { name: 'Fade', weapon: 'Butterfly Knife', rarity: 'special', color: '#ffd700', price: 350000, icon: '🦋' },
-                    { name: 'Slaughter', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 280000, icon: '🔪' },
-                    { name: 'Vice', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 450000, icon: '🥊' },
-                    { name: 'Pandoras Box', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 700000, icon: '🥊' }
+                    { name: 'Block-18', weapon: 'Glock-18', rarity: 'milspec', color: '#4b69ff', price: 1800, icon: '🔫' },
+                    { name: 'Black Lotus', weapon: 'M4A1-S', rarity: 'restricted', color: '#d32ce6', price: 4500, icon: '🌸' },
+                    { name: 'Inheritance', weapon: 'AK-47', rarity: 'classified', color: '#eb4b4b', price: 18000, icon: '🔥' },
+                    { name: 'Hideout', weapon: 'AWP', rarity: 'covert', color: '#ff0000', price: 45000, icon: '⚡' },
+                    { name: 'Ulu', weapon: 'Kukri Knife', rarity: 'special', color: '#ffd700', price: 190000, icon: '🗡️' }
+                ]
+            },
+            {
+                id: 'case_knife', name: 'Knife & Gloves Elite Case', icon: '🗡️', price: 5000,
+                items: [
+                    { name: 'Rust Coat', weapon: 'Bowie Knife', rarity: 'covert', color: '#ff0000', price: 25000, icon: '🔪' },
+                    { name: 'Lore', weapon: 'M9 Bayonet', rarity: 'special', color: '#ffd700', price: 280000, icon: '🗡️' },
+                    { name: 'Fade', weapon: 'Butterfly Knife', rarity: 'special', color: '#ffd700', price: 450000, icon: '🦋' },
+                    { name: 'Slaughter', weapon: 'Karambit', rarity: 'special', color: '#ffd700', price: 350000, icon: '🔪' },
+                    { name: 'Vice', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 550000, icon: '🥊' },
+                    { name: 'Pandoras Box', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 850000, icon: '🥊' }
                 ]
             }
         ];
 
-        // Все доступные скины для апгрейдера (пул желаемых наград)
+        // Расширенный пул скинов для апгрейдера
         const ALL_POSSIBLE_SKINS = [
             { name: 'Safari Mesh', weapon: 'SSG 08', color: '#b0c3d9', price: 250, icon: '🎯' },
             { name: 'Sandstorm', weapon: 'Tec-9', color: '#4b69ff', price: 600, icon: '🔫' },
@@ -492,28 +527,37 @@
             { name: 'Helix', weapon: 'USP-S', color: '#eb4b4b', price: 7800, icon: '👁' },
             { name: 'Emperor', weapon: 'M4A4', color: '#eb4b4b', price: 9500, icon: '👑' },
             { name: 'Asiimov', weapon: 'AWP', color: '#ff0000', price: 15000, icon: '💥' },
-            { name: 'Rust Coat', weapon: 'Bowie Knife', color: '#ff0000', price: 18000, icon: '🔪' },
-            { name: 'Lore', weapon: 'M9 Bayonet', color: '#ffd700', price: 220000, icon: '🗡️' },
-            { name: 'Fade', weapon: 'Butterfly Knife', color: '#ffd700', price: 350000, icon: '🦋' },
-            { name: 'Vice', weapon: 'Sport Gloves', color: '#ffd700', price: 450000, icon: '🥊' }
+            { name: 'Inheritance', weapon: 'AK-47', color: '#eb4b4b', price: 18000, icon: '🔥' },
+            { name: 'Rust Coat', weapon: 'Bowie Knife', color: '#ff0000', price: 25000, icon: '🔪' },
+            { name: 'Hideout', weapon: 'AWP', color: '#ff0000', price: 45000, icon: '⚡' },
+            { name: 'Lore', weapon: 'M9 Bayonet', color: '#ffd700', price: 280000, icon: '🗡️' },
+            { name: 'Fade', weapon: 'Butterfly Knife', color: '#ffd700', price: 450000, icon: '🦋' },
+            { name: 'Vice', weapon: 'Sport Gloves', color: '#ffd700', price: 550000, icon: '🥊' },
+            { name: 'Pandoras Box', weapon: 'Sport Gloves', color: '#ffd700', price: 850000, icon: '🥊' }
         ];
 
+        // Сброс баланса до 10000, ЭЛО до 0 по вашему требованию
         let balance = 10000;
         let inventory = [];
         let cooldowns = {};
 
-        // Состояние апгрейдера
-        let upgraderSelectedFrom = null; // объект скина инвентаря
-        let upgraderSelectedTo = null;   // объект скина из каталога
+        let upgraderSelectedFrom = null;
+        let upgraderSelectedTo = null;
 
-        if (localStorage.getItem('casino_balance') !== null) {
-            balance = parseInt(localStorage.getItem('casino_balance'));
-        } else {
+        // Перезапись принудительно под стартовые параметры (или загрузка из storage)
+        if (localStorage.getItem('casino_balance_reset_v2') === null) {
             balance = 10000;
-        }
-
-        if (localStorage.getItem('cs2_inventory') !== null) {
-            inventory = JSON.parse(localStorage.getItem('cs2_inventory'));
+            inventory = [];
+            localStorage.setItem('casino_balance_reset_v2', 'true');
+            localStorage.setItem('casino_balance', balance);
+            localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
+        } else {
+            if (localStorage.getItem('casino_balance') !== null) {
+                balance = parseInt(localStorage.getItem('casino_balance'));
+            }
+            if (localStorage.getItem('cs2_inventory') !== null) {
+                inventory = JSON.parse(localStorage.getItem('cs2_inventory'));
+            }
         }
 
         if (localStorage.getItem('casino_cooldowns') !== null) {
@@ -555,10 +599,14 @@
             eloEl.innerText = elo;
         }
 
+        // Уведомления пропадают ровно через 3 секунды
         function showToast(text) {
             const toast = document.getElementById('toast');
-            toast.innerText = text; toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
+            toast.innerText = text; 
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
         const BONUS_TIME_KEY = 'casino_bonus_target_time';
@@ -859,7 +907,7 @@
             }, 6100);
         }
 
-        // ЛОГИКА АПГРЕЙДЕРА
+        // ЛОГИКА АПГРЕЙДЕРА С РЕАЛИСТИЧНОЙ АНИМАЦИЕЙ СТРЕЛКИ И ПРОЦЕНТАМИ
         function openUpgraderSelector(type) {
             const modal = document.getElementById('game-modal');
             const titleEl = document.getElementById('modal-game-title');
@@ -928,7 +976,7 @@
                 return;
             }
 
-            let chance = (fromPrice / toPrice) * 90; // честный формула шанса
+            let chance = (fromPrice / toPrice) * 90;
             if (chance > 95) chance = 95;
             if (chance < 3) chance = 3;
 
@@ -952,35 +1000,64 @@
                 if (chance < 3) chance = 3;
             }
 
-            // Находим индекс отдаваемого скина в инвентаре
-            let invIndex = inventory.findIndex(i => i.id === upgraderSelectedFrom.id);
-            if (invIndex !== -1) {
-                inventory.splice(invIndex, 1);
-            }
+            const execBtn = document.getElementById('upgrade-exec-btn');
+            execBtn.classList.add('disabled');
 
-            let roll = Math.random() * 100;
-            if (roll <= chance) {
-                // Победа
-                inventory.unshift({ ...upgraderSelectedTo, id: Date.now() + Math.random() });
-                showToast(`🎉 Успех! Вы апгрейднули скин до ${upgraderSelectedTo.name}!`);
-            } else {
-                showToast("😢 Неудача! Скин сгорел.");
-            }
+            // Расчет физики вращения стрелки как на референсном скриншоте
+            const arrow = document.getElementById('upgradeWheelArrow');
+            const wheelText = document.getElementById('upgradeWheelText');
 
-            saveGame();
-            updateElo();
-            renderInventory();
+            let isSuccess = Math.random() * 100 <= chance;
+            let baseSpins = 360 * 5; // 5 полных оборотов
+            let targetAngle = isSuccess ? (chance / 100) * 360 : 180 + (Math.random() * 120);
+            let totalRotation = baseSpins + targetAngle;
 
-            // Сброс выбора
-            upgraderSelectedFrom = null;
-            upgraderSelectedTo = null;
-            document.getElementById('upgrader-from-slot').classList.remove('selected');
-            document.getElementById('upgrader-to-slot').classList.remove('selected');
-            document.getElementById('up-from-name').innerText = "Выберите...";
-            document.getElementById('up-to-name').innerText = "Выберите...";
-            document.getElementById('upgrader-chance-val').innerText = "0%";
-            document.getElementById('upgrade-exec-btn').classList.add('disabled');
-            switchTab('inventory', document.querySelector('.bottom-nav button:nth-child(4)'));
+            arrow.style.transform = `rotate(${totalRotation}deg)`;
+
+            // Динамический подсчет процентов на экране внутри колеса
+            let currentDisplayPercent = 0;
+            let percentInterval = setInterval(() => {
+                currentDisplayPercent += 1.2;
+                if (currentDisplayPercent >= chance && isSuccess) {
+                    currentDisplayPercent = chance;
+                    clearInterval(percentInterval);
+                } else if (currentDisplayPercent >= 100 && !isSuccess) {
+                    clearInterval(percentInterval);
+                }
+                wheelText.innerText = currentDisplayPercent.toFixed(0) + '%';
+            }, 30);
+
+            // Обработка результата после окончания анимации стрелки (3.5 секунд)
+            setTimeout(() => {
+                let invIndex = inventory.findIndex(i => i.id === upgraderSelectedFrom.id);
+                if (invIndex !== -1) {
+                    inventory.splice(invIndex, 1);
+                }
+
+                if (isSuccess) {
+                    inventory.unshift({ ...upgraderSelectedTo, id: Date.now() + Math.random() });
+                    showToast(`🎉 Успех! Скин улучшен до ${upgraderSelectedTo.name}!`);
+                } else {
+                    showToast("😢 Неудача! Скин сгорел.");
+                }
+
+                saveGame();
+                updateElo();
+                renderInventory();
+
+                // Сброс полей апгрейдера
+                upgraderSelectedFrom = null;
+                upgraderSelectedTo = null;
+                document.getElementById('upgrader-from-slot').classList.remove('selected');
+                document.getElementById('upgrader-to-slot').classList.remove('selected');
+                document.getElementById('up-from-name').innerText = "Выберите...";
+                document.getElementById('up-to-name').innerText = "Выберите...";
+                document.getElementById('upgrader-chance-val').innerText = "0%";
+                wheelText.innerText = "0%";
+                execBtn.classList.remove('disabled');
+
+                switchTab('inventory', document.querySelector('.bottom-nav button:nth-child(4)'));
+            }, 3600);
         }
 
         function renderInventory() {
