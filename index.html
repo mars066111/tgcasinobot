@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Hub & CS2 Cases (AutoSave & Limit)</title>
+    <title>Casino Hub & CS2 Cases (Fixed Header & Drop Rates)</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -35,6 +35,7 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             min-height: 100vh;
+            padding-top: 70px; /* Отступ под фиксированный хедер */
             padding-bottom: 90px;
             position: relative;
             overflow-x: hidden;
@@ -59,9 +60,9 @@
 
         header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 20px; background: rgba(30, 41, 59, 0.85);
-            backdrop-filter: blur(12px); position: sticky; top: 0;
-            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+            padding: 14px 20px; background: rgba(30, 41, 59, 0.92);
+            backdrop-filter: blur(12px); position: fixed; top: 0; left: 0; width: 100%;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.1); z-index: 150;
         }
 
         .header-stats {
@@ -198,6 +199,14 @@
         }
         .skin-ticket .s-icon { font-size: 2.2rem; margin-bottom: 4px; }
         .skin-ticket .s-name { font-size: 0.75rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+        /* Таблица шансов кейсов */
+        .drop-rates-box {
+            background: #0f172a; border-radius: 10px; padding: 10px; margin: 10px 0;
+            max-height: 140px; overflow-y: auto; border: 1px solid rgba(56,189,248,0.2); text-align: left;
+        }
+        .drop-rates-title { font-size: 0.8rem; font-weight: 700; color: var(--accent-blue); margin-bottom: 6px; text-align: center; }
+        .drop-rate-row { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
         .inventory-grid {
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: calc(100vh - 220px); overflow-y: auto; padding-right: 4px;
@@ -343,7 +352,7 @@
 
     <!-- ВКЛАДКА 3: ИНВЕНТАРЬ -->
     <div class="container" id="tab-inventory">
-        <div class="section-title"><span>Ваш инвентарь CS2</span><span id="inv-count">0 / 100 предметов</span></div>
+        <div class="section-title"><span>Ваш инвентарь CS2</span><span id="inv-count">0 предметов</span></div>
         <div class="inventory-grid" id="inventory-grid-container"></div>
     </div>
 
@@ -418,21 +427,14 @@
             }
         ];
 
-        const MAX_INVENTORY_SIZE = 100;
-
-        // Сброс баланса до 10000 (если пользователь хочет принудительный сброс, можно очистить или обновить через localStorage)
         let balance = 10000;
         let inventory = [];
         
-        if (localStorage.getItem('casino_balance_reset_v2') === null) {
-            balance = 10000;
-            inventory = [];
-            localStorage.setItem('casino_balance', balance);
-            localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
-            localStorage.setItem('casino_balance_reset_v2', 'true');
-        } else {
-            balance = localStorage.getItem('casino_balance') !== null ? parseInt(localStorage.getItem('casino_balance')) : 10000;
-            inventory = localStorage.getItem('cs2_inventory') !== null ? JSON.parse(localStorage.getItem('cs2_inventory')) : [];
+        if (localStorage.getItem('casino_balance') !== null) {
+            balance = parseInt(localStorage.getItem('casino_balance'));
+        }
+        if (localStorage.getItem('cs2_inventory') !== null) {
+            inventory = JSON.parse(localStorage.getItem('cs2_inventory'));
         }
         
         const balanceEl = document.getElementById('user-balance');
@@ -446,7 +448,6 @@
             startBonusTimerCountdown();
         });
 
-        // Функция автосохранения
         function saveGame() {
             localStorage.setItem('casino_balance', balance);
             localStorage.setItem('cs2_inventory', JSON.stringify(inventory));
@@ -526,6 +527,25 @@
             }
         }
 
+        // Универсальный кулдаун на игровые кнопки (5 секунд)
+        function applyGameCooldown(btnElement) {
+            if(!btnElement) return;
+            let originalText = btnElement.innerText;
+            btnElement.classList.add('disabled');
+            let cd = 5;
+            btnElement.innerText = `Пауза (${cd}с)`;
+            let timer = setInterval(() => {
+                cd--;
+                if(cd > 0) {
+                    btnElement.innerText = `Пауза (${cd}с)`;
+                } else {
+                    clearInterval(timer);
+                    btnElement.classList.remove('disabled');
+                    btnElement.innerText = originalText;
+                }
+            }, 1000);
+        }
+
         function renderCasesList() {
             const grid = document.getElementById('cases-list-grid');
             grid.innerHTML = CS2_CASES.map(c => `
@@ -548,6 +568,29 @@
             titleEl.innerText = caseData.name;
             selectedCaseCount = 1;
 
+            // Формируем таблицу шансов выпадения
+            let dropRatesHtml = `
+                <div class="drop-rates-box">
+                    <div class="drop-rates-title">📊 Шансы выпадения скинов</div>
+            `;
+            
+            // Подсчет приблизительных шансов по редкостям в зависимости от состава кейса
+            let hasConsumer = caseData.items.some(i => i.rarity === 'consumer');
+            let hasMilspec = caseData.items.some(i => i.rarity === 'milspec');
+            let hasRestricted = caseData.items.some(i => i.rarity === 'restricted');
+            let hasClassified = caseData.items.some(i => i.rarity === 'classified');
+            let hasCovert = caseData.items.some(i => i.rarity === 'covert');
+            let hasSpecial = caseData.items.some(i => i.rarity === 'special');
+
+            if(hasConsumer) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#b0c3d9">Ширпотреб / Промышленное</span><span>45.0%</span></div>`;
+            if(hasMilspec) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#4b69ff">Армейское качество</span><span>30.0%</span></div>`;
+            if(hasRestricted) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#d32ce6">Запрещенное</span><span>15.0%</span></div>`;
+            if(hasClassified) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#eb4b4b">Секретное</span><span>7.0%</span></div>`;
+            if(hasCovert) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#ff0000">Тайное</span><span>2.6%</span></div>`;
+            if(hasSpecial) dropRatesHtml += `<div class="drop-rate-row"><span style="color:#ffd700">★ Нож / Перчатки</span><span>0.4%</span></div>`;
+
+            dropRatesHtml += `</div>`;
+
             area.innerHTML = `
                 <div>
                     <div class="case-count-selector" id="case-selectors-group">
@@ -559,6 +602,7 @@
                         <div class="case-opening-pointer"></div>
                         <div class="case-roller" id="case-roller"></div>
                     </div>
+                    ${dropRatesHtml}
                     <div class="display-screen" id="case-result-info">
                         <span style="font-size:0.9rem; color:var(--text-muted);">Цена открытия: <b id="case-total-price">${caseData.price}</b> монет</span>
                     </div>
@@ -598,11 +642,6 @@
         function startCaseOpening(caseId) {
             const caseData = CS2_CASES.find(c => c.id === caseId);
             let totalCost = caseData.price * selectedCaseCount;
-
-            if (inventory.length + selectedCaseCount > MAX_INVENTORY_SIZE) {
-                showToast(`❌ Инвентарь полон! Максимум ${MAX_INVENTORY_SIZE} предметов.`);
-                return;
-            }
 
             if (balance < totalCost) {
                 showToast("❌ Недостаточно монет!");
@@ -674,7 +713,7 @@
 
         function renderInventory() {
             const container = document.getElementById('inventory-grid-container');
-            document.getElementById('inv-count').innerText = `${inventory.length} / ${MAX_INVENTORY_SIZE} предметов`;
+            document.getElementById('inv-count').innerText = `${inventory.length} предметов`;
 
             if (inventory.length === 0) {
                 container.innerHTML = `<div class="empty-inv">Ваш инвентарь пуст. Откройте кейсы во вкладке «CS2 Кейсы»!</div>`;
@@ -723,7 +762,7 @@
                             </div>
                         </div>
                         <div class="bet-control"><span>Ставка:</span><input type="number" id="slot-bet" value="500"></div>
-                    </div><button class="btn" onclick="playSlots()">Крутить автомат</button>`;
+                    </div><button class="btn" id="slots-play-btn" onclick="playSlots()">Крутить автомат</button>`;
                     break;
                 case 'plane':
                     titleEl.innerText = "✈ Самолетик (Aviator)";
@@ -753,19 +792,19 @@
                     break;
                 case 'dice':
                     titleEl.innerText = "🎲 Кости (Выбор)";
-                    area.innerHTML = `<div><div class="dice-options"><button class="dice-opt-btn active" onclick="setDiceMode(this, 'over7')">Больше 7</button><button class="dice-opt-btn" onclick="setDiceMode(this, 'under7')">Меньше 7</button><button class="dice-opt-btn" onclick="setDiceMode(this, 'exact7')">Ровно 7 (5x)</button></div><div class="display-screen" id="dice-screen"><span style="font-size:2.2rem;">🎲 ⚀ ⚁</span><span id="dice-mode-text">Режим: Сумма > 7</span></div><div class="bet-control"><span>Ставка:</span><input type="number" id="dice-bet" value="500"></div></div><button class="btn" onclick="playDice()">Бросить кости</button>`;
+                    area.innerHTML = `<div><div class="dice-options"><button class="dice-opt-btn active" onclick="setDiceMode(this, 'over7')">Больше 7</button><button class="dice-opt-btn" onclick="setDiceMode(this, 'under7')">Меньше 7</button><button class="dice-opt-btn" onclick="setDiceMode(this, 'exact7')">Ровно 7 (5x)</button></div><div class="display-screen" id="dice-screen"><span style="font-size:2.2rem;">🎲 ⚀ ⚁</span><span id="dice-mode-text">Режим: Сумма > 7</span></div><div class="bet-control"><span>Ставка:</span><input type="number" id="dice-bet" value="500"></div></div><button class="btn" id="dice-play-btn" onclick="playDice()">Бросить кости</button>`;
                     break;
                 case 'roulette':
                     titleEl.innerText = "🎡 Европейская Рулетка";
-                    area.innerHTML = `<div><div class="display-screen" id="roulette-screen"><span>🎡</span><span>Сделайте ставку на цвет</span></div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" style="background:#dc2626; color:white;" onclick="playRoulette('red')">Красное (2x)</button><button class="btn" style="background:#0f172a; border:1px solid #38bdf8; color:white;" onclick="playRoulette('black')">Черное (2x)</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="roulette-bet" value="500"></div></div>`;
+                    area.innerHTML = `<div><div class="display-screen" id="roulette-screen"><span>🎡</span><span>Сделайте ставку на цвет</span></div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" id="r-red-btn" style="background:#dc2626; color:white;" onclick="playRoulette('red')">Красное (2x)</button><button class="btn" id="r-black-btn" style="background:#0f172a; border:1px solid #38bdf8; color:white;" onclick="playRoulette('black')">Черное (2x)</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="roulette-bet" value="500"></div></div>`;
                     break;
                 case 'coinflip':
                     titleEl.innerText = "🪙 Монетка";
-                    area.innerHTML = `<div><div class="display-screen" id="coin-screen"><span style="font-size:2.2rem;">🪙</span><span>Выберите сторону</span></div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" onclick="playCoin('heads')">Орел</button><button class="btn" style="background:#334155; color:white;" onclick="playCoin('tails')">Решка</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="coin-bet" value="500"></div></div>`;
+                    area.innerHTML = `<div><div class="display-screen" id="coin-screen"><span style="font-size:2.2rem;">🪙</span><span>Выберите сторону</span></div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" id="c-heads-btn" onclick="playCoin('heads')">Орел</button><button class="btn" id="c-tails-btn" style="background:#334155; color:white;" onclick="playCoin('tails')">Решка</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="coin-bet" value="500"></div></div>`;
                     break;
                 case 'hilo':
                     titleEl.innerText = "📈 Выше / Ниже";
-                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее число выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️</button><button class="btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="500"></div></div>`;
+                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее число выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" id="h-high-btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️</button><button class="btn" id="h-low-btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="500"></div></div>`;
                     break;
             }
         }
@@ -776,6 +815,9 @@
             let bet = parseInt(document.getElementById('slot-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
+            
+            applyGameCooldown(document.getElementById('slots-play-btn'));
+
             const symbols = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
             const boxes = document.querySelectorAll('.slot-reel-box');
             let count = 0;
@@ -901,7 +943,13 @@
 
         function resetPlane() {
             const btn = document.getElementById('plane-btn');
-            if(btn) { btn.innerText = "Запустить самолетик"; btn.onclick = startPlane; }
+            if(btn) { 
+                applyGameCooldown(btn);
+                setTimeout(() => {
+                    btn.innerText = "Запустить самолетик";
+                    btn.onclick = startPlane;
+                }, 5000);
+            }
             let betBox = document.getElementById('plane-bet-box');
             if(betBox) betBox.style.display = 'flex';
             if(planeCtx && planeCanvas) planeCtx.clearRect(0, 0, planeCanvas.width, planeCanvas.height);
@@ -974,7 +1022,12 @@
             let sel = document.getElementById('mines-count-select');
             if(sel) sel.disabled = false;
             const mainBtn = document.getElementById('mines-start-btn');
-            if(mainBtn) { mainBtn.innerText = "Начать игру"; }
+            if(mainBtn) { 
+                applyGameCooldown(mainBtn);
+                setTimeout(() => {
+                    mainBtn.innerText = "Начать игру";
+                }, 5000);
+            }
             const cells = document.getElementsByClassName('mine-cell-25');
             minePositions.forEach(pos => {
                 if(cells[pos]) { cells[pos].innerText = '💣'; cells[pos].style.background = '#f87171'; }
@@ -994,6 +1047,9 @@
             let bet = parseInt(document.getElementById('dice-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
+            
+            applyGameCooldown(document.getElementById('dice-play-btn'));
+
             const diceChars = ['⚀','⚁','⚂','⚃','⚄','⚅'];
             const screen = document.getElementById('dice-screen');
             screen.innerHTML = `<span style="font-size:2rem;">🎲 Бросаем...</span>`;
@@ -1021,6 +1077,10 @@
             let bet = parseInt(document.getElementById('roulette-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
+            
+            applyGameCooldown(document.getElementById('r-red-btn'));
+            applyGameCooldown(document.getElementById('r-black-btn'));
+
             const screen = document.getElementById('roulette-screen');
             screen.innerHTML = `<span>🎡</span><span>Шарик крутится...</span>`;
             setTimeout(() => {
@@ -1037,6 +1097,10 @@
             let bet = parseInt(document.getElementById('coin-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
+            
+            applyGameCooldown(document.getElementById('c-heads-btn'));
+            applyGameCooldown(document.getElementById('c-tails-btn'));
+
             const screen = document.getElementById('coin-screen');
             screen.innerHTML = `<span style="font-size:2.2rem;">🪙</span><span>Монетка летит...</span>`;
             setTimeout(() => {
@@ -1053,6 +1117,10 @@
             let bet = parseInt(document.getElementById('hilo-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > balance) { showToast("❌ Неверная ставка!"); return; }
             balance -= bet; updateBalance();
+            
+            applyGameCooldown(document.getElementById('h-high-btn'));
+            applyGameCooldown(document.getElementById('h-low-btn'));
+
             const nextNum = Math.floor(Math.random() * 100) + 1;
             document.getElementById('hilo-num').innerText = nextNum;
             let win = (guess === 'high' && nextNum > 50) || (guess === 'low' && nextNum < 50);
