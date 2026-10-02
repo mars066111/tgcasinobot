@@ -1265,7 +1265,7 @@ header,nav.bottom-nav{background:rgba(26,6,12,.96);border-color:rgba(255,122,47,
 (function(){
 /* ---------- 1. Уведомления: 3 секунды ---------- */
 let _tt;
-showToast=function(t){const e=document.getElementById('toast');e.innerText=t;e.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>e.classList.remove('show'),3000)};
+showToast=function(t){const e=document.getElementById('toast');e.innerText=t;e.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>e.classList.remove('show'),2000)};
 
 /* ---------- 2. Картинки: реальные + запасной вариант ---------- */
 const FB={};
@@ -1286,6 +1286,13 @@ const RAW=[
 "Revolution Case;m:MP9|Featherweight:900,Tec-9|Rebel:950,MAG-7|Insomnia:1000,SG 553|Cyberforce:1050;r:Galil AR|Control:2300,P250|Re.built:2000,UMP-45|Wild Child:2200;c:M4A4|Temukau:6800,Glock-18|Vogue:5800;v:AK-47|Head Shot:15000",
 "Kilowatt Case;m:Tec-9|Slag:1300,MAC-10|Light Box:1400,Dual Berettas|Hideout:1350,Nova|Dark Sigil:1500;r:Zeus x27|Olympus:3200,M4A4|Etch Lord:3400,SSG 08|Dezastre:3300;c:AK-47|Inheritance:12000,USP-S|Jawbreaker:9000;v:AWP|Chrome Cannon:22000",
 "Snakebite Case;m:Glock-18|Clear Polymer:2200,MAC-10|Button Masher:2100,R8 Revolver|Junk Yard:2000,Tec-9|Brother:2300;r:M4A4|In Living Color:5200,SSG 08|Parallax:4600,P90|Vent Rush:4800;c:Desert Eagle|Printstream:11000,AK-47|Slate:9000;v:AWP|Neo-Noir:26000",
+"Prisma Case;m:Five-SeveN|Angry Mob:110,Galil AR|Akoben:130,MP7|Mischief:120,P250|Verdigris:140,UMP-45|Moonrise:150;r:AUG|Momentum:420,MAC-10|Whitefish:380,XM1014|Incinegator:450;c:AWP|Atheris:1500,M4A1-S|Player Two:1700;v:M4A4|The Emperor:5500",
+"Prisma 2 Case;m:AUG|Tom Cat:140,CZ75-Auto|Distressed:120,Galil AR|Cold Fusion:150,MAC-10|Stalker:160,Nova|Wild Six:130;r:Desert Eagle|Directive:520,G3SG1|Dream Glade:430,M4A4|Magnesium:480;c:AWP|Fever Dream:1900,MP5-SD|Gauss:1600;v:AK-47|Phantom Disruptor:6200",
+"Clutch Case;m:MP9|Black Sand:100,P2000|Urban Hazard:120,SG 553|Aloha:110,Negev|Lionfish:130,UMP-45|Arctic Wolf:140,XM1014|Oxide Blaze:90;r:AUG|Stymphalian:400,MP7|Bloodsport:380,R8 Revolver|Grip:420;c:AWP|Mortis:1500,USP-S|Cortex:1300;v:M4A4|Neo-Noir:5800",
+"Danger Zone Case;m:MAC-10|Pipe Down:120,Nova|Wood Fired:110,SSG 08|Death Strike:130,Sawed-Off|Wasteland Princess:140,Glock-18|Oxide Blaze:120;r:Desert Eagle|Mecha Industries:520,MP9|Modest Threat:450,P90|Asiimov:500;c:Glock-18|Vogue:1500,M4A4|Buzz Kill:1700;v:AK-47|Asiimov:6000",
+"Horizon Case;m:Glock-18|Snack Attack:120,Nova|Toy Soldier:110,P250|Contaminant:130,Sawed-Off|Devourer:120,Tec-9|Snek-9:140;r:AUG|Amber Slipstream:460,Dual Berettas|Royal Consorts:430,MP7|Neon Ply:400;c:AWP|Containment Breach:1700,FAMAS|Mecha Industries:1500;v:AK-47|Neon Rider:7000",
+"CS20 Case;m:FAMAS|Decommissioned:120,Glock-18|Sacrifice:130,MAC-10|Classic Crate:110,SCAR-20|Fragments:120,Tec-9|Flash Out:140;r:AUG|Death by Puppy:430,Dual Berettas|Elite 1.6:400,MP9|Hydra:420;c:AK-47|Inheritance:1800,AWP|Neo-Noir:1900;v:M4A1-S|Fizzy POP:5600",
+"Gloves Case;v:Hand Wraps|Cobalt Skulls:20000,Hydra Gloves|Case Hardened:22000,Moto Gloves|Spearmint:25000;x:Specialist Gloves|Crimson Kimono:30000,Driver Gloves|King Snake:38000,Sport Gloves|Pandora's Box:45000",
 "Knife Case;v:Bayonet|Boreal Forest:12000,Flip Knife|Safari Mesh:15000,Gut Knife|Forest DDPAT:18000;x:Karambit|Doppler:140000,M9 Bayonet|Lore:220000,Butterfly Knife|Fade:350000"
 ];
 const uniq={},cases=[];
@@ -1389,6 +1396,249 @@ const _sw=switchTab;
 switchTab=function(t,b){_sw(t,b);if(t==='upgrader')upgRender()};
 
 renderCasesList();renderInventory();upgRender();loadReal();
+})();
+</script>
+
+<style>
+#toast{bottom:auto!important;top:calc(62px + env(safe-area-inset-top,0px));transform:translateX(-50%) translateY(-170px)!important;z-index:2000}
+#toast.show{transform:translateX(-50%) translateY(0)!important}
+.bj-hand{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0;min-height:64px}
+.pc{background:#fff;color:#111;border-radius:8px;width:44px;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:1rem;line-height:1.1}
+.pc.red{color:#c4122f}.pc.back{background:repeating-linear-gradient(45deg,#7a0f2b,#7a0f2b 6px,#b3122f 6px,#b3122f 12px);color:transparent}
+.wheel-wrap{position:relative;width:230px;height:230px;margin:12px auto}
+.wheel{position:relative;width:100%;height:100%;border-radius:50%;border:4px solid var(--gold);transition:transform 4s cubic-bezier(.12,.7,.1,1)}
+.wheel-ptr{position:absolute;top:-10px;left:50%;margin-left:-10px;border:10px solid transparent;border-top:18px solid #fff;border-bottom:0;z-index:2}
+.kn-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.kn{aspect-ratio:1;border-radius:8px;border:1px solid rgba(255,122,47,.3);background:#2a0e18;color:#fff;font-weight:800}
+.kn.sel{background:var(--gold);color:#1a0509}.kn.hit{background:#1f8a5b;color:#fff}.kn.miss{outline:2px solid #c4122f}
+.sc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.sc{aspect-ratio:1;border-radius:12px;background:repeating-linear-gradient(45deg,#8a8a95,#8a8a95 6px,#a5a5b0 6px,#a5a5b0 12px);font-size:2rem;display:flex;align-items:center;justify-content:center;border:2px solid #555;color:#222}
+.sc.open{background:#2a0e18;border-color:var(--gold)}
+.tw-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px}
+.tw{padding:9px 0;border-radius:8px;background:#2a0e18;border:1px solid rgba(255,122,47,.3);color:#fff;font-size:1.05rem}
+.tw.cur{border-color:var(--gold);box-shadow:0 0 10px rgba(255,182,39,.5)}
+.chance-t{width:100%;border-collapse:collapse;font-size:.72rem;margin:10px 0}
+.chance-t td,.chance-t th{padding:4px 6px;text-align:left;border-bottom:1px solid rgba(255,122,47,.15)}
+.chance-t td:last-child,.chance-t th:last-child{text-align:right}
+.chance-t i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.mini-note{font-size:.72rem;color:var(--text-muted);text-align:center;margin:4px 0}
+</style>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0};
+
+/* ===== ЭЛО: чем круче скины, тем больше ===== */
+const EP={consumer:1,milspec:2,restricted:6,classified:18,covert:50,special:150};
+calculateElo=function(){return inventory.reduce((s,i)=>s+(EP[i.rarity]||0),0)};
+
+/* ===== всем 10 000 монет и 0 ЭЛО (один раз) ===== */
+try{if(!localStorage.getItem('lc_reset_v3')){balance=10000;inventory=[];localStorage.setItem('lc_reset_v3','1');saveGame()}}catch(e){}
+
+/* ===== рисованное оружие вместо надписи ===== */
+const SH={
+rifle:'<path d="M8 36 L22 30 L22 46 L8 46 Z M22 32 L72 32 L72 44 L22 44 Z M34 44 L41 44 L38 55 L31 55 Z M48 44 L57 44 L53 57 L45 57 Z M72 35 L106 35 L106 39 L72 39 Z M80 30 L86 30 L86 35 L80 35 Z M30 28 L39 28 L39 32 L30 32 Z"/>',
+sniper:'<path d="M6 38 L20 32 L20 48 L6 48 Z M20 34 L74 34 L74 44 L20 44 Z M38 28 L66 28 L66 33 L38 33 Z M74 37 L110 37 L110 40 L74 40 Z M30 44 L36 44 L34 53 L28 53 Z M54 44 L60 44 L58 53 L52 53 Z"/>',
+pistol:'<path d="M30 30 L76 30 L76 40 L60 40 L58 48 L44 48 L44 40 L30 40 Z M76 30 L88 30 L88 34 L76 34 Z M34 26 L42 26 L42 30 L34 30 Z"/>',
+smg:'<path d="M10 34 L24 30 L24 46 L10 46 Z M24 32 L68 32 L68 42 L24 42 Z M40 42 L50 42 L50 58 L40 58 Z M68 35 L94 35 L94 38 L68 38 Z M28 28 L38 28 L38 32 L28 32 Z"/>',
+shotgun:'<path d="M4 36 L18 32 L18 48 L4 48 Z M18 34 L72 34 L72 42 L18 42 Z M40 42 L60 42 L60 49 L40 49 Z M72 36 L108 36 L108 40 L72 40 Z"/>',
+knife:'<path d="M12 42 L34 42 L34 52 L12 52 Z M34 40 L98 22 L104 28 L38 54 Z"/>',
+glove:'<path d="M30 52 L30 32 Q30 24 38 24 L74 24 Q86 24 86 36 L86 52 Z M38 24 L38 13 L46 13 L46 24 Z M50 24 L50 11 L58 11 L58 24 Z M62 24 L62 13 L70 13 L70 24 Z M86 34 Q96 34 96 43 L86 45 Z"/>'};
+function shapeOf(w){w=String(w).toLowerCase();
+ if(/glove|wrap/.test(w))return'glove';
+ if(/knife|karambit|bayonet/.test(w))return'knife';
+ if(/awp|ssg|scar|g3sg/.test(w))return'sniper';
+ if(/glock|tec-9|usp|p250|p2000|deagle|desert|five|berett|cz75|r8|zeus/.test(w))return'pistol';
+ if(/mp5|mp7|mp9|mac|p90|ump|bizon/.test(w))return'smg';
+ if(/xm1014|mag-7|nova|sawed/.test(w))return'shotgun';
+ return'rifle'}
+generateFallbackSVG=function(item){
+ const col=(RARITY[item.rarity]||RARITY.milspec).color,w=String(item.weapon||'').replace(/[^\w\s\-\.]/g,''),rot=(hash(w+item.name)%30)-15;
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+col+'"/><stop offset="1" stop-color="#12060b"/></linearGradient><pattern id="p" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate('+(40+rot)+')"><path d="M0 0H14" stroke="rgba(255,255,255,0.1)" stroke-width="4"/></pattern></defs><rect width="240" height="160" rx="14" fill="url(#g)"/><rect width="240" height="160" rx="14" fill="url(#p)"/><rect x="5" y="5" width="230" height="150" rx="11" fill="none" stroke="rgba(255,255,255,0.3)"/><g transform="translate(58,30) scale(1.1)" fill="#0b0407" stroke="#fff" stroke-width="1.4" stroke-linejoin="round">'+SH[shapeOf(w)]+'</g><text x="120" y="146" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#fff">'+w+'</text></svg>';
+ return'data:image/svg+xml;utf8,'+encodeURIComponent(svg)};
+
+/* ===== фото бокса (кейса) ===== */
+const PAL=[['#ff7a2f','#9a2a00'],['#4b9bff','#123a8a'],['#c24bff','#5a0f8a'],['#3ddc97','#0b5a3a'],['#ffd23f','#8a6200'],['#ff4b6e','#7a0f2b']];
+generateFallbackCaseSVG=function(id){
+ const p=PAL[hash(String(id))%PAL.length];
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180"><defs><linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+p[0]+'"/><stop offset="1" stop-color="'+p[1]+'"/></linearGradient><radialGradient id="r" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="'+p[0]+'" stop-opacity="0.5"/><stop offset="1" stop-color="'+p[0]+'" stop-opacity="0"/></radialGradient></defs><ellipse cx="120" cy="100" rx="110" ry="80" fill="url(#r)"/><ellipse cx="120" cy="162" rx="80" ry="9" fill="rgba(0,0,0,0.5)"/><rect x="48" y="58" width="144" height="98" rx="12" fill="url(#b)" stroke="rgba(255,255,255,0.45)" stroke-width="2"/><rect x="40" y="38" width="160" height="30" rx="10" fill="#1a0a10" stroke="'+p[0]+'" stroke-width="2.5"/><rect x="62" y="68" width="14" height="88" fill="rgba(0,0,0,0.3)"/><rect x="164" y="68" width="14" height="88" fill="rgba(0,0,0,0.3)"/><rect x="104" y="84" width="32" height="30" rx="6" fill="#1a0a10" stroke="#ffd23f" stroke-width="2.5"/><circle cx="120" cy="96" r="5" fill="#ffd23f"/><rect x="118" y="97" width="4" height="10" fill="#ffd23f"/><path d="M52 62 L188 62" stroke="rgba(255,255,255,0.35)" stroke-width="2"/></svg>';
+ return'data:image/svg+xml;utf8,'+encodeURIComponent(svg)};
+
+/* ===== таблица шансов в кейсе ===== */
+const _ocm=openCaseModal;
+openCaseModal=function(id){
+ _ocm(id);
+ const c=CS2_CASES.find(x=>x.id===id),btn=$('open-case-btn');
+ if(!c||!btn||currentCaseId!==id)return;
+ const tw=c.items.reduce((s,o)=>s+o.chance,0);
+ const rows=c.items.slice().sort((a,b)=>b.price-a.price).map(o=>{const p=o.chance/tw*100;
+  return'<tr><td><i style="background:'+RARITY[o.rarity].color+'"></i>'+o.weapon+' | '+o.name+'</td><td>'+fmt(o.price)+'</td><td>'+(p<0.01?'<0.01':p.toFixed(2))+'%</td></tr>'}).join('');
+ btn.insertAdjacentHTML('beforebegin','<table class="chance-t"><tr><th>Скин</th><th>Цена</th><th>Шанс</th></tr>'+rows+'</table>');
+};
+
+/* ===== логика игр (чистые функции, проверяются тестами) ===== */
+const BJ={
+ deck(){const d=[];for(const s of['♠','♥','♦','♣'])for(const r of['A','2','3','4','5','6','7','8','9','10','J','Q','K'])d.push({r,s});
+  for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=d[i];d[i]=d[j];d[j]=t}return d},
+ val(h){let t=0,a=0;h.forEach(c=>{if(c.r==='A'){a++;t+=11}else if(c.r==='10'||c.r==='J'||c.r==='Q'||c.r==='K')t+=10;else t+=+c.r});while(t>21&&a>0){t-=10;a--}return t}};
+const WH=[{m:0,w:38,c:'#3a1522'},{m:.5,w:22,c:'#7a0f2b'},{m:1,w:14,c:'#1d5c8a'},{m:1.5,w:10,c:'#1f8a5b'},{m:2,w:8,c:'#c48a12'},{m:3,w:5,c:'#8a3fc4'},{m:5,w:2.5,c:'#e0561f'},{m:10,w:.5,c:'#e6c200'}];
+const KN={2:1,3:2,4:8,5:25};
+const SYM=['🍒','🍋','🔔','💎','🍀','⭐'],SCM={'🍒':2,'🍋':5,'🔔':10,'💎':50};
+const G={
+ wheelPick(r1,r2){let a=0;for(let i=0;i<WH.length;i++){const s=a;a+=WH[i].w;if(r1*100<a||i===WH.length-1)return{i,ang:s*3.6+(0.1+0.8*r2)*WH[i].w*3.6}}},
+ kenoDraw(){const a=[];for(let i=1;i<=30;i++)a.push(i);for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a.slice(0,10)},
+ scratch(r){
+  let sym=null;if(r<.004)sym='💎';else if(r<.024)sym='🔔';else if(r<.064)sym='🍋';else if(r<.184)sym='🍒';
+  const cnt={},cells=[];if(sym){for(let i=0;i<3;i++)cells.push(sym);cnt[sym]=3}
+  const pool=SYM.filter(s=>s!==sym);
+  while(cells.length<6){const s=pool[Math.floor(Math.random()*pool.length)];if((cnt[s]||0)<2){cnt[s]=(cnt[s]||0)+1;cells.push(s)}}
+  for(let i=cells.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=cells[i];cells[i]=cells[j];cells[j]=t}
+  return{cells,mult:sym?SCM[sym]:0}},
+ twMult(n){return Math.floor(Math.pow(1.44,n)*100)/100}};
+window.LCG={BJ,G,WH,KN,SCM};
+
+/* ===== общие помощники ===== */
+const backOff=()=>$('modal-back-btn').classList.add('disabled'),backOn=()=>$('modal-back-btn').classList.remove('disabled');
+function settle(pay,bet,key){
+ balance+=pay;updateBalance();
+ if(pay>bet)winMsg(pay);else if(pay===bet)showToast('🤝 Ставка возвращена');else if(pay>0)showToast('😐 Вернулось '+fmt(pay)+' 🪙');else loseMsg();
+ backOn();arenaCooldown(key)}
+const betBox=id=>'<div class="bet-control" id="'+id+'-box"><span>Ставка:</span><input type="number" id="'+id+'" value="500" min="1"></div>';
+
+/* ===== Блэкджек ===== */
+let bj={on:false};
+const card=(c,h)=>h?'<div class="pc back">?</div>':'<div class="pc'+((c.s==='♥'||c.s==='♦')?' red':'')+'"><span>'+c.r+'</span><span>'+c.s+'</span></div>';
+function bjRender(rev){
+ $('bj-d').innerHTML=bj.d.map((c,i)=>card(c,!rev&&i===1)).join('');
+ $('bj-p').innerHTML=bj.p.map(c=>card(c,false)).join('');
+ $('bj-dv').innerText=rev?BJ.val(bj.d):'?';$('bj-pv').innerText=BJ.val(bj.p)}
+function bjEnd(m,txt){
+ bjRender(true);const pay=Math.floor(bj.bet*m),bet=bj.bet;bj.on=false;
+ $('bj-msg').innerText=txt;$('bj-act').style.display='none';$('bj-start').style.display='';$('bj-start').innerText='Новая раздача';$('bj-bet-box').style.display='';
+ settle(pay,bet,'blackjack')}
+window.bjStart=function(){
+ if(bj.on)return;const bet=readBet('bj-bet');if(bet===null)return;
+ balance-=bet;updateBalance();haptic('medium');
+ bj={on:true,bet,deck:BJ.deck(),p:[],d:[]};
+ bj.p.push(bj.deck.pop());bj.d.push(bj.deck.pop());bj.p.push(bj.deck.pop());bj.d.push(bj.deck.pop());
+ backOff();$('bj-bet-box').style.display='none';$('bj-start').style.display='none';$('bj-act').style.display='flex';$('bj-msg').innerText='';
+ bjRender(false);if(BJ.val(bj.p)===21)window.bjStand(true)};
+window.bjHit=function(){
+ if(!bj.on)return;bj.p.push(bj.deck.pop());haptic('light');
+ const v=BJ.val(bj.p);if(v>21)bjEnd(0,'Перебор! Вы проиграли');else if(v===21)window.bjStand();else bjRender(false)};
+window.bjStand=function(nat){
+ if(!bj.on)return;
+ if(nat!==true)while(BJ.val(bj.d)<17)bj.d.push(bj.deck.pop());
+ const pv=BJ.val(bj.p),dv=BJ.val(bj.d);
+ if(nat===true){if(dv===21)bjEnd(1,'Ничья: у дилера тоже блэкджек');else bjEnd(2.5,'Блэкджек! Выплата x2.5')}
+ else if(dv>21)bjEnd(2,'Дилер перебрал. Вы выиграли!');
+ else if(pv>dv)bjEnd(2,'Вы выиграли!');
+ else if(pv===dv)bjEnd(1,'Ничья');
+ else bjEnd(0,'Дилер выиграл')};
+
+/* ===== Колесо фортуны ===== */
+let whRot=0,whBusy=false;
+function whHtml(){let a=0;const g=WH.map(s=>{const f=a;a+=s.w;return s.c+' '+(f*3.6)+'deg '+(a*3.6)+'deg'}).join(',');a=0;
+ const lb=WH.map(s=>{const mid=(a+s.w/2)*3.6;a+=s.w;return s.w>=5?'<div style="position:absolute;inset:0;transform:rotate('+mid+'deg)"><span style="position:absolute;top:12px;left:50%;transform:translateX(-50%);font-weight:900;font-size:.8rem">x'+s.m+'</span></div>':''}).join('');
+ return'<div class="wheel-wrap"><div class="wheel-ptr"></div><div class="wheel" id="wheel" style="background:conic-gradient('+g+')">'+lb+'</div></div>'}
+window.whSpin=function(){
+ if(whBusy)return;const bet=readBet('wh-bet');if(bet===null)return;
+ whBusy=true;balance-=bet;updateBalance();haptic('medium');backOff();
+ const r=G.wheelPick(Math.random(),Math.random()),seg=WH[r.i];
+ whRot=(Math.floor(whRot/360)+6)*360-r.ang;$('wheel').style.transform='rotate('+whRot+'deg)';
+ setTimeout(()=>{const pay=Math.floor(bet*seg.m);$('wh-res').innerText='x'+seg.m+' → '+fmt(pay)+' 🪙';whBusy=false;settle(pay,bet,'wheel')},4200)};
+
+/* ===== Кено ===== */
+let kn={sel:[],busy:false};
+function knRender(draw){
+ let h='';for(let n=1;n<=30;n++){const s=kn.sel.indexOf(n)>-1,d=draw&&draw.indexOf(n)>-1;
+  h+='<button class="kn'+(d&&s?' hit':d?' miss':s?' sel':'')+'" onclick="knoToggle('+n+')">'+n+'</button>'}
+ $('kn-grid').innerHTML=h;$('kn-cnt').innerText=kn.sel.length}
+window.knoToggle=function(n){
+ if(kn.busy)return;const i=kn.sel.indexOf(n);
+ if(i>-1)kn.sel.splice(i,1);else if(kn.sel.length<5)kn.sel.push(n);else{showToast('Максимум 5 чисел');return}
+ haptic('light');knRender(null)};
+window.knoPlay=function(){
+ if(kn.busy)return;if(kn.sel.length!==5){showToast('❌ Выберите ровно 5 чисел');return}
+ const bet=readBet('kn-bet');if(bet===null)return;
+ kn.busy=true;balance-=bet;updateBalance();haptic('medium');backOff();
+ const draw=G.kenoDraw(),hits=kn.sel.filter(n=>draw.indexOf(n)>-1).length,m=KN[hits]||0;
+ knRender(draw);$('kn-res').innerText='Угадано: '+hits+(m?' (x'+m+')':'');
+ kn.busy=false;settle(Math.floor(bet*m),bet,'keno')};
+
+/* ===== Скретч-карта ===== */
+let sc={on:false};
+function scRender(){$('sc-grid').innerHTML=sc.cells.map((s,i)=>'<div class="sc'+(sc.open[i]?' open':'')+'" onclick="scrOpen('+i+')">'+(sc.open[i]?s:'❔')+'</div>').join('')}
+function scEnd(){
+ sc.on=false;const pay=Math.floor(sc.bet*sc.mult),bet=sc.bet;
+ $('sc-res').innerText=sc.mult?'Три в ряд! x'+sc.mult:'Совпадений нет';$('sc-start').style.display='';$('sc-all').style.display='none';$('sc-bet-box').style.display='';
+ settle(pay,bet,'scratch')}
+window.scrStart=function(){
+ if(sc.on)return;const bet=readBet('sc-bet');if(bet===null)return;
+ balance-=bet;updateBalance();haptic('medium');
+ const g=G.scratch(Math.random());sc={on:true,bet,cells:g.cells,mult:g.mult,open:[false,false,false,false,false,false]};
+ backOff();$('sc-start').style.display='none';$('sc-all').style.display='';$('sc-bet-box').style.display='none';$('sc-res').innerText='Сотри все клетки: три одинаковых — приз';scRender()};
+window.scrOpen=function(i){
+ if(!sc.on||sc.open[i])return;sc.open[i]=true;haptic('light');scRender();if(sc.open.every(Boolean))scEnd()};
+window.scrAll=function(){if(!sc.on)return;sc.open=sc.open.map(()=>true);scRender();scEnd()};
+
+/* ===== Башня ===== */
+let tw={on:false};
+function twRender(end){
+ let h='';for(let r=7;r>=0;r--){h+='<div class="tw-row">';
+  for(let c=0;c<3;c++){let t='❓',cls='tw',oc='';
+   if(r<tw.lvl){t=tw.pick[r]===c?'✅':'▫️'}
+   else if(r===tw.lvl&&!end&&tw.on){cls+=' cur';oc=' onclick="twPick('+c+')"'}
+   if(end&&tw.bombs[r]===c&&r>=tw.lvl)t='💣';
+   if(end&&r===tw.lvl&&tw.bombs[r]===c)t='💥';
+   h+='<button class="'+cls+'"'+oc+'>'+t+'</button>'}
+  h+='</div>'}
+ $('tw-grid').innerHTML=h;$('tw-info').innerHTML='Уровень '+tw.lvl+'/8 · x'+G.twMult(tw.lvl).toFixed(2)+' = '+fmt(Math.floor(tw.bet*G.twMult(tw.lvl)))+' 🪙'}
+function twEnd(pay){
+ tw.on=false;twRender(true);$('tw-act').style.display='none';$('tw-start').style.display='';$('tw-bet-box').style.display='';
+ settle(pay,tw.bet,'tower')}
+window.twStart=function(){
+ if(tw.on)return;const bet=readBet('tw-bet');if(bet===null)return;
+ balance-=bet;updateBalance();haptic('medium');
+ tw={on:true,bet,lvl:0,pick:[],bombs:[0,0,0,0,0,0,0,0].map(()=>Math.floor(Math.random()*3))};
+ backOff();$('tw-start').style.display='none';$('tw-act').style.display='';$('tw-bet-box').style.display='none';twRender(false)};
+window.twPick=function(c){
+ if(!tw.on)return;
+ if(c===tw.bombs[tw.lvl]){showToast('💥 Бомба!');twEnd(0);return}
+ tw.pick[tw.lvl]=c;tw.lvl++;haptic('light');
+ if(tw.lvl===8)twEnd(Math.floor(tw.bet*G.twMult(8)));else twRender(false)};
+window.twCash=function(){
+ if(!tw.on)return;if(tw.lvl<1){showToast('Пройдите хотя бы 1 уровень');return}
+ twEnd(Math.floor(tw.bet*G.twMult(tw.lvl)))};
+
+/* ===== регистрация игр ===== */
+const NEW={
+ blackjack:{icon:'🃏',name:'Блэкджек',title:'🃏 Блэкджек',html:
+  '<div><div class="mini-note">Дилер: <b id="bj-dv">?</b></div><div class="bj-hand" id="bj-d"></div><div class="display-screen" id="bj-msg" style="min-height:44px;padding:8px">Победа x2, блэкджек x2.5. Дилер берёт до 17</div><div class="bj-hand" id="bj-p"></div><div class="mini-note">Вы: <b id="bj-pv">0</b></div>'+betBox('bj-bet')+'</div><div><div id="bj-act" style="display:none;gap:8px"><button class="btn" onclick="bjHit()">Взять</button><button class="btn" style="background:linear-gradient(135deg,#1f2937,#475569)" onclick="bjStand()">Хватит</button></div><button class="btn" id="bj-start" onclick="bjStart()">Раздать карты</button></div>'},
+ wheel:{icon:'🎡',name:'Колесо фортуны',title:'🎡 Колесо фортуны',html:
+  '<div>'+'<div id="wh-slot"></div>'+'<div class="display-screen" id="wh-res" style="min-height:44px;padding:8px">Размер сектора = шанс выпадения</div>'+betBox('wh-bet')+'</div><button class="btn" onclick="whSpin()">Крутить колесо</button>'},
+ keno:{icon:'🔢',name:'Кено',title:'🔢 Кено',html:
+  '<div><div class="mini-note">Выберите 5 чисел из 30: <b id="kn-cnt">0</b>/5. Выпадает 10. 2→x1, 3→x2, 4→x8, 5→x25</div><div class="kn-grid" id="kn-grid"></div><div class="display-screen" id="kn-res" style="min-height:44px;padding:8px;margin-top:10px">Сделайте выбор</div>'+betBox('kn-bet')+'</div><button class="btn" onclick="knoPlay()">Играть</button>'},
+ scratch:{icon:'🎟️',name:'Скретч-карта',title:'🎟️ Скретч-карта',html:
+  '<div><div class="mini-note">🍒 x2 · 🍋 x5 · 🔔 x10 · 💎 x50 — нужны три одинаковых</div><div class="sc-grid" id="sc-grid"></div><div class="display-screen" id="sc-res" style="min-height:44px;padding:8px">Купите карту и сотрите клетки</div>'+betBox('sc-bet')+'</div><div><button class="btn" id="sc-start" onclick="scrStart()">Купить карту</button><button class="btn" id="sc-all" style="display:none" onclick="scrAll()">Стереть всё</button></div>'},
+ tower:{icon:'🏗️',name:'Башня',title:'🏗️ Башня',html:
+  '<div><div class="mini-note">В каждом ряду 1 бомба из 3. Каждый уровень x1.44. Забирайте выигрыш в любой момент</div><div id="tw-grid"></div><div class="display-screen" id="tw-info" style="min-height:40px;padding:8px">Сделайте ставку</div>'+betBox('tw-bet')+'</div><div><button class="btn" id="tw-start" onclick="twStart()">Начать</button><button class="btn" id="tw-act" style="display:none" onclick="twCash()">Забрать выигрыш</button></div>'}};
+const _og=openGame;
+openGame=function(k){
+ const g=NEW[k];if(!g)return _og(k);
+ const ck='card-game-'+k;if(cooldowns[ck]&&cooldowns[ck]>Date.now()){showToast('⏳ Подождите окончания кулдауна!');return}
+ backOn();$('game-modal').classList.add('active');$('modal-game-title').innerText=g.title;$('game-content-area').innerHTML=g.html;
+ if(k==='wheel')$('wh-slot').innerHTML=whHtml();
+ if(k==='keno'){kn={sel:[],busy:false};knRender(null)}
+ if(k==='scratch'){sc={on:false,cells:[],open:[]};scRender()}
+ if(k==='tower'){tw={on:false,lvl:0,bet:0,pick:[],bombs:[]};twRender(false)}
+};
+const grid=$('games-grid-container');
+Object.keys(NEW).forEach(k=>{
+ const d=document.createElement('div');d.className='case-card';d.id='card-game-'+k;d.setAttribute('onclick',"openGame('"+k+"')");
+ d.innerHTML='<div class="case-img-box" style="font-size:2.5rem">'+NEW[k].icon+'</div><div class="case-name">'+NEW[k].name+'</div>';
+ grid.appendChild(d)});
+window.LCG.st=()=>({bj,kn,sc,tw});
 })();
 </script>
 
