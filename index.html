@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Hub & CS2 Cases (Persistent CD & Timers)</title>
+    <title>Casino Hub & CS2 Cases (Expanded)</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -13,14 +13,6 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --radius: 20px;
-            
-            /* CS2 Rarity Colors */
-            --rarity-consumer: #b0c3d9;
-            --rarity-milspec: #4b69ff;
-            --rarity-restricted: #d32ce6;
-            --rarity-classified: #eb4b4b;
-            --rarity-covert: #ff0000;
-            --rarity-special: #ffd700;
         }
 
         * {
@@ -35,7 +27,7 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             min-height: 100vh;
-            padding-top: 70px; /* Отступ под фиксированный хедер */
+            padding-top: 50px; /* Компактный отступ под мини-хедер */
             padding-bottom: 90px;
             position: relative;
             overflow-x: hidden;
@@ -59,14 +51,32 @@
         header, .container, .modal, nav.bottom-nav { position: relative; z-index: 10; }
 
         header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 20px; background: rgba(30, 41, 59, 0.95);
+            display: flex; justify-content: flex-end; align-items: center;
+            padding: 10px 20px; background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(12px); position: fixed; top: 0; left: 0; width: 100%;
             border-bottom: 1px solid rgba(56, 189, 248, 0.1); z-index: 150;
         }
 
+        .user-link {
+            font-size: 0.95rem; font-weight: 700; color: var(--accent-blue);
+            text-decoration: none; background: rgba(56, 189, 248, 0.15);
+            padding: 4px 10px; border-radius: 14px; border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        /* Блок таблички статистики теперь в главном меню */
+        .dashboard-panel {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: var(--radius);
+            padding: 14px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .dashboard-row {
+            display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
         .header-stats {
-            display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+            display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
         }
 
         .stat-badge {
@@ -75,12 +85,6 @@
             border: 1px solid rgba(56, 189, 248, 0.2); font-size: 0.85rem; font-weight: 700;
         }
         .stat-badge span { color: var(--accent-blue); }
-
-        .user-link {
-            font-size: 0.95rem; font-weight: 700; color: var(--accent-blue);
-            text-decoration: none; background: rgba(56, 189, 248, 0.15);
-            padding: 6px 12px; border-radius: 16px; border: 1px solid rgba(56, 189, 248, 0.3);
-        }
 
         .container { max-width: 480px; margin: 0 auto; padding: 16px; display: none; }
         .container.active-tab { display: block; }
@@ -101,12 +105,12 @@
 
         .promo-banner {
             background: linear-gradient(135deg, #0284c7, #0369a1);
-            border-radius: var(--radius); padding: 18px; text-align: center;
+            border-radius: var(--radius); padding: 16px; text-align: center;
             margin-bottom: 16px; color: white; box-shadow: 0 10px 25px rgba(2, 132, 199, 0.3);
             text-decoration: none; display: block;
         }
-        .promo-banner h2 { font-size: 1.3rem; margin-bottom: 4px; }
-        .promo-banner p { font-size: 0.85rem; opacity: 0.95; }
+        .promo-banner h2 { font-size: 1.2rem; margin-bottom: 4px; }
+        .promo-banner p { font-size: 0.82rem; opacity: 0.95; }
 
         .section-title {
             font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;
@@ -140,8 +144,8 @@
         }
         .case-card:active { transform: scale(0.96); }
         .case-card.cooldown { opacity: 0.5; pointer-events: none; }
-        .case-img { font-size: 3rem; margin: 8px 0; }
-        .case-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+        .case-img { font-size: 2.8rem; margin: 8px 0; }
+        .case-name { font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; height: 32px; display: flex; align-items: center; justify-content: center; }
         .case-price { font-size: 0.85rem; color: var(--accent-blue); font-weight: 600; }
         
         .cd-overlay {
@@ -316,17 +320,24 @@
         <div class="circle c1"></div> <div class="circle c2"></div> <div class="circle c3"></div>
     </div>
 
+    <!-- Компактный верхний хедер (только ссылка) -->
     <header>
-        <div class="header-stats">
-            <div class="stat-badge"><span>🪙</span><span id="user-balance">10000</span></div>
-            <div class="stat-badge"><span>⏱</span><span id="bonus-timer">02:00</span></div>
-            <div class="stat-badge"><span>🏆 ELO</span><span id="user-elo">0</span></div>
-        </div>
         <a href="https://t.me/Larp333you" target="_blank" class="user-link">@Larp333you</a>
     </header>
 
-    <!-- ВКЛАДКА 1: КАЗИНО -->
+    <!-- ВКЛАДКА 1: КАРИНО / ГЛАВНОЕ МЕНЮ -->
     <div class="container active-tab" id="tab-casino">
+        <!-- ТАБЛИЧКА СТАТИСТИКИ (теперь строго в главном меню, никуда не смещается) -->
+        <div class="dashboard-panel">
+            <div class="dashboard-row">
+                <div class="header-stats">
+                    <div class="stat-badge"><span>🪙</span><span id="user-balance">10000</span></div>
+                    <div class="stat-badge"><span>⏱</span><span id="bonus-timer">02:00</span></div>
+                    <div class="stat-badge"><span>🏆 ELO</span><span id="user-elo">0</span></div>
+                </div>
+            </div>
+        </div>
+
         <a href="https://t.me/Larp333you" target="_blank" class="promo-banner">
             <h2>@Larp333you</h2>
             <p>Владелец: @Larp333you — Нажми, чтобы написать!</p>
@@ -377,6 +388,7 @@
 
     <script>
         const CS2_CASES = [
+            /* Старые кейсы (полностью сохранены) */
             {
                 id: 'case_weapon_1', name: 'CS:GO Weapon Case', icon: '📦', price: 5000,
                 items: [
@@ -425,12 +437,59 @@
                     { name: 'Vice', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 2000000, icon: '🥊' },
                     { name: 'Pandoras Box', weapon: 'Sport Gloves', rarity: 'special', color: '#ffd700', price: 3500000, icon: '🥊' }
                 ]
+            },
+            /* Новые кейсы */
+            {
+                id: 'case_fracture', name: 'Fracture Case', icon: '🧪', price: 8000,
+                items: [
+                    { name: 'Magna Carta', weapon: 'P250', rarity: 'consumer', color: '#b0c3d9', price: 250, icon: '📜' },
+                    { name: 'Oxide Oasis', weapon: 'P90', rarity: 'consumer', color: '#b0c3d9', price: 300, icon: '🏜️' },
+                    { name: 'Etch Lord', weapon: 'SG 553', rarity: 'milspec', color: '#4b69ff', price: 900, icon: '🔫' },
+                    { name: 'Voodoo', weapon: 'PP-Bizon', rarity: 'milspec', color: '#4b69ff', price: 800, icon: '🔮' },
+                    { name: 'Monkey Business', weapon: 'Galil AR', rarity: 'restricted', color: '#d32ce6', price: 2800, icon: '🐒' },
+                    { name: 'Tooth Fairy', weapon: 'M4A4', rarity: 'restricted', color: '#d32ce6', price: 4200, icon: '🦷' },
+                    { name: 'Printstream', weapon: 'Desert Eagle', rarity: 'classified', color: '#eb4b4b', price: 31000, icon: '⚡' },
+                    { name: 'Skeleton Knife', weapon: 'Fade', rarity: 'special', color: '#ffd700', price: 800000, icon: '🔪' }
+                ]
+            },
+            {
+                id: 'case_prisma2', name: 'Prisma 2 Case', icon: '🌈', price: 15000,
+                items: [
+                    { name: 'Capillary', weapon: 'AUG', rarity: 'consumer', color: '#b0c3d9', price: 450, icon: '🩸' },
+                    { name: 'Scumbria', weapon: 'SG 553', rarity: 'consumer', color: '#b0c3d9', price: 500, icon: '🐟' },
+                    { name: 'Uncharted', weapon: 'AK-47', rarity: 'milspec', color: '#4b69ff', price: 1600, icon: '🗺️' },
+                    { name: 'Disarray', weapon: 'MP5-SD', rarity: 'milspec', color: '#4b69ff', price: 1400, icon: '🌀' },
+                    { name: 'Player Two', weapon: 'M4A4', rarity: 'restricted', color: '#d32ce6', price: 7500, icon: '🎮' },
+                    { name: 'Bullet Queen', weapon: 'Glock-18', rarity: 'classified', color: '#eb4b4b', price: 19000, icon: '👑' },
+                    { name: 'Talon Knife', weapon: 'Marble Fade', rarity: 'special', color: '#ffd700', price: 750000, icon: '🗡️' }
+                ]
+            },
+            {
+                id: 'case_glove', name: 'Glove Case', icon: '🥊', price: 45000,
+                items: [
+                    { name: 'Iron Clad', weapon: 'MP7', rarity: 'consumer', color: '#b0c3d9', price: 900, icon: '🛡️' },
+                    { name: 'Grassland', weapon: 'G3SG1', rarity: 'consumer', color: '#b0c3d9', price: 850, icon: '🌿' },
+                    { name: 'Sandstorm', weapon: 'Dual Berettas', rarity: 'milspec', color: '#4b69ff', price: 2500, icon: '🌪️' },
+                    { name: 'Stinger', weapon: 'CZ75-Auto', rarity: 'restricted', color: '#d32ce6', price: 5500, icon: '🐝' },
+                    { name: 'Neo-Noir', weapon: 'USP-S', rarity: 'classified', color: '#eb4b4b', price: 24000, icon: '🖤' },
+                    { name: 'Slaughter', weapon: 'Specialist Gloves', rarity: 'special', color: '#ffd700', price: 1800000, icon: '🥊' }
+                ]
+            },
+            {
+                id: 'case_operation_hydra', name: 'Operation Hydra', icon: '🐍', price: 80000,
+                items: [
+                    { name: 'Pulse', weapon: 'P250', rarity: 'consumer', color: '#b0c3d9', price: 1500, icon: '💓' },
+                    { name: 'Cache', weapon: 'MAC-10', rarity: 'milspec', color: '#4b69ff', price: 3200, icon: '☢️' },
+                    { name: 'Metal Flowers', weapon: 'UMP-45', rarity: 'restricted', color: '#d32ce6', price: 7800, icon: '🌸' },
+                    { name: ' Oni Taiji', weapon: 'M4A4', rarity: 'covert', color: '#ff0000', price: 95000, icon: '👹' },
+                    { name: 'Crimson Kimono', weapon: 'Specialist Gloves', rarity: 'special', color: '#ffd700', price: 2500000, icon: '🥊' }
+                ]
             }
         ];
 
         let balance = 10000;
         let inventory = [];
-        let cooldowns = {}; // Хранилище кулдаунов (ключ -> время окончания timestamp)
+        let cooldowns = {};
 
         if (localStorage.getItem('casino_balance') !== null) {
             balance = parseInt(localStorage.getItem('casino_balance'));
@@ -483,7 +542,6 @@
             setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        // Постоянный таймер (2 минуты = 120 секунд), автовыдача 2000 монет
         const BONUS_TIME_KEY = 'casino_bonus_target_time';
         function checkBonusTimer() {
             let targetTime = localStorage.getItem(BONUS_TIME_KEY);
@@ -500,7 +558,6 @@
         }
 
         function globalTick() {
-            // Проверка таймера бонуса
             let targetTime = parseInt(localStorage.getItem(BONUS_TIME_KEY) || (Date.now() + 120000));
             let now = Date.now();
             let diffSec = Math.floor((targetTime - now) / 1000);
@@ -521,7 +578,6 @@
                 timerEl.innerText = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
             }
 
-            // Обработка глобальных кулдаунов элементов
             let currentTime = Date.now();
             for (let key in cooldowns) {
                 let endTime = cooldowns[key];
@@ -594,7 +650,6 @@
             }
         }
 
-        // Кулдаун на игровые кнопки внутри модалки
         function applyGameCooldown(btnElement, gameKey) {
             if(!btnElement) return;
             setCooldownFor('card-game-' + gameKey, 5);
@@ -777,7 +832,6 @@
                 document.getElementById('case-result-info').innerHTML = resultHtml;
                 showToast(`🎉 Успешно получено предметов: ${wonItems.length}!`);
                 
-                // Устанавливаем кулдаун 5 секунд на открытие этого кейса с сохранением
                 setCooldownFor('card-case-' + caseId, 5);
 
                 setTimeout(() => {
@@ -885,7 +939,7 @@
                     break;
                 case 'hilo':
                     titleEl.innerText = "📈 Выше / Ниже";
-                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее число выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" id="h-high-btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️</button><button class="btn" id="h-low-btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="500"></div></div>`;
+                    area.innerHTML = `<div>Число: <span id="hilo-num" style="font-size: 1.8rem; color: var(--accent-blue); font-weight:bold;">50</span><div class="display-screen" id="hilo-status">Следующее число выше или ниже?</div><div style="display: flex; gap: 8px; margin-bottom: 8px;"><button class="btn" id="h-high-btn" style="background:#059669;" onclick="playHilo('high')">Выше ⬆️️</button><button class="btn" id="h-low-btn" style="background:#dc2626;" onclick="playHilo('low')">Ниже ⬇</button></div><div class="bet-control"><span>Ставка:</span><input type="number" id="hilo-bet" value="500"></div></div>`;
                     break;
             }
         }
