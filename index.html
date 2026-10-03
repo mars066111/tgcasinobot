@@ -1903,7 +1903,6 @@ function render(){
   +'</div><button class="btn btn-gold'+(canDaily()?'':' disabled')+'" onclick="mDaily()">'+(canDaily()?'Забрать +'+fmt(dailyAmt(st))+' 🪙':'Приходи завтра')+'</button></div>'
   +'<div class="section-title"><span>📋 Задания на сегодня</span></div>'
   +M.q.list.map((q,i)=>{const p=prog(q);return'<div class="q-row"><div style="display:flex;justify-content:space-between"><span>'+q.t+'</span><span style="color:var(--gold)">+'+fmt(q.r)+' 🪙</span></div><div class="ck-bar"><div style="width:'+(p/q.n*100)+'%"></div></div><div style="display:flex;justify-content:space-between;align-items:center"><span class="mini-note">'+p+' / '+q.n+'</span><button '+(q.claimed||p<q.n?'disabled':'')+' onclick="mQuest('+i+')">'+(q.claimed?'Получено':'Забрать')+'</button></div></div>'}).join('')
-  +'<div class="section-title" style="margin-top:14px"><span>🏆 Лига</span><span>боты</span></div><div class="prof-card" style="padding:6px">'+league()+'</div>'
   +'<div class="section-title" style="margin-top:14px"><span>🛍 Магазин</span></div>'
   +TITLES.map((t,i)=>shopRow('t',i,t,M.ownT,M.title,t[0])).join('')
   +FRAMES.map((t,i)=>shopRow('f',i,t,M.ownF,M.frame,t[0]||'Без рамки')).join('')
@@ -2338,6 +2337,307 @@ drawPlaneScene=function(){
 
 /* ---- контракт: шанс зависит от числа скинов ---- */
 window.lcCh=n=>Math.min(90,Math.round(15+(n-3)*10.7));
+})();
+</script>
+
+<!-- ===================== ТАБЛИЦА ЛИДЕРОВ (LIVE) ===================== -->
+<style>
+#tab-leaders{padding-bottom:150px}
+.lb-top{display:flex;align-items:center;justify-content:space-between;margin:2px 0 12px}
+.lb-h{font-size:1.25rem;font-weight:900;letter-spacing:.2px}
+.lb-live{display:flex;align-items:center;gap:6px;font-size:.68rem;font-weight:800;padding:6px 10px;border-radius:99px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);color:#4ade80;white-space:nowrap}
+.lb-live i{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:lbPulse 1.6s infinite}
+.lb-live.off{background:rgba(148,163,184,.12);border-color:rgba(148,163,184,.3);color:#94a3b8}.lb-live.off i{background:#94a3b8;animation:none}
+@keyframes lbPulse{70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.lb-seg{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:16px;background:#1c0910;border:1px solid rgba(255,122,47,.28);margin-bottom:16px}
+.lb-seg button{position:relative;z-index:1;border:0;background:none;color:var(--text-muted);font-weight:900;font-size:.9rem;padding:11px 0;cursor:pointer;transition:color .25s}
+.lb-seg button.on{color:#1a0509}
+.lb-seg .lb-pill{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:12px;background:linear-gradient(135deg,#ffb627,#ff7a2f);box-shadow:0 4px 14px rgba(255,122,47,.45);transition:transform .35s cubic-bezier(.3,1.3,.5,1)}
+.lb-seg[data-t="cases"] .lb-pill{transform:translateX(100%)}
+/* подиум */
+.lb-pod{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:8px 0 18px;padding-top:26px}
+.lb-pc{flex:1;max-width:136px;display:flex;flex-direction:column;align-items:center;cursor:pointer;animation:lbRise .55s both;animation-delay:calc(var(--d)*.1s)}
+@keyframes lbRise{from{opacity:0;transform:translateY(24px)}}
+.lb-crown{font-size:1.7rem;line-height:1;margin-bottom:-6px;z-index:2;animation:lbFloat 2.4s ease-in-out infinite;filter:drop-shadow(0 4px 8px rgba(255,182,39,.6))}
+@keyframes lbFloat{50%{transform:translateY(-5px) rotate(-4deg)}}
+.lb-ring{padding:3px;border-radius:50%;background:conic-gradient(from 0deg,var(--m1),var(--m2),var(--m1));box-shadow:0 0 22px var(--mg)}
+.lb-ring .lb-av{border:3px solid #1a0509}
+.lb-pn{font-weight:900;font-size:.82rem;margin-top:8px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-pv{font-weight:900;font-size:.8rem;color:var(--gold);margin-top:2px;white-space:nowrap}
+.lb-ped{width:100%;margin-top:8px;border-radius:14px 14px 4px 4px;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font-size:1.5rem;font-weight:900;color:rgba(0,0,0,.55);background:linear-gradient(180deg,var(--m1),var(--m2));box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 10px 24px var(--mg)}
+.lb-g{--m1:#ffd34d;--m2:#e08a00;--mg:rgba(255,182,39,.35)}.lb-s{--m1:#e5e9f0;--m2:#8e99ab;--mg:rgba(190,200,220,.25)}.lb-b{--m1:#e9a066;--m2:#a55a24;--mg:rgba(217,139,82,.28)}
+/* аватар */
+.lb-av{position:relative;width:var(--s);height:var(--s);border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:calc(var(--s)*.42);text-shadow:0 2px 4px rgba(0,0,0,.35)}
+.lb-av img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover}
+.lb-fr{position:absolute;right:-4px;top:-5px;font-style:normal;font-size:calc(var(--s)*.36);line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.lb-on{position:absolute;right:1px;bottom:1px;width:calc(var(--s)*.26);height:calc(var(--s)*.26);border-radius:50%;background:#22c55e;border:2px solid #210911}
+/* строки */
+.lb-list{display:flex;flex-direction:column;gap:8px}
+.lb-row{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:linear-gradient(160deg,#3d1322,#210911);border:1px solid rgba(255,122,47,.2);cursor:pointer;transition:border-color .3s,box-shadow .3s,background .3s;animation:lbIn .4s both;animation-delay:calc(var(--i)*.03s)}
+@keyframes lbIn{from{opacity:0;transform:translateX(-12px)}}
+.lb-row:active{transform:scale(.985)}
+.lb-row.me{border-color:var(--gold);background:linear-gradient(160deg,#5a1c30,#2c0c18);box-shadow:0 0 0 1px rgba(255,182,39,.25),0 6px 20px rgba(255,182,39,.12)}
+.lb-row.up{box-shadow:0 0 0 1px rgba(74,222,128,.7),0 0 18px rgba(74,222,128,.25)}.lb-row.down{box-shadow:0 0 0 1px rgba(248,113,113,.55)}
+.lb-rk{width:30px;text-align:center;font-weight:900;font-size:.95rem;color:var(--text-muted);flex:none;line-height:1.1}
+.lb-dl{display:block;font-size:.58rem;font-weight:900}.lb-dl.up{color:#4ade80}.lb-dl.down{color:#f87171}
+.lb-mid{flex:1;min-width:0}
+.lb-nm{font-weight:800;font-size:.9rem;display:flex;align-items:center;gap:6px;min-width:0}
+.lb-nm b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
+.lb-tt{flex:none;font-size:.56rem;font-weight:900;padding:2px 6px;border-radius:99px;background:rgba(255,182,39,.15);color:var(--gold);border:1px solid rgba(255,182,39,.3)}
+.lb-sb{font-size:.7rem;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-val{position:relative;font-weight:900;font-size:.95rem;color:var(--gold);white-space:nowrap;text-align:right}
+.lb-pop{position:absolute;right:0;top:-14px;font-size:.7rem;font-weight:900;pointer-events:none;animation:lbPop 1.8s ease-out forwards}
+.lb-pop.p{color:#4ade80}.lb-pop.n{color:#f87171}
+@keyframes lbPop{from{opacity:1;transform:translateY(6px)}to{opacity:0;transform:translateY(-14px)}}
+/* моя позиция */
+.lb-me{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom));z-index:20;margin-top:14px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:18px;background:linear-gradient(135deg,#7a0f2b,#b3122f 55%,#ff7a2f);box-shadow:0 10px 30px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.12) inset}
+.lb-me .rk{font-size:1.15rem;font-weight:900;min-width:44px;text-align:center}
+.lb-me .mid{flex:1;min-width:0}.lb-me .mid b{display:block;font-size:.9rem}.lb-me .mid small{font-size:.68rem;opacity:.9}
+.lb-me .v{font-weight:900;white-space:nowrap}
+.lb-note{text-align:center;color:var(--text-muted);font-size:.8rem;padding:22px 10px}
+.lb-sk{height:62px;border-radius:16px;margin-bottom:8px;background:linear-gradient(90deg,#2a0e18 25%,#3d1322 50%,#2a0e18 75%);background-size:200% 100%;animation:lbSh 1.2s infinite}
+@keyframes lbSh{to{background-position:-200% 0}}
+.lb-retry{margin-top:10px;border:0;border-radius:12px;padding:10px 18px;font-weight:900;color:#1a0509;background:linear-gradient(135deg,#ffb627,#ff7a2f)}
+/* профиль-шторка */
+.lb-ov{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s}
+.lb-ov.on{display:flex}.lb-ov.vis{opacity:1}
+.lb-sheet{position:relative;width:100%;max-width:560px;max-height:92vh;background:linear-gradient(180deg,#3a1120,#1b070e 40%);border-radius:26px 26px 0 0;border:1px solid rgba(255,122,47,.3);border-bottom:0;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .38s cubic-bezier(.2,.9,.3,1)}
+.lb-ov.vis .lb-sheet{transform:none}
+.lb-grab{width:44px;height:5px;border-radius:9px;background:rgba(255,255,255,.25);margin:10px auto 4px;flex:none}
+.lb-x{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:1rem;z-index:3}
+.lb-sc{overflow-y:auto;overscroll-behavior:contain;padding:6px 16px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.lb-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:4px}
+.lb-lv{position:relative;width:124px;height:124px;display:flex;align-items:center;justify-content:center}
+.lb-lv svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.lb-lv .bd{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#ffb627,#ff7a2f);color:#1a0509;font-weight:900;font-size:.72rem;padding:3px 10px;border-radius:99px;box-shadow:0 4px 10px rgba(0,0,0,.4);white-space:nowrap}
+.lb-hn{font-size:1.25rem;font-weight:900;margin-top:12px}
+.lb-hs{font-size:.78rem;color:var(--text-muted);margin-top:2px}
+.lb-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+.lb-chip{font-size:.7rem;font-weight:900;padding:5px 10px;border-radius:99px;background:rgba(255,122,47,.14);border:1px solid rgba(255,122,47,.32)}
+.lb-chip.g{background:rgba(255,182,39,.16);border-color:rgba(255,182,39,.45);color:var(--gold)}
+.lb-chip.on{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.4);color:#4ade80}
+.lb-h2{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:.95rem;margin:20px 0 10px}
+.lb-h2 small{color:var(--text-muted);font-weight:700;font-size:.72rem}
+.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lb-st{padding:10px 12px;border-radius:14px;background:#1c0910;border:1px solid rgba(255,122,47,.18)}
+.lb-st small{display:block;color:var(--text-muted);font-size:.66rem;font-weight:700}
+.lb-st b{display:block;font-size:1rem;margin-top:3px;font-weight:900}
+.lb-st b em{font-style:normal;font-size:.68rem;color:var(--text-muted);font-weight:700}
+.lb-show{position:relative;overflow:hidden;border-radius:18px;padding:14px;display:flex;align-items:center;gap:12px;background:radial-gradient(90% 120% at 15% 50%,color-mix(in srgb,var(--rc) 38%,transparent),#1c0910 75%);border:1px solid var(--rc);box-shadow:0 0 24px color-mix(in srgb,var(--rc) 30%,transparent)}
+.lb-show img{width:46%;max-height:92px;object-fit:contain;filter:drop-shadow(0 8px 12px rgba(0,0,0,.6))}
+.lb-show div{flex:1}.lb-show small{color:var(--rc);font-weight:900;font-size:.68rem;text-transform:uppercase;letter-spacing:.5px}
+.lb-show b{display:block;font-size:.95rem;margin:3px 0}.lb-show span{color:var(--gold);font-weight:900}
+.lb-rb{display:flex;height:12px;border-radius:99px;overflow:hidden;background:#1c0910}
+.lb-rb i{display:block;height:100%}
+.lb-lg{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px;font-size:.7rem;color:var(--text-muted);font-weight:700}
+.lb-lg span:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:5px}
+.lb-ach{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lb-a{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:#1c0910;font-size:.7rem;font-weight:800;opacity:.4}
+.lb-a.ok{opacity:1;border:1px solid rgba(255,182,39,.55)}.lb-a span{font-size:1.15rem}
+.lb-sort{display:flex;gap:6px}.lb-sort button{border:1px solid rgba(255,122,47,.3);background:none;color:var(--text-muted);border-radius:99px;padding:4px 10px;font-size:.68rem;font-weight:900}
+.lb-sort button.on{background:rgba(255,122,47,.2);color:#fff}
+.lb-inv{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.lb-it{--rc:#6b7280;border-radius:12px;padding:7px 4px 6px;text-align:center;background:radial-gradient(90% 70% at 50% 30%,color-mix(in srgb,var(--rc) 30%,transparent),#1c0910 75%);border:1px solid transparent;border-bottom:3px solid var(--rc);font-size:.6rem;font-weight:800;min-width:0}
+.lb-it img{width:100%;height:46px;object-fit:contain}
+.lb-it div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+.lb-it .w{color:var(--text-muted);font-weight:700}.lb-it .p{color:var(--gold);font-weight:900;margin-top:1px}
+.lb-load{padding:40px 0;text-align:center;color:var(--text-muted)}
+</style>
+
+<script>
+(function(){
+/* ▼▼▼ ВСТАВЬ СЮДА АДРЕС СВОЕГО СЕРВИСА НА RENDER (без слэша в конце) ▼▼▼ */
+const LB_API='https://casino-otkg.onrender.com';
+/* ▲▲▲ ----------------------------------------------------------------- ▲▲▲ */
+
+const $=id=>document.getElementById(id);
+const tg=window.Telegram&&Telegram.WebApp;
+const initData=(tg&&tg.initData)||'';
+const myId=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user?tg.initDataUnsafe.user.id:0;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const F=n=>Number(n||0).toLocaleString('ru-RU');
+const configured=!/YOUR-SERVICE/.test(LB_API);
+const RAR=['special','covert','classified','restricted','milspec','consumer'];
+const ACHL=[['🎮','Первая игра'],['🕹️','Игроман: 50 игр'],['📦','Первый кейс'],['🗃️','Коллекционер: 25 кейсов'],['💰','Накопил 50 000'],['🤑','Накопил 250 000'],['💎','Скин дороже 20 000'],['🚀','Успешный апгрейд'],['👆','Кликер: 3 приза']];
+const ACHF=[s=>s.games>=1,s=>s.games>=50,s=>s.cases>=1,s=>s.cases>=25,s=>s.maxBal>=50000,s=>s.maxBal>=250000,s=>s.maxItem>=20000,s=>s.upW>=1,s=>s.clicks>=3];
+const GR=[['#ff7a2f','#c4122f'],['#fbbf24','#f97316'],['#a78bfa','#6d28d9'],['#34d399','#047857'],['#60a5fa','#1d4ed8'],['#f472b6','#be185d'],['#2dd4bf','#0f766e']];
+
+/* ---------- вкладка и навигация ---------- */
+const tab=document.createElement('div');tab.className='container';tab.id='tab-leaders';
+document.querySelector('.disclaimer').before(tab);
+const nb=document.createElement('button');nb.className='nav-item';nb.innerHTML='<span>🏆</span>Лидеры';
+nb.onclick=function(){switchTab('leaders',nb)};
+document.querySelector('nav.bottom-nav').appendChild(nb);
+const _swl=switchTab;
+switchTab=function(t,b){_swl(t,b);if(t==='leaders')enter();else leave()};
+
+/* ---------- отправка своих данных ---------- */
+let lastSync=0,syncTimer=0,myRank=null;
+function stats(){try{return JSON.parse(localStorage.getItem('lc_stats')||'{}')}catch(e){return{}}}
+function meta(){try{return JSON.parse(localStorage.getItem('lc_meta')||'{}')}catch(e){return{}}}
+function payload(){
+  const s=Object.assign({games:0,cases:0,upW:0,upL:0,clicks:0,maxBal:0,maxItem:0},stats()),m=meta();
+  const xp=s.games*10+s.cases*30+(s.upW+s.upL)*20+(m.contracts||0)*40+s.clicks*15;
+  const lvl=Math.floor(Math.sqrt(xp/50))+1;
+  const inv=inventory.slice().sort((a,b)=>(b.price||0)-(a.price||0));
+  return{initData:initData,balance:Math.max(0,Math.floor(balance)),cases:s.cases,level:lvl,profile:{
+    title:m.title||'Новичок',frame:m.frame||'',elo:typeof calculateElo==='function'?calculateElo():0,xp:xp,
+    games:s.games,upW:s.upW,upL:s.upL,maxBal:s.maxBal,maxItem:s.maxItem,ach:ACHF.map(f=>f(s)?1:0),streak:m.streak||0,
+    invCount:inventory.length,invValue:inventory.reduce((a,i)=>a+(i.price||0),0),
+    inv:inv.slice(0,200).map(i=>[i.weapon,i.name,i.rarity,i.price])}};
+}
+function sync(){
+  if(!configured||!initData)return Promise.resolve();
+  lastSync=Date.now();
+  return fetch(LB_API+'/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload())})
+   .then(r=>r.ok?r.json():null).then(j=>{if(j&&j.rank)myRank=j.rank}).catch(()=>{});
+}
+function schedule(){clearTimeout(syncTimer);const wait=Math.max(3000,6000-(Date.now()-lastSync));syncTimer=setTimeout(sync,wait)}
+const _sgl=saveGame;saveGame=function(){_sgl.apply(this,arguments);schedule()};
+setTimeout(sync,1800);
+setInterval(()=>{if(!document.hidden)sync()},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastSync>20000)sync()});
+
+/* ---------- live-поток ---------- */
+let es=null,poll=0,board=null,cur='money',active=false,failed=false;
+const prevVal={money:{},cases:{}},prevRank={money:{},cases:{}};
+function setLive(ok){const e=$('lb-live');if(!e)return;e.className='lb-live'+(ok?'':' off');e.querySelector('span').textContent=ok?'LIVE · '+F(board&&board.online)+' онлайн':'переподключение…'}
+function open(){
+  if(!configured){failed=true;paint();return}
+  fetch(LB_API+'/api/board').then(r=>r.json()).then(b=>{board=b;failed=false;paint()}).catch(()=>{failed=true;paint()});
+  try{
+    es=new EventSource(LB_API+'/api/stream');
+    es.addEventListener('board',e=>{try{board=JSON.parse(e.data);failed=false;paint();setLive(true)}catch(x){}});
+    es.onopen=()=>setLive(true);es.onerror=()=>setLive(false);
+  }catch(e){}
+  clearInterval(poll);poll=setInterval(()=>{if(es&&es.readyState===1)return;fetch(LB_API+'/api/board').then(r=>r.json()).then(b=>{board=b;failed=false;paint()}).catch(()=>{})},10000);
+}
+function close_(){if(es){es.close();es=null}clearInterval(poll)}
+function enter(){active=true;paint();sync().then(()=>{});open()}
+function leave(){active=false;close_()}
+document.addEventListener('visibilitychange',()=>{if(!active)return;if(document.hidden)close_();else open()});
+
+/* ---------- рисование ---------- */
+function av(p,s,cls){
+  const g=GR[Math.abs(p.id)%GR.length],ch=esc(((p.name||'?').trim().charAt(0)||'?').toUpperCase());
+  const img=p.photo&&String(p.photo).indexOf('https://')===0?'<img src="'+esc(p.photo)+'" alt="" referrerpolicy="no-referrer" onerror="this.remove()">':'';
+  return'<div class="lb-av '+(cls||'')+'" style="--s:'+s+'px;background:linear-gradient(135deg,'+g[0]+','+g[1]+')"><span>'+ch+'</span>'+img+(p.frame?'<i class="lb-fr">'+esc(p.frame)+'</i>':'')+(p.online?'<b class="lb-on"></b>':'')+'</div>';
+}
+const val=(p,k)=>k==='money'?p.balance:p.cases;
+const fv=(v,k)=>F(v)+(k==='money'?' 🪙':' 📦');
+function paint(){
+  if(!active&&!$('tab-leaders').classList.contains('active-tab'))return;
+  const el=$('tab-leaders'),k=cur;
+  if(!$('lb-root')){
+    el.innerHTML='<div class="lb-top"><div class="lb-h">🏆 Лидеры</div><div class="lb-live off" id="lb-live"><i></i><span>подключение…</span></div></div>'
+     +'<div class="lb-seg" id="lb-seg" data-t="money"><div class="lb-pill"></div><button class="on" data-t="money">💰 Деньги</button><button data-t="cases">📦 Кейсы</button></div><div id="lb-root"></div>';
+    $('lb-seg').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.t===cur)return;cur=b.dataset.t;
+      $('lb-seg').dataset.t=cur;[].forEach.call($('lb-seg').querySelectorAll('button'),x=>x.classList.toggle('on',x===b));paint()};
+    $('lb-root').onclick=e=>{const r=e.target.closest('[data-id]');if(r)openProfile(+r.dataset.id)};
+  }
+  setLive(!!board&&!failed&&!!es&&es.readyState===1);
+  const root=$('lb-root');
+  if(!configured){root.innerHTML='<div class="lb-note">⚙️ Сервер лидеров не подключён.<br>Укажи адрес Render в <b>LB_API</b>.</div>';return}
+  if(!board){root.innerHTML=failed?'<div class="lb-note">😕 Не удалось загрузить рейтинг.<br><button class="lb-retry" onclick="lbRetry()">Повторить</button></div>':'<div class="lb-sk"></div>'.repeat(6);return}
+  const list=board[k]||[];
+  if(!list.length){root.innerHTML='<div class="lb-note">Пока никого нет. Сыграй — и попади в рейтинг первым! 🚀</div>'+meBar(list,k);return}
+  // запомнить позиции для FLIP
+  const old={};[].forEach.call(root.querySelectorAll('.lb-row'),r=>old[r.dataset.id]=r.getBoundingClientRect().top);
+  const medals=['lb-g','lb-s','lb-b'],order=[1,0,2].filter(i=>list[i]);
+  let h='<div class="lb-pod">'+order.map(i=>{const p=list[i],sz=i===0?84:68,ht=i===0?96:i===1?72:56;
+    return'<div class="lb-pc '+medals[i]+'" data-id="'+p.id+'" style="--d:'+(i===0?0:i)+'">'+(i===0?'<div class="lb-crown">👑</div>':'')
+     +'<div class="lb-ring">'+av(p,sz)+'</div><div class="lb-pn">'+esc(p.name)+(p.id===myId?' (ты)':'')+'</div><div class="lb-pv" data-pv="'+p.id+'">'+fv(val(p,k),k)+'</div>'
+     +'<div class="lb-ped" style="height:'+ht+'px">'+(i+1)+'</div></div>'}).join('')+'</div>';
+  h+='<div class="lb-list">'+list.slice(3).map((p,j)=>{const r=j+4,pr=prevRank[k][p.id],d=pr?pr-r:0;
+    return'<div class="lb-row'+(p.id===myId?' me':'')+(d>0?' up':d<0?' down':'')+'" data-id="'+p.id+'" style="--i:'+Math.min(j,12)+'">'
+     +'<div class="lb-rk">'+r+(d?'<small class="lb-dl '+(d>0?'up':'down')+'">'+(d>0?'▲':'▼')+Math.abs(d)+'</small>':'')+'</div>'+av(p,44)
+     +'<div class="lb-mid"><div class="lb-nm"><b>'+esc(p.name)+(p.id===myId?' (ты)':'')+'</b>'+(p.title&&p.title!=='Новичок'?'<span class="lb-tt">'+esc(p.title)+'</span>':'')+'</div>'
+     +'<div class="lb-sb">Ур. '+p.level+(p.username?' · @'+esc(p.username):'')+'</div></div>'
+     +'<div class="lb-val" data-v="'+p.id+'">'+fv(val(p,k),k)+'</div></div>'}).join('')+'</div>';
+  h+=meBar(list,k);
+  root.innerHTML=h;
+  // FLIP-анимация перестановок
+  [].forEach.call(root.querySelectorAll('.lb-row'),r=>{const o=old[r.dataset.id];if(o==null)return;const dy=o-r.getBoundingClientRect().top;
+    if(Math.abs(dy)<2)return;r.style.animation='none';r.style.transform='translateY('+dy+'px)';r.style.transition='none';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{r.style.transition='transform .55s cubic-bezier(.2,.9,.3,1)';r.style.transform=''}))});
+  // счётчики + всплывающая прибавка
+  list.forEach((p,i)=>{const v=val(p,k),pv=prevVal[k][p.id];
+    if(pv!=null&&pv!==v){const t=root.querySelector(i<3?'[data-pv="'+p.id+'"]':'[data-v="'+p.id+'"]');
+      if(t){count(t,pv,v,k);const pop=document.createElement('span');pop.className='lb-pop '+(v>pv?'p':'n');pop.textContent=(v>pv?'+':'−')+F(Math.abs(v-pv));
+        if(i>=3)t.appendChild(pop);}}
+    prevVal[k][p.id]=v;prevRank[k][p.id]=i+1});
+  setTimeout(()=>{[].forEach.call(root.querySelectorAll('.lb-dl'),x=>x.remove());[].forEach.call(root.querySelectorAll('.lb-row.up,.lb-row.down'),x=>x.classList.remove('up','down'))},6000);
+}
+function count(el,a,b,k){const t0=performance.now(),D=700;(function f(t){const x=Math.min(1,(t-t0)/D),e=1-Math.pow(1-x,3);
+  const pop=el.querySelector('.lb-pop');el.firstChild.textContent=fv(Math.round(a+(b-a)*e),k);if(x<1)requestAnimationFrame(f)})(t0)}
+function meBar(list,k){
+  const s=stats(),mine=k==='money'?Math.max(0,Math.floor(balance)):(s.cases||0);
+  if(!initData)return'<div class="lb-me"><div class="mid"><b>Ты не в рейтинге</b><small>Открой игру из Telegram, чтобы участвовать</small></div></div>';
+  const idx=list.findIndex(p=>p.id===myId);
+  const rank=idx>=0?idx+1:(myRank&&myRank[k])||null;
+  let sub='';
+  if(idx===0)sub=list[1]?'Ты на вершине 👑 · отрыв '+F(mine-val(list[1],k)):'Ты первый! 👑';
+  else if(idx>0)sub='До #'+idx+' ('+esc(list[idx-1].name)+'): '+F(val(list[idx-1],k)-mine+1);
+  else if(rank)sub='Играй, чтобы подняться в топ';
+  else sub='Данные отправляются…';
+  return'<div class="lb-me" data-id="'+myId+'"><div class="rk">'+(rank?'#'+rank:'—')+'</div><div class="mid"><b>Твоя позиция</b><small>'+sub+'</small></div><div class="v">'+fv(mine,k)+'</div></div>';
+}
+window.lbRetry=function(){failed=false;board=null;paint();close_();open()};
+
+/* ---------- профиль игрока ---------- */
+const ov=document.createElement('div');ov.className='lb-ov';ov.id='lb-ov';
+ov.innerHTML='<div class="lb-sheet" id="lb-sh"><div class="lb-grab"></div><button class="lb-x" id="lb-x">✕</button><div class="lb-sc" id="lb-sc"></div></div>';
+document.body.appendChild(ov);
+function shut(){ov.classList.remove('vis');setTimeout(()=>{ov.classList.remove('on');document.body.style.overflow=''},330)}
+ov.onclick=e=>{if(e.target===ov)shut()};$('lb-x').onclick=shut;
+(function(){let y0=0,dy=0,on=false;const sh=$('lb-sh'),sc=$('lb-sc');
+  sh.addEventListener('touchstart',e=>{if(sc.scrollTop>0&&!e.target.closest('.lb-grab'))return;on=true;y0=e.touches[0].clientY;dy=0;sh.style.transition='none'},{passive:true});
+  sh.addEventListener('touchmove',e=>{if(!on)return;dy=e.touches[0].clientY-y0;if(dy>0)sh.style.transform='translateY('+dy+'px)'},{passive:true});
+  sh.addEventListener('touchend',()=>{if(!on)return;on=false;sh.style.transition='';sh.style.transform='';if(dy>110)shut()})})();
+
+const skinIdx=()=>{const m={};try{ALL_POSSIBLE_SKINS.forEach(s=>m[s.weapon+'|'+s.name]=s)}catch(e){}return m};
+function skinImg(it,idx){const o=idx[it[0]+'|'+it[1]]||{weapon:it[0],name:it[1],rarity:it[2],price:it[3]};try{return itemImg(o)}catch(e){return''}}
+const rc=r=>(RARITY[r]||RARITY.milspec).color,rl=r=>(RARITY[r]||RARITY.milspec).label;
+function ago(t){const s=Math.max(0,Math.floor(Date.now()/1000-t));if(s<90)return'только что';if(s<3600)return Math.floor(s/60)+' мин назад';if(s<86400)return Math.floor(s/3600)+' ч назад';return Math.floor(s/86400)+' д назад'}
+let invSort='price',cache=null;
+function openProfile(id){
+  const base=board&&(board.money.concat(board.cases)).find(p=>p.id===id);
+  ov.classList.add('on');document.body.style.overflow='hidden';requestAnimationFrame(()=>ov.classList.add('vis'));
+  $('lb-sc').scrollTop=0;
+  $('lb-sc').innerHTML=base?'<div class="lb-hero">'+av(base,96)+'<div class="lb-hn">'+esc(base.name)+'</div></div><div class="lb-load">Загружаем профиль…</div>':'<div class="lb-load">Загружаем профиль…</div>';
+  fetch(LB_API+'/api/player?id='+id).then(r=>r.ok?r.json():Promise.reject()).then(p=>{cache=p;invSort='price';drawProfile()})
+   .catch(()=>{$('lb-sc').innerHTML='<div class="lb-note">😕 Не удалось загрузить профиль.</div>'});
+}
+function drawProfile(){
+  const p=cache,pr=p.profile||{},L=p.level||1,xp=pr.xp||0,lo=Math.pow(L-1,2)*50,hi=Math.pow(L,2)*50,pc=Math.max(0,Math.min(1,(xp-lo)/(hi-lo||1)));
+  const R=57,C=2*Math.PI*R,inv=pr.inv||[],idx=skinIdx(),upT=(pr.upW||0)+(pr.upL||0),wr=upT?Math.round((pr.upW||0)/upT*100):0;
+  const best=inv[0],achDone=(pr.ach||[]).reduce((a,b)=>a+(b?1:0),0);
+  const cnt={};inv.forEach(i=>cnt[i[2]]=(cnt[i[2]]||0)+1);
+  let h='<div class="lb-hero"><div class="lb-lv"><svg width="124" height="124"><circle cx="62" cy="62" r="'+R+'" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/>'
+   +'<circle cx="62" cy="62" r="'+R+'" fill="none" stroke="url(#lbg)" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+C*(1-pc)+'"/>'
+   +'<defs><linearGradient id="lbg"><stop offset="0" stop-color="#ffb627"/><stop offset="1" stop-color="#ff4d2f"/></linearGradient></defs></svg>'+av(p,98)+'<div class="bd">Ур. '+L+'</div></div>'
+   +'<div class="lb-hn">'+esc(p.name)+'</div><div class="lb-hs">'+(p.username?'@'+esc(p.username)+' · ':'')+(p.online?'<span style="color:#4ade80">● онлайн</span>':'был(а) '+ago(p.seen))+'</div>'
+   +'<div class="lb-chips">'+(pr.title?'<span class="lb-chip g">'+esc(pr.title)+'</span>':'')
+   +(p.rank&&p.rank.money?'<span class="lb-chip">💰 #'+p.rank.money+' по деньгам</span>':'')+(p.rank&&p.rank.cases?'<span class="lb-chip">📦 #'+p.rank.cases+' по кейсам</span>':'')+'</div></div>';
+  h+='<div class="lb-h2"><span>📊 Характеристики</span><small>'+F(xp)+' опыта</small></div><div class="lb-grid">'
+   +[['💰 Баланс',F(p.balance)+' 🪙'],['🎒 Инвентарь',F(pr.invValue)+' 🪙<em> · '+F(pr.invCount)+' шт.</em>'],['⚡ ЭЛО',F(pr.elo)],['📦 Кейсов открыто',F(p.cases)],
+     ['🎮 Игр сыграно',F(pr.games)],['📈 Рекорд денег',F(pr.maxBal)+' 🪙'],['🚀 Апгрейды',(pr.upW||0)+' / '+(pr.upL||0)+'<em> · '+wr+'%</em>'],['🔥 Серия дней',F(pr.streak)]]
+     .map(a=>'<div class="lb-st"><small>'+a[0]+'</small><b>'+a[1]+'</b></div>').join('')+'</div>';
+  if(best)h+='<div class="lb-h2"><span>💎 Лучший скин</span></div><div class="lb-show" style="--rc:'+rc(best[2])+'"><img src="'+esc(skinImg(best,idx))+'" alt=""><div><small>'+esc(rl(best[2]))+'</small><b>'+esc(best[0])+' | '+esc(best[1])+'</b><span>'+F(best[3])+' 🪙</span></div></div>';
+  if(inv.length){h+='<div class="lb-h2"><span>🎨 Редкость</span></div><div class="lb-rb">'+RAR.filter(r=>cnt[r]).map(r=>'<i style="flex:'+cnt[r]+';background:'+rc(r)+'"></i>').join('')+'</div><div class="lb-lg">'+RAR.filter(r=>cnt[r]).map(r=>'<span style="--c:'+rc(r)+'">'+esc(rl(r))+' '+cnt[r]+'</span>').join('')+'</div>'}
+  h+='<div class="lb-h2"><span>🏅 Достижения</span><small>'+achDone+'/'+ACHL.length+'</small></div><div class="lb-ach">'+ACHL.map((a,i)=>'<div class="lb-a'+((pr.ach||[])[i]?' ok':'')+'"><span>'+((pr.ach||[])[i]?a[0]:'🔒')+'</span>'+a[1]+'</div>').join('')+'</div>';
+  h+='<div class="lb-h2"><span>🎒 Инвентарь</span><div class="lb-sort"><button data-s="price" class="'+(invSort==='price'?'on':'')+'">Дорогие</button><button data-s="rar" class="'+(invSort==='rar'?'on':'')+'">Редкие</button></div></div>'
+   +(inv.length?'<div class="lb-inv" id="lb-inv"></div>'+(pr.invCount>inv.length?'<div class="lb-note" style="padding:10px">Показаны '+inv.length+' самых дорогих из '+F(pr.invCount)+'</div>':''):'<div class="lb-note">Инвентарь пуст</div>');
+  $('lb-sc').innerHTML=h;
+  [].forEach.call($('lb-sc').querySelectorAll('.lb-sort button'),b=>b.onclick=()=>{invSort=b.dataset.s;[].forEach.call($('lb-sc').querySelectorAll('.lb-sort button'),x=>x.classList.toggle('on',x===b));drawInv()});
+  drawInv();
+}
+function drawInv(){
+  const g=$('lb-inv');if(!g||!cache)return;const idx=skinIdx();
+  let inv=(cache.profile.inv||[]).slice();
+  if(invSort==='rar')inv.sort((a,b)=>RAR.indexOf(a[2])-RAR.indexOf(b[2])||b[3]-a[3]);
+  g.innerHTML=inv.map(i=>'<div class="lb-it" style="--rc:'+rc(i[2])+'"><img loading="lazy" src="'+esc(skinImg(i,idx))+'" alt=""><div class="w">'+esc(i[0])+'</div><div>'+esc(i[1])+'</div><div class="p">'+F(i[3])+'</div></div>').join('');
+}
 })();
 </script>
 
