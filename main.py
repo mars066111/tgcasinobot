@@ -60,6 +60,32 @@ try:
     db.commit()
 except sqlite3.OperationalError:
     pass
+# ---------- ОДНОРАЗОВЫЙ ПОЛНЫЙ СБРОС ВСЕХ ИГРОКОВ ----------
+# Чтобы сделать новый сброс в будущем, поменяй RESET_VERSION (например, "v6").
+RESET_VERSION = "v5"
+db.execute("CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT)")
+if not db.execute("SELECT 1 FROM meta WHERE k=?", ("reset_" + RESET_VERSION,)).fetchone():
+    db.execute(
+        "UPDATE players SET balance=10000, cases=0, level=1, profile=NULL, susp=0"
+    )
+    db.execute("DELETE FROM grants")
+    db.execute("INSERT INTO meta (k,v) VALUES (?,?)", ("reset_" + RESET_VERSION, str(int(time.time()))))
+    db.commit()
+    print("Сброс всех игроков выполнен:", RESET_VERSION)
+for _col in ("strikes", "bonus", "nwbase", "nwts"):
+    try:
+        db.execute(f"ALTER TABLE players ADD COLUMN {_col} INTEGER DEFAULT 0")
+        db.commit()
+    except sqlite3.OperationalError:
+        pass
+# --- античит: лимиты на рост «чистого капитала» (баланс + стоимость скинов) ---
+STEP_MULT = 25        # за одну синхронизацию капитал может вырасти максимум в 25 раз ...
+STEP_FLAT = 20_000    # ... плюс эта сумма
+PER_SEC = 50          # ... плюс столько монет за каждую прошедшую секунду (до часа)
+HOUR_MULT = 60        # за час максимум в 60 раз от капитала на начало часа ...
+HOUR_FLAT = 100_000   # ... плюс эта сумма
+MAX_STRIKES = 3       # после 3 нарушений игрок скрывается из рейтинга
+START_BAL = 10_000
 ADMIN_CMDS = {"bal", "set", "item", "case", "clear"}
 JUMP_LIMIT = 3_000_000  # подозрительный скачок баланса между синхронизациями
 
@@ -317,10 +343,46 @@ class Handler(BaseHTTPRequestHandler):
         balance = to_int(data.get("balance"))
         cases = to_int(data.get("cases"), 0, 10 ** 9)
         level = to_int(data.get("level"), 1, 10 ** 4)
-        prof = json.dumps(clean_profile(data.get("profile") or {}), ensure_ascii=False)
+        pdict = clean_profile(data.get("profile") or {})
+        prof = json.dumps(pdict, ensure_ascii=False)
+        new_nw = balance + sum(i[3] for i in pdict["inv"])
+        now = int(time.time())
 
         with db_lock:
-            old = db.execute("SELECT balance FROM players WHERE uid=?", (uid,)).fetchone()
+            row = db.execute(
+                "SELECT balance,profile,seen,strikes,bonus,nwbase,nwts FROM players WHERE uid=?",
+                (uid,),
+            ).fetchone()
+            if row:
+                try:
+                    op = json.loads(row[1]) if row[1] else {}
+                except Exception:
+                    op = {}
+                old_inv = op.get("inv") or []
+                old_bal = row[0]
+                old_nw = old_bal + sum(i[3] for i in old_inv)
+                elapsed = max(0, min(now - (row[2] or now), 3600))
+                strikes, bonus, base, bts = row[3] or 0, row[4] or 0, row[5] or 0, row[6] or 0
+            else:
+                old_inv, old_bal, old_nw = [], START_BAL, START_BAL
+                elapsed, strikes, bonus, base, bts = 0, 0, 0, START_BAL, now
+            if now - bts > 3600 or base <= 0:
+                base, bts = max(old_nw, 1), now
+            step_cap = old_nw * STEP_MULT + STEP_FLAT + elapsed * PER_SEC
+            hour_cap = base * HOUR_MULT + HOUR_FLAT
+            if new_nw > min(step_cap, hour_cap) + bonus:
+                # накрутка: откатываем игрока к последнему честному состоянию
+                if row:
+                    strikes += 1
+                    db.execute(
+                        "UPDATE players SET seen=?, strikes=?, susp=CASE WHEN ?>=? THEN 1 ELSE susp END WHERE uid=?",
+                        (now, strikes, strikes, MAX_STRIKES, uid),
+                    )
+                    db.commit()
+                return self._json(
+                    {"ok": False, "revert": True, "balance": old_bal, "inv": old_inv[:200]}
+                )
+            old = (old_bal,) if row else None
             db.execute(
                 """INSERT INTO players (uid,name,username,photo,balance,cases,level,seen,profile)
                    VALUES (?,?,?,?,?,?,?,?,?)
@@ -328,7 +390,10 @@ class Handler(BaseHTTPRequestHandler):
                      name=excluded.name, username=excluded.username, photo=excluded.photo,
                      balance=excluded.balance, cases=excluded.cases, level=excluded.level,
                      seen=excluded.seen, profile=excluded.profile""",
-                (uid, name, username, photo, balance, cases, level, int(time.time()), prof),
+                (uid, name, username, photo, balance, cases, level, now, prof),
+            )
+            db.execute(
+                "UPDATE players SET bonus=0, nwbase=?, nwts=? WHERE uid=?", (base, bts, uid)
             )
             if old and balance - old[0] > JUMP_LIMIT:
                 db.execute("UPDATE players SET susp=1 WHERE uid=?", (uid,))
@@ -362,6 +427,15 @@ class Handler(BaseHTTPRequestHandler):
                 "INSERT INTO grants (uid,kind,data,created) VALUES (?,?,?,?)",
                 [(u, t, json.dumps(clean, ensure_ascii=False), now) for u in ids],
             )
+            add = 0
+            if t in ("bal", "set"):
+                add = max(0, clean["v"])
+            elif t in ("item", "case"):
+                add = 2_000_000 * clean["n"]
+            if add:
+                db.executemany(
+                    "UPDATE players SET bonus=bonus+? WHERE uid=?", [(add, u) for u in ids]
+                )
             if t in ("set", "clear"):  # админ сбросил игрока — снять пометку «подозрительный»
                 db.executemany("UPDATE players SET susp=0 WHERE uid=?", [(u,) for u in ids])
             db.commit()
