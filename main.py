@@ -49,7 +49,19 @@ db.execute(
         profile TEXT
     )"""
 )
+db.execute(
+    """CREATE TABLE IF NOT EXISTS grants (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER, kind TEXT,
+        data TEXT, created INTEGER, done INTEGER DEFAULT 0)"""
+)
 db.commit()
+try:
+    db.execute("ALTER TABLE players ADD COLUMN susp INTEGER DEFAULT 0")
+    db.commit()
+except sqlite3.OperationalError:
+    pass
+ADMIN_CMDS = {"bal", "set", "item", "case", "clear"}
+JUMP_LIMIT = 3_000_000  # подозрительный скачок баланса между синхронизациями
 
 # ---------------------- LIVE (SSE) -----------------------
 clients = set()
@@ -77,7 +89,7 @@ def get_board():
         def top(col):
             rows = db.execute(
                 f"SELECT uid,name,username,photo,balance,cases,level,seen,profile "
-                f"FROM players WHERE {col} > 0 ORDER BY {col} DESC, uid ASC LIMIT ?",
+                f"FROM players WHERE {col} > 0 AND susp = 0 ORDER BY {col} DESC, uid ASC LIMIT ?",
                 (TOP_N,),
             ).fetchall()
             out = []
@@ -118,7 +130,7 @@ def get_rank(uid):
             return None
         money_rank = (
             db.execute(
-                "SELECT COUNT(*) FROM players WHERE balance > ?", (row[0],)
+                "SELECT COUNT(*) FROM players WHERE balance > ? AND susp = 0", (row[0],)
             ).fetchone()[0]
             + 1
         )
@@ -272,7 +284,8 @@ class Handler(BaseHTTPRequestHandler):
         )
 
     def do_POST(self):
-        if urlparse(self.path).path != "/api/sync":
+        path = urlparse(self.path).path
+        if path not in ("/api/sync", "/api/admin", "/api/grants", "/api/grants/ack"):
             return self._json({"error": "not found"}, 404)
         try:
             n = int(self.headers.get("Content-Length", "0"))
@@ -288,6 +301,12 @@ class Handler(BaseHTTPRequestHandler):
         user = verify_init_data(str(data.get("initData", "")))
         if not user:
             return self._json({"error": "auth"}, 401)
+        if path == "/api/admin":
+            if int(user["id"]) != OWNER_ID:
+                return self._json({"error": "forbidden"}, 403)
+            return self._admin(data)
+        if path in ("/api/grants", "/api/grants/ack"):
+            return self._grants(int(user["id"]), path, data)
 
         uid = int(user["id"])
         name = to_str(user.get("first_name") or user.get("username") or "Игрок", 40)
@@ -301,6 +320,7 @@ class Handler(BaseHTTPRequestHandler):
         prof = json.dumps(clean_profile(data.get("profile") or {}), ensure_ascii=False)
 
         with db_lock:
+            old = db.execute("SELECT balance FROM players WHERE uid=?", (uid,)).fetchone()
             db.execute(
                 """INSERT INTO players (uid,name,username,photo,balance,cases,level,seen,profile)
                    VALUES (?,?,?,?,?,?,?,?,?)
@@ -310,9 +330,67 @@ class Handler(BaseHTTPRequestHandler):
                      seen=excluded.seen, profile=excluded.profile""",
                 (uid, name, username, photo, balance, cases, level, int(time.time()), prof),
             )
+            if old and balance - old[0] > JUMP_LIMIT:
+                db.execute("UPDATE players SET susp=1 WHERE uid=?", (uid,))
             db.commit()
         bump_version()
         self._json({"ok": True, "rank": get_rank(uid)})
+
+    def _admin(self, data):
+        cmd = data.get("cmd") or {}
+        t = cmd.get("t")
+        if t not in ADMIN_CMDS:
+            return self._json({"error": "bad cmd"}, 400)
+        to = cmd.pop("to", None)
+        clean = {"t": t}
+        if t in ("bal", "set"):
+            clean["v"] = to_int(cmd.get("v"), -10 ** 12, 10 ** 12)
+        if t == "item":
+            clean["item"] = to_str(cmd.get("item"), 100)
+        if t == "case":
+            clean["case"] = to_str(cmd.get("case"), 30)
+        if t in ("item", "case"):
+            clean["n"] = to_int(cmd.get("n"), 1, 500)
+        now = int(time.time())
+        with db_lock:
+            if to == "all":
+                ids = [r[0] for r in db.execute("SELECT uid FROM players LIMIT 20000")]
+            else:
+                ids = [to_int(to, 0, 10 ** 15)]
+            ids = [u for u in ids if u]
+            db.executemany(
+                "INSERT INTO grants (uid,kind,data,created) VALUES (?,?,?,?)",
+                [(u, t, json.dumps(clean, ensure_ascii=False), now) for u in ids],
+            )
+            if t in ("set", "clear"):  # админ сбросил игрока — снять пометку «подозрительный»
+                db.executemany("UPDATE players SET susp=0 WHERE uid=?", [(u,) for u in ids])
+            db.commit()
+        bump_version()
+        self._json({"ok": True, "count": len(ids)})
+
+    def _grants(self, uid, path, data):
+        with db_lock:
+            if path == "/api/grants/ack":
+                ids = [to_int(x, 0, 10 ** 9) for x in (data.get("ids") or [])[:100]]
+                if ids:
+                    db.execute(
+                        "UPDATE grants SET done=1 WHERE uid=? AND id IN (%s)" % ",".join("?" * len(ids)),
+                        [uid] + ids,
+                    )
+                    db.commit()
+                return self._json({"ok": True})
+            rows = db.execute(
+                "SELECT id,data FROM grants WHERE uid=? AND done=0 ORDER BY id LIMIT 50", (uid,)
+            ).fetchall()
+        out = []
+        for r in rows:
+            try:
+                g = json.loads(r[1])
+                g["id"] = r[0]
+                out.append(g)
+            except Exception:
+                pass
+        self._json({"grants": out})
 
     def _stream(self):
         with clients_lock:
