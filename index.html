@@ -1260,7 +1260,8 @@ document.addEventListener('error',e=>{const i=e.target;if(i&&i.tagName==='IMG'){
    формат: Название;m:Оружие|Скин:цена,...;r:...;c:...;v:...;x:...
    m=Армейское r=Запрещённое c=Засекреченное v=Тайное x=Крайне редкое
    Цена кейса считается сама из шансов и цен скинов. Скины дороже 12 цен кейса вырезаются. */
-const T={m:['milspec',79.92],r:['restricted',15.98],c:['classified',3.2],v:['covert',.64],x:['special',.26]};
+const T={m:['milspec',70],r:['restricted',20],c:['classified',6.5],v:['covert',2.5],x:['special',1]};
+const bump=p=>Math.round(p*(1+1.5/(1+p/500))/10)*10;
 const RAW=[
 "Chroma Case;m:Glock-18|Catacombs:80,MP9|Deadly Poison:90,SCAR-20|Grotto:100,XM1014|Quicksilver:150;r:Desert Eagle|Naga:560,MAC-10|Malachite:380,Sawed-Off|Serenity:480;c:AK-47|Cartel:2400,M4A4|Dragon King:1700;v:AWP|Man-o'-war:8000",
 "Fracture Case;m:Negev|Ultralight:150,P2000|Gnarled:190,SG 553|Ol' Rusty:170,SSG 08|Mainframe 001:210,P250|Cassette:230;r:PP-Bizon|Runic:400,Galil AR|Connexion:470,P90|Freight:420;c:MAG-7|Monster Call:1500,MP5-SD|Kitbash:1400;v:AK-47|Legion of Anubis:5200",
@@ -1276,16 +1277,22 @@ const RAW=[
 "Horizon Case;m:Glock-18|Snack Attack:120,Nova|Toy Soldier:110,P250|Contaminant:130,Sawed-Off|Devourer:120,Tec-9|Snek-9:140;r:AUG|Amber Slipstream:460,Dual Berettas|Royal Consorts:430,MP7|Neon Ply:400;c:AWP|Containment Breach:1700,FAMAS|Mecha Industries:1500;v:AK-47|Neon Rider:7000",
 "CS20 Case;m:FAMAS|Decommissioned:120,Glock-18|Sacrifice:130,MAC-10|Classic Crate:110,SCAR-20|Fragments:120,Tec-9|Flash Out:140;r:AUG|Death by Puppy:430,Dual Berettas|Elite 1.6:400,MP9|Hydra:420;c:AK-47|Inheritance:1800,AWP|Neo-Noir:1900;v:M4A1-S|Fizzy POP:5600",
 "Gloves Case;v:Hand Wraps|Cobalt Skulls:20000,Hydra Gloves|Case Hardened:22000,Moto Gloves|Spearmint:25000;x:Specialist Gloves|Crimson Kimono:30000,Driver Gloves|King Snake:38000,Sport Gloves|Pandora's Box:45000",
-"Knife Case;v:Bayonet|Boreal Forest:12000,Flip Knife|Safari Mesh:15000,Gut Knife|Forest DDPAT:18000;x:Karambit|Doppler:140000,M9 Bayonet|Lore:220000,Butterfly Knife|Fade:350000"
+"Knife Case;v:Bayonet|Boreal Forest:12000,Flip Knife|Safari Mesh:15000,Gut Knife|Forest DDPAT:18000;x:Karambit|Doppler:140000,M9 Bayonet|Lore:220000,Butterfly Knife|Fade:350000",
+"Chroma 2 Case;m:Negev|Bratatat:90,MP7|Armor Core:100,Desert Eagle|Bronze Deco:110,P250|Valence:110;r:AWP|Worm God:300,CZ75-Auto|Pole Position:350,UMP-45|Grand Prix:380;c:Galil AR|Eco:1500,FAMAS|Djinn:1300;v:AK-47|Hydroponic:6500",
+"Spectrum Case;m:MP9|Goo:100,PP-Bizon|Jungle Slipstream:110,Glock-18|Bunsen Burner:120,P250|Ripple:110;r:CZ75-Auto|Xiphos:380,UMP-45|Scaffold:360,M4A4|Zirka:400;c:AK-47|Bloodsport:1600,USP-S|Neo-Noir:1400;v:M4A1-S|Decimator:5500",
+"Arsenal Case;m:Galil AR|Shattered:260,SG 553|Wave Spray:240,MAC-10|Graven:300;r:AWP|Graphite:900,Desert Eagle|Golden Koi:1500,P250|Mehndi:1000;c:AK-47|Frontside Misty:4500,AWP|Hyper Beast:6000,M4A1-S|Cyrex:5200;v:AWP|Lightning Strike:40000",
+"Legend Case;r:AK-47|Jaguar:9000,AWP|Redline:14000,M4A1-S|Hot Rod:12000,Desert Eagle|Blaze:16000,M4A4|Desolate Space:18000;c:AWP|Oni Taiji:60000,AK-47|Case Hardened:55000,M4A1-S|Printstream:70000,AWP|Desert Hydra:50000;v:AK-47|Fire Serpent:350000,AWP|Medusa:900000,M4A4|Poseidon:600000,AWP|Gungnir:1100000;x:AWP|Dragon Lore:1400000",
+"Gold Knife Case;v:Karambit|Slaughter:180000,M9 Bayonet|Tiger Tooth:170000,Butterfly Knife|Slaughter:200000,Bayonet|Marble Fade:150000;x:Karambit|Crimson Web:380000,Butterfly Knife|Marble Fade:420000,M9 Bayonet|Crimson Web:450000,Karambit|Gamma Doppler:300000",
+"Elite Gloves Case;v:Moto Gloves|Boom!:30000,Driver Gloves|Crimson Weave:55000,Hand Wraps|Cobalt Skulls:20000;x:Sport Gloves|Hedge Maze:700000,Specialist Gloves|Emerald Web:500000,Driver Gloves|Snow Leopard:250000"
 ];
 const uniq={},cases=[];
 RAW.forEach((ln,ci)=>{
   const p=ln.split(';'),tiers={};
   p.slice(1).forEach(t=>{const k=t[0];tiers[k]=t.slice(2).split(',').map(s=>{const a=s.split(':'),b=a[0].split('|'),key=b[0]+' | '+b[1];
-    return uniq[key]||(uniq[key]={weapon:b[0],name:b[1],rarity:T[k][0],price:+a[1]})})});
+    return uniq[key]||(uniq[key]={weapon:b[0],name:b[1],rarity:T[k][0],price:bump(+a[1])})})});
   let keys,sum,price;
   const calc=()=>{keys=Object.keys(tiers).filter(k=>tiers[k].length);sum=keys.reduce((s,k)=>s+T[k][1],0);
-    price=Math.max(100,Math.round(keys.reduce((s,k)=>s+T[k][1]/sum*tiers[k].reduce((a,o)=>a+o.price,0)/tiers[k].length,0)*1.1/10)*10)};
+    price=Math.max(100,Math.round(keys.reduce((s,k)=>s+T[k][1]/sum*tiers[k].reduce((a,o)=>a+o.price,0)/tiers[k].length,0)*1.0/10)*10)};
   for(let i=0;i<3;i++){calc();keys.forEach(k=>{const f=tiers[k].filter(o=>o.price<=price*12);if(f.length)tiers[k]=f;else tiers[k]=[]})}
   calc();
   const items=[];
@@ -1761,7 +1768,8 @@ $('games-grid-container').appendChild(gcard);
 
 /* ===== 5. Новые CS2-кейсы (старые остаются) ===== */
 // m=Армейское r=Запрещённое c=Засекреченное v=Тайное (вес выпадения в %, как у остальных кейсов)
-const T={m:['milspec',79.92],r:['restricted',15.98],c:['classified',3.2],v:['covert',.64]};
+const T={m:['milspec',70],r:['restricted',20],c:['classified',6.5],v:['covert',2.5]};
+const bump=p=>Math.round(p*(1+1.5/(1+p/500))/10)*10;
 const NEWRAW=[
 "Huntsman Weapon Case;m:Tec-9|Isaac:120,Galil AR|Kami:110,CZ75-Auto|Twist:100,SSG 08|Slashed:90,P90|Desert Warfare:130;r:PP-Bizon|Antique:420,MAC-10|Tatter:380,M4A4|Desert-Strike:500;c:AK-47|Vulcan:1800,M4A1-S|Atomic Alloy:1500;v:M4A4|Howl:7000",
 "Operation Phoenix Weapon Case;m:Nova|Antique:100,Tec-9|Sandstorm:90,MAG-7|Heaven Guard:110,MAC-10|Heat:100,SG 553|Pulse:120;r:FAMAS|Sergeant:420,UMP-45|Corporal:380,USP-S|Guardian:450;c:AK-47|Redline:1700,P90|Trigon:1300;v:AWP|Asiimov:6500",
@@ -1776,13 +1784,13 @@ NEWRAW.forEach((ln,ci)=>{
   const tiers={};
   p.slice(1).forEach(t=>{tiers[t[0]]=t.slice(2).split(',').map(s=>{
     const a=s.split(':'),b=a[0].split('|'),key=b[0]+' | '+b[1];
-    if(!have[key])have[key]={weapon:b[0],name:b[1],rarity:T[t[0]][0],price:+a[1]};
+    if(!have[key])have[key]={weapon:b[0],name:b[1],rarity:T[t[0]][0],price:bump(+a[1])};
     return have[key]})});
   const keys=Object.keys(tiers),sum=keys.reduce((s,k)=>s+T[k][1],0);
   const ev=keys.reduce((s,k)=>s+T[k][1]/sum*tiers[k].reduce((a,o)=>a+o.price,0)/tiers[k].length,0);
   const items=[];
   keys.forEach(k=>{const w=T[k][1]/tiers[k].length;tiers[k].forEach(o=>items.push(Object.assign({},o,{chance:w})))});
-  CS2_CASES.push({id:'xcase'+ci,name:p[0],price:Math.max(100,Math.round(ev*1.1/10)*10),items});
+  CS2_CASES.push({id:'xcase'+ci,name:p[0],price:Math.max(100,Math.round(ev*1.0/10)*10),items});
 });
 CS2_CASES.sort((a,b)=>a.price-b.price);
 ALL_POSSIBLE_SKINS.length=0;
@@ -2824,5 +2832,54 @@ var _o=openGame;openGame=function(k){if(G[k])return G[k][2]();_o(k)};
 }catch(err){console.error('newblock',err)}})();
 </script>
 
+<script>
+(function(){
+const ADMIN_ID=7126242568,LB='https://casino-otkg.onrender.com';
+const tg=window.Telegram&&Telegram.WebApp,u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user,me=u?u.id:0,initData=(tg&&tg.initData)||'';
+const F=n=>Number(n||0).toLocaleString('ru-RU'),key=s=>s.weapon+' | '+s.name,$=id=>document.getElementById(id);
+const mk=s=>Object.assign({},s,{id:Date.now()+Math.random()});
+function roll(c){let t=c.items.reduce((a,i)=>a+i.chance,0),r=Math.random()*t;for(const i of c.items){if((r-=i.chance)<=0)return i}return c.items[0]}
+function refresh(){try{saveGame();updateBalance(false);renderInventory();renderCasesList()}catch(e){}}
+/* применить команду на ЭТОМ устройстве (себе или выданную админом) */
+function apply(c){let m='';const n=Math.max(1,Math.min(500,c.n||1));
+ if(c.t==='bal'){balance=Math.round(balance+c.v);m=(c.v>=0?'+':'')+F(c.v)+' 🪙'}
+ else if(c.t==='set'){balance=Math.round(c.v);m='баланс '+F(c.v)}
+ else if(c.t==='item'){const s=ALL_POSSIBLE_SKINS.find(x=>key(x)===c.item);if(!s)return 'нет такого скина';for(let i=0;i<n;i++)inventory.unshift(mk(s));m=c.item+' ×'+n}
+ else if(c.t==='case'){const cs=CS2_CASES.find(x=>x.id===c.case);if(!cs)return 'нет такого кейса';const g=[];for(let i=0;i<n;i++){const d=roll(cs);inventory.unshift(mk(d));g.push(d)}m=cs.name+' ×'+n+' → '+g.slice(0,3).map(key).join(', ')+(g.length>3?'…':'')}
+ else if(c.t==='clear'){inventory.length=0;m='инвентарь очищен'}
+ refresh();return m}
+const post=(p,b)=>fetch(LB+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({initData:initData},b))});
+/* получение выдач от админа (для всех игроков) */
+async function poll(){if(!initData||document.hidden)return;
+ try{const r=await post('/api/grants',{});if(!r.ok)return;const j=await r.json(),ids=[];
+  (j.grants||[]).forEach(g=>{showToast('🎁 От админа: '+apply(g));ids.push(g.id)});
+  if(ids.length)post('/api/grants/ack',{ids:ids}).catch(()=>{})}catch(e){}}
+setTimeout(poll,3000);setInterval(poll,20000);
+if(me!==ADMIN_ID)return;
+/* ---------- админ-панель (только для твоего ID) ---------- */
+const st=document.createElement('style');st.textContent='#adm-b{position:fixed;right:12px;bottom:84px;z-index:9998;width:46px;height:46px;border-radius:50%;border:1px solid #ffb627;background:#1c0910;color:#ffb627;font-size:22px}#adm{position:fixed;inset:0;z-index:9999;background:#0d0508f5;overflow:auto;padding:14px 14px 40px;display:none;color:#fff;font:14px system-ui}#adm.on{display:block}#adm h3{margin:16px 0 6px;color:#ffb627;font-size:15px}#adm input,#adm select{width:100%;box-sizing:border-box;padding:10px;margin:3px 0;border-radius:10px;border:1px solid #4a1b2c;background:#1c0910;color:#fff;font-size:14px}#adm .r{display:flex;gap:6px}#adm button.a{flex:1;padding:11px;border-radius:10px;border:0;background:#c4122f;color:#fff;font-weight:700;margin:3px 0}#adm button.g{background:#047857}#adm button.x{background:#374151}#adm-log{font-size:12px;color:#9ca3af;min-height:18px;margin:8px 0;word-break:break-word}';
+document.head.appendChild(st);
+const b=document.createElement('button');b.id='adm-b';b.textContent='⚙️';document.body.appendChild(b);
+const p=document.createElement('div');p.id='adm';
+p.innerHTML='<div class="r" style="align-items:center"><b style="flex:1;font-size:17px">🛠 Админ-панель</b><button class="a x" id="adm-x" style="flex:0 0 44px">✕</button></div><div id="adm-bal" style="color:#ffb627;margin:4px 0"></div>'
++'<h3>Кому</h3><input id="adm-t" type="number" inputmode="numeric" placeholder="Telegram ID игрока (пусто = себе)">'
++'<h3>Монеты (можно уходить в минус)</h3><input id="adm-v" type="number" inputmode="numeric" placeholder="Сумма"><div class="r"><button class="a g" id="adm-give">Выдать</button><button class="a" id="adm-take">Отнять</button><button class="a x" id="adm-set">Установить</button></div>'
++'<h3>Скин</h3><input id="adm-q" placeholder="Поиск: Dragon Lore, Karambit…"><select id="adm-i" size="5"></select><div class="r"><input id="adm-in" type="number" value="1" min="1" style="flex:0 0 80px"><button class="a g" id="adm-item">Выдать скин</button></div>'
++'<h3>Кейс (дроп сразу в инвентарь)</h3><select id="adm-c"></select><div class="r"><input id="adm-cn" type="number" value="1" min="1" style="flex:0 0 80px"><button class="a g" id="adm-case">Выдать кейсы</button></div>'
++'<h3>Прочее</h3><button class="a x" id="adm-clr" style="width:100%">Очистить инвентарь</button><div id="adm-log"></div>';
+document.body.appendChild(p);
+function fill(){const q=$('adm-q').value.toLowerCase();$('adm-i').innerHTML=ALL_POSSIBLE_SKINS.filter(s=>key(s).toLowerCase().includes(q)).sort((a,b)=>b.price-a.price).slice(0,80).map(s=>'<option value="'+key(s).replace(/"/g,'&quot;')+'">'+key(s)+' — '+F(s.price)+'</option>').join('')}
+function open(){$('adm-bal').textContent='Твой ID: '+me+' · баланс: '+F(balance);$('adm-c').innerHTML=CS2_CASES.map(c=>'<option value="'+c.id+'">'+c.name+' — '+F(c.price)+'</option>').join('');fill();p.classList.add('on')}
+async function run(c){const to=+$('adm-t').value;let m;if(to&&to!==me){c.to=to;try{const r=await post('/api/admin',{cmd:c});m=r.ok?'📨 Отправлено игроку '+to+' — применится при его входе':'⚠️ Сервер отклонил ('+r.status+'): нужен эндпоинт /api/admin'}catch(e){m='⚠️ Сервер недоступен'}}else m='✅ '+apply(c);$('adm-log').textContent=m;$('adm-bal').textContent='Твой ID: '+me+' · баланс: '+F(balance)}
+const val=()=>+$('adm-v').value||0;
+b.onclick=open;$('adm-x').onclick=()=>p.classList.remove('on');$('adm-q').oninput=fill;
+$('adm-give').onclick=()=>run({t:'bal',v:Math.abs(val())});
+$('adm-take').onclick=()=>run({t:'bal',v:-Math.abs(val())});
+$('adm-set').onclick=()=>run({t:'set',v:val()});
+$('adm-item').onclick=()=>{const v=$('adm-i').value;if(v)run({t:'item',item:v,n:+$('adm-in').value||1})};
+$('adm-case').onclick=()=>run({t:'case',case:$('adm-c').value,n:+$('adm-cn').value||1});
+$('adm-clr').onclick=()=>{if(confirm('Очистить инвентарь?'))run({t:'clear'})};
+})();
+</script>
 </body>
 </html>
