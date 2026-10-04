@@ -1283,7 +1283,10 @@ const RAW=[
 "Arsenal Case;m:Galil AR|Shattered:260,SG 553|Wave Spray:240,MAC-10|Graven:300;r:AWP|Graphite:900,Desert Eagle|Golden Koi:1500,P250|Mehndi:1000;c:AK-47|Frontside Misty:4500,AWP|Hyper Beast:6000,M4A1-S|Cyrex:5200;v:AWP|Lightning Strike:40000",
 "Legend Case;r:AK-47|Jaguar:9000,AWP|Redline:14000,M4A1-S|Hot Rod:12000,Desert Eagle|Blaze:16000,M4A4|Desolate Space:18000;c:AWP|Oni Taiji:60000,AK-47|Case Hardened:55000,M4A1-S|Printstream:70000,AWP|Desert Hydra:50000;v:AK-47|Fire Serpent:350000,AWP|Medusa:900000,M4A4|Poseidon:600000,AWP|Gungnir:1100000;x:AWP|Dragon Lore:1400000",
 "Gold Knife Case;v:Karambit|Slaughter:180000,M9 Bayonet|Tiger Tooth:170000,Butterfly Knife|Slaughter:200000,Bayonet|Marble Fade:150000;x:Karambit|Crimson Web:380000,Butterfly Knife|Marble Fade:420000,M9 Bayonet|Crimson Web:450000,Karambit|Gamma Doppler:300000",
-"Elite Gloves Case;v:Moto Gloves|Boom!:30000,Driver Gloves|Crimson Weave:55000,Hand Wraps|Cobalt Skulls:20000;x:Sport Gloves|Hedge Maze:700000,Specialist Gloves|Emerald Web:500000,Driver Gloves|Snow Leopard:250000"
+"Elite Gloves Case;v:Moto Gloves|Boom!:30000,Driver Gloves|Crimson Weave:55000,Hand Wraps|Cobalt Skulls:20000;x:Sport Gloves|Hedge Maze:700000,Specialist Gloves|Emerald Web:500000,Driver Gloves|Snow Leopard:250000",
+"Operation Bravo Case;m:Dual Berettas|Black Limba:140,G3SG1|Demeter:130,MAC-10|Graven:150,Nova|Tempest:160;r:SG 553|Wave Spray:380,P2000|Ocean Foam:420,UMP-45|Bone Pile:410;c:AWP|Graphite:2200,M4A1-S|Bright Water:1900;v:AK-47|Fire Serpent:120000,Desert Eagle|Golden Koi:80000",
+"Cobblestone Collection;m:Glock-18|Water Elemental:900,AK-47|Blue Laminate:3500,M4A4|Desert-Strike:900;r:AWP|Hyper Beast:6000,M4A4|Asiimov:15000,AK-47|Vulcan:6500;c:AK-47|Fire Serpent:120000,AWP|Lightning Strike:48000;v:AWP|Dragon Lore:650000",
+"Elite Collection;r:AK-47|Vulcan:6500,AWP|Hyper Beast:6000,M4A4|Asiimov:15000;c:M4A4|Howl:70000,AK-47|Fire Serpent:120000,AK-47|Gold Arabesque:160000,M4A4|Poseidon:150000;v:AWP|Medusa:700000,AWP|Gungnir:1100000,AK-47|Wild Lotus:900000,AWP|Dragon Lore:650000;x:Karambit|Fade:520000,M9 Bayonet|Crimson Web:600000,Butterfly Knife|Doppler:450000"
 ];
 const uniq={},cases=[];
 RAW.forEach((ln,ci)=>{
@@ -1293,7 +1296,7 @@ RAW.forEach((ln,ci)=>{
   let keys,sum,price;
   const calc=()=>{keys=Object.keys(tiers).filter(k=>tiers[k].length);sum=keys.reduce((s,k)=>s+T[k][1],0);
     price=Math.max(100,Math.round(keys.reduce((s,k)=>s+T[k][1]/sum*tiers[k].reduce((a,o)=>a+o.price,0)/tiers[k].length,0)*1.0/10)*10)};
-  for(let i=0;i<3;i++){calc();keys.forEach(k=>{const f=tiers[k].filter(o=>o.price<=price*12);if(f.length)tiers[k]=f;else tiers[k]=[]})}
+  for(let i=0;i<3;i++){calc();keys.forEach(k=>{const f=tiers[k].filter(o=>o.price<=price*(/Collection|Bravo/.test(p[0])&&(k==='v'||k==='x')?300:12));if(f.length)tiers[k]=f;else tiers[k]=[]})}
   calc();
   const items=[];
   keys.forEach(k=>{const w=T[k][1]/tiers[k].length;tiers[k].forEach(o=>items.push(Object.assign({},o,{chance:w})))});
@@ -2838,6 +2841,19 @@ const ADMIN_ID=7126242568,LB='https://casino-otkg.onrender.com';
 const tg=window.Telegram&&Telegram.WebApp,u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user,me=u?u.id:0,initData=(tg&&tg.initData)||'';
 const F=n=>Number(n||0).toLocaleString('ru-RU'),key=s=>s.weapon+' | '+s.name,$=id=>document.getElementById(id);
 const mk=s=>Object.assign({},s,{id:Date.now()+Math.random()});
+/* ---- неоткрытые кейсы в инвентаре ---- */
+const mcGet=()=>{try{return JSON.parse(localStorage.getItem('lc_mycases')||'{}')}catch(e){return{}}};
+const mcSet=o=>{try{localStorage.setItem('lc_mycases',JSON.stringify(o))}catch(e){}};
+function addCase(id,n){const o=mcGet();o[id]=(o[id]||0)+n;mcSet(o);drawMc()}
+const mcCss=document.createElement('style');mcCss.textContent='#lc-mc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}.mc-c{background:linear-gradient(160deg,#5a1c30,#2a0e18);border:1px solid #ffb627;border-radius:16px;padding:10px;text-align:center;position:relative;box-shadow:0 0 18px rgba(255,182,39,.2)}.mc-c img{width:70%;height:70px;object-fit:contain}.mc-c b{display:block;font-size:.78rem;margin:4px 0}.mc-n{position:absolute;right:8px;top:6px;background:#ffb627;color:#1a0509;font-weight:900;font-size:.7rem;padding:2px 8px;border-radius:99px}.mc-c button{width:100%;border:0;border-radius:10px;padding:8px;font-weight:900;background:linear-gradient(135deg,#ffb627,#ff7a2f);color:#1a0509}#lc-rv{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center}#lc-rv.on{display:flex}.rv-b{width:78%;max-width:320px;text-align:center;padding:22px 16px;border-radius:22px;background:#1c0910;border:2px solid var(--rc);box-shadow:0 0 40px var(--rc);animation:rvPop .55s cubic-bezier(.2,1.4,.4,1)}@keyframes rvPop{from{transform:scale(.3) rotate(-8deg);opacity:0}}.rv-b img{width:80%;max-height:130px;object-fit:contain}.rv-b h3{margin:10px 0 4px}.rv-b p{color:#ffb627;font-weight:900;margin:0 0 12px}.rv-b button{border:0;border-radius:12px;padding:11px 26px;font-weight:900;background:linear-gradient(135deg,#ffb627,#ff7a2f);color:#1a0509}';document.head.appendChild(mcCss);
+document.querySelector('#tab-inventory .section-title').insertAdjacentHTML('afterend','<div id="lc-mc"></div>');
+document.body.insertAdjacentHTML('beforeend','<div id="lc-rv"></div>');
+function drawMc(){const o=mcGet(),el=$('lc-mc');if(!el)return;el.innerHTML=Object.keys(o).filter(id=>o[id]>0&&CS2_CASES.find(c=>c.id===id)).map(id=>{const c=CS2_CASES.find(x=>x.id===id);
+ return'<div class="mc-c"><span class="mc-n">×'+o[id]+'</span><img src="'+getCaseImg(id)+'" alt=""><b>'+c.name+'</b><button onclick="lcOpenMy(\''+id+'\')">📦 Открыть</button></div>'}).join('')}
+window.lcOpenMy=function(id){const o=mcGet(),c=CS2_CASES.find(x=>x.id===id);if(!c||!(o[id]>0))return;o[id]--;if(!o[id])delete o[id];mcSet(o);
+ const d=roll(c);inventory.unshift(mk(d));refresh();drawMc();const r=RARITY[d.rarity]||RARITY.milspec;let im='';try{im=itemImg(d)}catch(e){}
+ const rv=$('lc-rv');rv.innerHTML='<div class="rv-b" style="--rc:'+r.color+'"><small style="color:'+r.color+';font-weight:900">'+r.label+'</small><img src="'+im+'" alt=""><h3>'+key(d)+'</h3><p>'+F(d.price)+'</p><button onclick="document.getElementById(\'lc-rv\').classList.remove(\'on\')">Забрать</button></div>';rv.classList.add('on');try{hapticNotif('success')}catch(e){}};
+const _ri=renderInventory;renderInventory=function(){_ri.apply(this,arguments);drawMc()};drawMc();
 function roll(c){let t=c.items.reduce((a,i)=>a+i.chance,0),r=Math.random()*t;for(const i of c.items){if((r-=i.chance)<=0)return i}return c.items[0]}
 function refresh(){try{saveGame();updateBalance(false);renderInventory();renderCasesList()}catch(e){}}
 /* применить команду на ЭТОМ устройстве (себе или выданную админом) */
@@ -2845,7 +2861,7 @@ function apply(c){let m='';const n=Math.max(1,Math.min(500,c.n||1));
  if(c.t==='bal'){balance=Math.round(balance+c.v);m=(c.v>=0?'+':'')+F(c.v)+' 🪙'}
  else if(c.t==='set'){balance=Math.round(c.v);m='баланс '+F(c.v)}
  else if(c.t==='item'){const s=ALL_POSSIBLE_SKINS.find(x=>key(x)===c.item);if(!s)return 'нет такого скина';for(let i=0;i<n;i++)inventory.unshift(mk(s));m=c.item+' ×'+n}
- else if(c.t==='case'){const cs=CS2_CASES.find(x=>x.id===c.case);if(!cs)return 'нет такого кейса';const g=[];for(let i=0;i<n;i++){const d=roll(cs);inventory.unshift(mk(d));g.push(d)}m=cs.name+' ×'+n+' → '+g.slice(0,3).map(key).join(', ')+(g.length>3?'…':'')}
+ else if(c.t==='case'){const cs=CS2_CASES.find(x=>x.id===c.case);if(!cs)return 'нет такого кейса';addCase(cs.id,n);m=cs.name+' ×'+n+' (в инвентарь, не открыт)'}
  else if(c.t==='clear'){inventory.length=0;m='инвентарь очищен'}
  refresh();return m}
 const post=(p,b)=>fetch(LB+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({initData:initData},b))});
@@ -2865,7 +2881,7 @@ p.innerHTML='<div class="r" style="align-items:center"><b style="flex:1;font-siz
 +'<h3>Кому</h3><input id="adm-t" type="number" inputmode="numeric" placeholder="Telegram ID игрока (пусто = себе)">'
 +'<h3>Монеты (можно уходить в минус)</h3><input id="adm-v" type="number" inputmode="numeric" placeholder="Сумма"><div class="r"><button class="a g" id="adm-give">Выдать</button><button class="a" id="adm-take">Отнять</button><button class="a x" id="adm-set">Установить</button></div>'
 +'<h3>Скин</h3><input id="adm-q" placeholder="Поиск: Dragon Lore, Karambit…"><select id="adm-i" size="5"></select><div class="r"><input id="adm-in" type="number" value="1" min="1" style="flex:0 0 80px"><button class="a g" id="adm-item">Выдать скин</button></div>'
-+'<h3>Кейс (дроп сразу в инвентарь)</h3><select id="adm-c"></select><div class="r"><input id="adm-cn" type="number" value="1" min="1" style="flex:0 0 80px"><button class="a g" id="adm-case">Выдать кейсы</button></div>'
++'<h3>Кейс (неоткрытый — попадёт в Инвентарь)</h3><select id="adm-c"></select><div class="r"><input id="adm-cn" type="number" value="1" min="1" style="flex:0 0 80px"><button class="a g" id="adm-case">Выдать кейсы</button></div>'
 +'<h3>Прочее</h3><button class="a x" id="adm-clr" style="width:100%">Очистить инвентарь</button><div id="adm-log"></div>';
 document.body.appendChild(p);
 function fill(){const q=$('adm-q').value.toLowerCase();$('adm-i').innerHTML=ALL_POSSIBLE_SKINS.filter(s=>key(s).toLowerCase().includes(q)).sort((a,b)=>b.price-a.price).slice(0,80).map(s=>'<option value="'+key(s).replace(/"/g,'&quot;')+'">'+key(s)+' — '+F(s.price)+'</option>').join('')}
@@ -2879,6 +2895,10 @@ $('adm-set').onclick=()=>run({t:'set',v:val()});
 $('adm-item').onclick=()=>{const v=$('adm-i').value;if(v)run({t:'item',item:v,n:+$('adm-in').value||1})};
 $('adm-case').onclick=()=>run({t:'case',case:$('adm-c').value,n:+$('adm-cn').value||1});
 $('adm-clr').onclick=()=>{if(confirm('Очистить инвентарь?'))run({t:'clear'})};
+/* пункт «Админ-панель» в шторке «Ещё» */
+const ovm=document.getElementById('mo-ov'),gm=ovm&&ovm.querySelector('.mo-g');
+if(gm){gm.insertAdjacentHTML('beforeend','<button data-s="admin"><i>🛠</i><b>Админ-панель</b><small>Деньги, скины, кейсы</small></button>');
+ ovm.addEventListener('click',e=>{if(!e.target.closest('button[data-s=admin]'))return;e.stopPropagation();ovm.classList.remove('vis');setTimeout(()=>ovm.classList.remove('on'),300);open()},true)}
 })();
 </script>
 </body>
