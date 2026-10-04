@@ -1334,7 +1334,7 @@ document.getElementById('tab-upgrader').innerHTML=`
    <div class="upg-ctr"><b id="u-pct">0.00%</b><small id="u-lbl">низкий шанс</small></div><div id="u-ptr"></div></div>
   <div class="upg-slot" id="u-to"></div>
  </div>
- <div class="upg-coins">Добавить монеты: <span id="u-cv" style="color:var(--gold)">0</span><input type="range" id="u-coins" min="0" max="0" step="10" value="0" oninput="upgRender()"></div>
+ <div class="upg-coins">Добавить монеты (до 25% цены цели): <span id="u-cv" style="color:var(--gold)">0</span><input type="range" id="u-coins" min="0" max="0" step="10" value="0" oninput="upgRender()"></div>
  <button class="btn" id="u-go" onclick="upgGo()">Прокачать</button>
  <div class="upg-chips"><button onclick="upgMul(2)">x2</button><button onclick="upgMul(4)">x4</button><button onclick="upgMul(8)">x8</button><button onclick="upgPct(35)">35%</button><button onclick="upgPct(55)">55%</button><button onclick="upgPct(75)">75%</button></div>
  <div class="upg-tabs"><button id="ut-inv" onclick="upgTab('inv')">Мои скины</button><button id="ut-shop" onclick="upgTab('shop')">Выберите скин</button></div>
@@ -1348,7 +1348,7 @@ const chance=()=>!uF||!uT?0:(stake()>=uT.price?95:Math.min(95,Math.max(0,stake()
 const slot=(it,ph)=>it?`<img src="${itemImg(it)}"><span>${it.weapon} | ${it.name}</span><i>${fmt(it.price)}</i>`:ph;
 upgRender=function(){
   const c=chance(),co=document.getElementById('u-coins');
-  co.max=balance;if(+co.value>balance)co.value=balance;
+  const capX=uT?Math.min(balance,Math.floor(uT.price*0.25)):0;co.max=capX;if(+co.value>capX)co.value=capX;
   document.getElementById('u-bal').innerText=fmt(balance)+'';
   document.getElementById('u-cv').innerText=fmt(extra());
   document.getElementById('u-from').innerHTML=slot(uF,'<span style="font-size:1.6rem">🎒</span><span>Выберите свой скин</span><span style="color:var(--text-muted)">до 1 предмета</span>');
@@ -1371,7 +1371,7 @@ upgPct=function(p){if(!uF){showToast('Сначала выберите свой �
 upgGo=function(){
   if(uBusy)return;
   if(!uF||!uT){showToast('❌ Выберите оба скина!');return}
-  if(extra()>balance){showToast('❌ Недостаточно монет!');return}if(chance()<1){showToast('❌ Шанс меньше 1% — выбери цель подешевле');return}
+  if(extra()>balance){showToast('❌ Недостаточно монет!');return}if(extra()>Math.floor(uT.price*0.25)){showToast('❌ Можно добавить не больше 25% цены цели');return}if(chance()<1){showToast('❌ Шанс меньше 1% — выбери цель подешевле');return}
   const ch=chance(),ok=Math.random()*100<ch,z=ch*3.6,ang=ok?Math.random()*z:z+Math.random()*(360-z);
   uBusy=true;balance-=extra();updateBalance();
   const i=inventory.indexOf(uF);if(i>-1)inventory.splice(i,1);
@@ -3014,6 +3014,49 @@ function back(d){
  saveGame();updateBalance(false);updateElo();renderInventory();
  showToast('⚠️ Подозрительное изменение баланса отменено сервером');
 }
+})();
+</script>
+<script>
+/* ===== ПАТЧ 5: честная экономика кейсов (макс. дроп ≈ 7.5× цены кейса, возврат ≈ 85%) ===== */
+(function(){
+const ORD=['consumer','milspec','restricted','classified','covert','special'];
+const BW={consumer:90,milspec:79.92,restricted:15.98,classified:3.2,covert:.64,special:.26};
+const MULT=7.5, RTP=.85;
+function weights(items,tiers,f){
+ const raw=tiers.map((r,k)=>BW[r]*Math.pow(f,k)),s=raw.reduce((a,b)=>a+b,0);
+ return items.map(it=>{const k=tiers.indexOf(it.rarity),n=items.filter(x=>x.rarity===it.rarity).length;return raw[k]/s/n});
+}
+function rtp(items,tiers,f,P){const w=weights(items,tiers,f);return items.reduce((a,it,i)=>a+w[i]*it.price,0)/P}
+function attempt(c,all){
+ const tops=all.map(i=>i.price).filter((p,i,a)=>a.indexOf(p)===i);
+ for(const top of tops){
+  const items=all.filter(i=>i.price<=top);
+  const tiers=ORD.filter(r=>items.some(i=>i.rarity===r));
+  if(tiers.length<2)continue;
+  const P=Math.max(100,Math.round(top/MULT/10)*10);
+  let lo=.02,hi=40;
+  if(rtp(items,tiers,lo,P)>RTP||rtp(items,tiers,hi,P)<RTP)continue;
+  for(let i=0;i<50;i++){const m=(lo+hi)/2;if(rtp(items,tiers,m,P)<RTP)lo=m;else hi=m}
+  const w=weights(items,tiers,(lo+hi)/2);
+  c.items=items.map((it,i)=>Object.assign({},it,{chance:w[i]*100}));
+  c.price=P;return true;
+ }
+ return false;
+}
+function fix(c){
+ const all=c.items.slice().sort((a,b)=>b.price-a.price);
+ if(attempt(c,all))return;
+ // в кейсе только дорогие предметы (перчатки/ножи): добавляем дешёвые «разбавители»
+ const top=all[0].price;
+ const fill=(window.ALL_POSSIBLE_SKINS||[]).filter(s=>s.rarity==='milspec'&&s.price<=top/12).slice(-5);
+ if(fill.length&&attempt(c,all.concat(fill.map(s=>Object.assign({},s,{chance:1})))))return;
+ const tw=c.items.reduce((s,i)=>s+i.chance,0),ev=c.items.reduce((s,i)=>s+i.chance/tw*i.price,0);
+ c.price=Math.max(100,Math.round(ev/RTP/10)*10);
+}
+CS2_CASES.forEach(fix);
+CS2_CASES.sort((a,b)=>a.price-b.price);
+window.LC_CASE_FIX=fix;
+renderCasesList();
 })();
 </script>
 </body>
