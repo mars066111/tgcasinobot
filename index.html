@@ -1344,7 +1344,7 @@ document.getElementById('tab-upgrader').innerHTML=`
 let uF=null,uT=null,uTab='inv',uBusy=false;
 const extra=()=>+document.getElementById('u-coins').value||0;
 const stake=()=>uF?uF.price+extra():0;
-const chance=()=>!uF||!uT?0:(stake()>=uT.price?95:Math.min(95,Math.max(3,stake()/uT.price*90)));
+const chance=()=>!uF||!uT?0:(stake()>=uT.price?95:Math.min(95,Math.max(0,stake()/uT.price*90)));
 const slot=(it,ph)=>it?`<img src="${itemImg(it)}"><span>${it.weapon} | ${it.name}</span><i>${fmt(it.price)}</i>`:ph;
 upgRender=function(){
   const c=chance(),co=document.getElementById('u-coins');
@@ -1371,7 +1371,7 @@ upgPct=function(p){if(!uF){showToast('Сначала выберите свой �
 upgGo=function(){
   if(uBusy)return;
   if(!uF||!uT){showToast('❌ Выберите оба скина!');return}
-  if(extra()>balance){showToast('❌ Недостаточно монет!');return}
+  if(extra()>balance){showToast('❌ Недостаточно монет!');return}if(chance()<1){showToast('❌ Шанс меньше 1% — выбери цель подешевле');return}
   const ch=chance(),ok=Math.random()*100<ch,z=ch*3.6,ang=ok?Math.random()*z:z+Math.random()*(360-z);
   uBusy=true;balance-=extra();updateBalance();
   const i=inventory.indexOf(uF);if(i>-1)inventory.splice(i,1);
@@ -1433,6 +1433,13 @@ try{if(!localStorage.getItem('lc_reset_v4')){
  balance=10000;inventory=[];cooldowns={};
  ['lc_stats','lc_meta','lc_click','casino_cooldowns','casino_bonus_target_time'].forEach(k=>localStorage.removeItem(k));
  localStorage.setItem('lc_reset_v4','1');localStorage.setItem('lc_ts',String(Date.now()));
+ window.LC_RESET_NOW=true;saveGame();
+}}catch(e){}
+/* ===== ПОЛНЫЙ СБРОС v5: монеты 10 000, скины, прогресс, статистика, мета, подпись ===== */
+try{if(!localStorage.getItem('lc_reset_v5')){
+ balance=10000;inventory=[];cooldowns={};
+ ['lc_stats','lc_meta','lc_click','lc_sig','casino_cooldowns','casino_bonus_target_time'].forEach(k=>localStorage.removeItem(k));
+ localStorage.setItem('lc_reset_v5','1');localStorage.setItem('lc_ts',String(Date.now()));
  window.LC_RESET_NOW=true;saveGame();
 }}catch(e){}
 
@@ -2899,6 +2906,114 @@ $('adm-clr').onclick=()=>{if(confirm('Очистить инвентарь?'))run
 const ovm=document.getElementById('mo-ov'),gm=ovm&&ovm.querySelector('.mo-g');
 if(gm){gm.insertAdjacentHTML('beforeend','<button data-s="admin"><i>🛠</i><b>Админ-панель</b><small>Деньги, скины, кейсы</small></button>');
  ovm.addEventListener('click',e=>{if(!e.target.closest('button[data-s=admin]'))return;e.stopPropagation();ovm.classList.remove('vis');setTimeout(()=>ovm.classList.remove('on'),300);open()},true)}
+})();
+</script>
+<!-- ===== ПАТЧ 3: износ, StatTrak, стикеры, кейсы Glove/Breakout, защита localStorage ===== -->
+<style>
+.wx{font-size:.62rem;font-weight:800;margin:2px 0;color:var(--text-muted);text-align:center;line-height:1.3}
+.wx b{color:var(--gold)}.wx .st{color:#ff7a2f}.wx .sk{color:#9ad1ff}
+</style>
+<script>
+(function(){
+/* --- износ (float) --- */
+const WEAR=[['FN','Прямо с завода',0,.07,1.25,12],['MW','Немного поношенное',.07,.15,1.1,18],['FT','После полевых',.15,.38,1,40],['WW','Поношенное',.38,.45,.85,15],['BS','Закалённое в боях',.45,1,.7,15]];
+const STK=[['Fnatic (Holo)',.05],['Headshot Guarantee',.04],['Dragon (Foil)',.12],['Howling Dawn',.2],['Crown (Foil)',.25]];
+const rnd=n=>Math.floor(Math.random()*n);
+const noMod=w=>/glove|wrap/i.test(w);
+function decorate(it){
+ if(!it||it.fl!==undefined)return it;
+ let r=Math.random()*100,w=WEAR[2];
+ for(const x of WEAR){r-=x[5];if(r<=0){w=x;break}}
+ const d=Object.assign({},it),base=it.price;
+ d.base=base;d.fl=+(w[2]+Math.random()*(w[3]-w[2])).toFixed(4);d.wr=w[0];
+ let m=w[4];
+ if(it.rarity==='special'&&noMod(it.weapon)){d.price=Math.max(1,Math.round(base*m));return d}
+ if(Math.random()<.10){d.st=1;d.kills=0;m*=1.35}
+ let add=0;
+ if(it.rarity!=='special'&&Math.random()<.25){d.stk=[];for(let i=1+rnd(4);i>0;i--){const s=STK[rnd(STK.length)];d.stk.push(s[0]);add+=Math.max(30,Math.round(base*s[1]))}}
+ d.price=Math.max(1,Math.round(base*m+add));
+ return d;
+}
+// дропы из кейсов и контрактов получают износ/StatTrak/стикеры
+const _gw=getWeightedDrop;getWeightedDrop=function(items){return decorate(_gw(items))};
+// всё, что попало в инвентарь другим путём, тоже получает износ при ближайшем сохранении
+const _sv=saveGame;saveGame=function(){inventory=inventory.map(decorate);_sv()};
+// счётчик киллов растёт, пока играешь
+const _scd=setCooldownFor;setCooldownFor=function(k,s){
+ if(String(k).indexOf('card-game-')===0)inventory.forEach(i=>{if(i.st)i.kills+=1+rnd(5)});
+ _scd(k,s);
+};
+// показ износа в инвентаре
+function badges(){
+ const cards=document.querySelectorAll('#inventory-grid-container .inventory-item');
+ cards.forEach((c,i)=>{
+  const it=inventory[i];if(!it||!it.wr||c.querySelector('.wx'))return;
+  const nm=c.querySelector('.inv-skin-name');if(!nm)return;
+  nm.insertAdjacentHTML('afterend','<div class="wx">'+(it.st?'<span class="st">StatTrak™ · '+(it.kills||0)+' киллов</span><br>':'')+'<b>'+it.wr+'</b> · '+it.fl.toFixed(4)+(it.stk?'<br><span class="sk">🏷 '+it.stk.join(', ')+'</span>':'')+'</div>');
+ });
+}
+const _ri=renderInventory;renderInventory=function(){_ri.apply(this,arguments);badges()};
+
+/* --- новые кейсы: Glove Case и Operation Breakout --- */
+const T={m:['milspec',79.92],r:['restricted',15.98],c:['classified',3.2],v:['covert',.64],x:['special',.26]};
+const RAWX=[
+"Glove Case;m:MAG-7|Sonar:120,MP7|Cirrus:110,CZ75-Auto|Polymer:100,MP9|Sand Scale:130,Galil AR|Black Sand:140,Glock-18|Ironwork:150,P2000|Turf:120;r:Nova|Gila:420,G3SG1|Stinger:380,Dual Berettas|Royal Consorts:480,P90|Shallow Grave:450,Sawed-Off|Wasteland Princess:400;c:FAMAS|Mecha Industries:1600,USP-S|Cyrex:1500,M4A1-S|Flashback:1700;v:SSG 08|Dragonfire:6500,M4A4|Buzz Kill:7500;x:Hand Wraps|Cobalt Skulls:20000,Moto Gloves|Spearmint:25000,Sport Gloves|Pandora's Box:45000",
+"Operation Breakout Weapon Case;m:CZ75-Auto|Tigris:120,Nova|Koi:110,PP-Bizon|Osiris:130,UMP-45|Labyrinth:120,P2000|Ocean Foam:140;r:Desert Eagle|Conspiracy:480,Five-SeveN|Fowl Play:450;c:Glock-18|Water Elemental:1600,M4A1-S|Cyrex:1800;v:P90|Asiimov:6200;x:Butterfly Knife|Case Hardened:200000,Butterfly Knife|Fade:350000"
+];
+const have={};ALL_POSSIBLE_SKINS.forEach(o=>have[o.weapon+' | '+o.name]=1);
+const taken={};CS2_CASES.forEach(c=>taken[c.name]=1);
+RAWX.forEach((ln,ci)=>{
+ const p=ln.split(';');if(taken[p[0]])return;
+ const tiers={};
+ p.slice(1).forEach(t=>{tiers[t[0]]=t.slice(2).split(',').map(s=>{
+  const a=s.split(':'),b=a[0].split('|');
+  const o={weapon:b[0],name:b[1],rarity:T[t[0]][0],price:+a[1]};
+  if(!have[b[0]+' | '+b[1]]){have[b[0]+' | '+b[1]]=1;ALL_POSSIBLE_SKINS.push(Object.assign({},o))}
+  return o})});
+ const keys=Object.keys(tiers),sum=keys.reduce((s,k)=>s+T[k][1],0);
+ const ev=keys.reduce((s,k)=>s+T[k][1]/sum*tiers[k].reduce((a,o)=>a+o.price,0)/tiers[k].length,0);
+ const items=[];
+ keys.forEach(k=>{const w=T[k][1]/tiers[k].length;tiers[k].forEach(o=>items.push(Object.assign({},o,{chance:w})))});
+ CS2_CASES.push({id:'gcase'+ci,name:p[0],price:Math.max(100,Math.round(ev*1.1/10)*10),items});
+});
+CS2_CASES.sort((a,b)=>a.price-b.price);
+ALL_POSSIBLE_SKINS.sort((a,b)=>a.price-b.price);
+renderCasesList();upgRender();renderInventory();
+
+/* --- защита localStorage: подпись баланса и инвентаря --- */
+const SALT='lc|7f3a91|'+(location.host||'x');
+function h(s){let a=0xdeadbeef,b=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);a=Math.imul(a^c,2654435761);b=Math.imul(b^c,1597334677)}
+ a=Math.imul(a^(a>>>16),2246822507)^Math.imul(b^(b>>>13),3266489909);b=Math.imul(b^(b>>>16),2246822507)^Math.imul(a^(a>>>13),3266489909);
+ return (4294967296*(2097151&b)+(a>>>0)).toString(36)}
+const sig=()=>h(SALT+'|'+Math.floor(balance)+'|'+inventory.map(i=>i.id+':'+i.price).join(','));
+const _sv2=saveGame;saveGame=function(){_sv2();try{localStorage.setItem('lc_sig',sig())}catch(e){}};
+try{
+ const had=localStorage.getItem('lc_sig');
+ if(had&&had!==sig()){
+  balance=10000;inventory=[];cooldowns={};
+  localStorage.removeItem('casino_cooldowns');
+  setTimeout(()=>showToast('⚠️ Данные были изменены — прогресс сброшен'),800);
+ }
+ saveGame();updateBalance(false);renderInventory();
+}catch(e){}
+})();
+</script>
+
+
+<script>
+/* ===== ПАТЧ 4: откат накрутки по ответу сервера ===== */
+(function(){
+const _f=window.fetch;
+window.fetch=function(u){
+ const p=_f.apply(this,arguments);
+ try{if(String(u).indexOf('/api/sync')>-1)p.then(r=>r.clone().json()).then(d=>{if(d&&d.revert)back(d)}).catch(()=>{})}catch(e){}
+ return p};
+function back(d){
+ balance=Math.max(0,+d.balance||10000);
+ inventory=(d.inv||[]).map((a,i)=>({weapon:a[0],name:a[1],rarity:a[2],price:a[3],id:Date.now()+i+Math.random(),fl:.2,wr:'FT'}));
+ saveGame();updateBalance(false);updateElo();renderInventory();
+ showToast('⚠️ Подозрительное изменение баланса отменено сервером');
+}
 })();
 </script>
 </body>
