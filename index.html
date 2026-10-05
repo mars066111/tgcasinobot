@@ -3084,7 +3084,7 @@ itemImg=function(it){const k=key(it);return IMGO[k]?url(k,IMGO[k]):_ii(it)};
 function refresh(){try{renderInventory();upgRender();renderCasesList()}catch(e){}}
 async function load(){
  try{const r=await fetch(LB+'/api/skinimgs');const j=await r.json();IMGO=j.map||{};
-  localStorage.setItem('lc_imgmap',JSON.stringify(IMGO));refresh()}catch(e){}
+  localStorage.setItem('lc_imgmap',JSON.stringify(IMGO));refresh();window.__imgRestore&&window.__imgRestore()}catch(e){}
 }
 load();setInterval(load,300000);
 
@@ -3116,7 +3116,7 @@ $('img-l').onclick=async e=>{
  const k=row.getAttribute('data-k');
  if(e.target.dataset.d){
   const r=await post({k:k,del:1});
-  if(r&&r.ok){delete IMGO[k];save();showToast('Картинка удалена');draw();refresh()}else showToast('❌ Не удалось удалить');
+  if(r&&r.ok){delete IMGO[k];save();bk.del(k);showToast('Картинка удалена');draw();refresh()}else showToast('❌ Не удалось удалить');
   return}
  cur=k;$('img-f').value='';$('img-f').click();
 };
@@ -3125,6 +3125,20 @@ function post(body){
  return fetch(LB+'/api/skinimg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json()).catch(()=>null);
 }
 function save(){try{localStorage.setItem('lc_imgmap',JSON.stringify(IMGO))}catch(e){}}
+/* локальная копия картинок на твоём устройстве: если сервер Render стёр базу, картинки вернутся сами */
+const bk={db:null,
+ open(){return this.db||(this.db=new Promise((ok,no)=>{const q=indexedDB.open('lc_imgbk',1);q.onupgradeneeded=()=>q.result.createObjectStore('i');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)}))},
+ async run(m,f){const d=await this.open();return new Promise((ok,no)=>{const t=d.transaction('i',m),r=f(t.objectStore('i'));t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>no(t.error)})},
+ put(k,d){return this.run('readwrite',s=>s.put({k:k,d:d},k)).catch(()=>{})},
+ del(k){return this.run('readwrite',s=>s.delete(k)).catch(()=>{})},
+ all(){return this.run('readonly',s=>s.getAll()).catch(()=>[])}};
+let rb=false;
+window.__imgRestore=async()=>{if(rb)return;rb=true;try{
+ const L=await bk.all(),have=new Set(L.map(o=>o.k));let n=0;
+ for(const o of L){if(!o||!o.k||IMGO[o.k])continue;const r=await post({k:o.k,data:o.d});if(r&&r.ok){IMGO[o.k]=r.h;n++}}
+ if(n){save();showToast('♻️ Вернул картинки на сервер: '+n);refresh()}
+ for(const k of Object.keys(IMGO)){if(have.has(k))continue;try{const b=await(await fetch(url(k,IMGO[k]))).blob(),d=await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result);f.readAsDataURL(b)});await bk.put(k,d)}catch(e){}}
+}catch(e){}rb=false};
 /* уменьшаем фото до ~400px и сохраняем с прозрачностью */
 function shrink(file){
  return new Promise((ok,no)=>{
@@ -3148,7 +3162,7 @@ $('img-f').onchange=async()=>{
  showToast('⏳ Загружаю...');
  try{
   const d=await shrink(f),r=await post({k:cur,data:d});
-  if(r&&r.ok){IMGO[cur]=r.h;save();showToast('✅ Картинка сохранена');draw();refresh()}
+  if(r&&r.ok){IMGO[cur]=r.h;save();bk.put(cur,d);showToast('✅ Картинка сохранена');draw();refresh()}
   else showToast('❌ Ошибка сервера'+(r&&r.error?': '+r.error:''));
  }catch(e){showToast('❌ Не удалось обработать фото')}
 };
