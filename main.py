@@ -1,7 +1,9 @@
+import base64
 import hashlib
 import hmac
 import json
 import os
+import re
 import sqlite3
 import threading
 import time
@@ -21,7 +23,7 @@ OWNER_ID = 7126242568
 PORT = int(os.environ.get("PORT", 10000))
 DB_PATH = os.environ.get("DB_PATH", "leaderboard.db")
 
-MAX_BODY = 64 * 1024          # максимум размера запроса
+MAX_BODY = 300 * 1024         # максимум размера запроса
 MAX_INV_ITEMS = 200           # сколько скинов хранить в профиле
 MAX_BALANCE = 10 ** 12        # защита от мусорных чисел
 AUTH_MAX_AGE = 3 * 24 * 3600  # сколько живёт подпись Telegram
@@ -54,6 +56,7 @@ db.execute(
         id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER, kind TEXT,
         data TEXT, created INTEGER, done INTEGER DEFAULT 0)"""
 )
+db.execute("CREATE TABLE IF NOT EXISTS skinimg (k TEXT PRIMARY KEY, data BLOB, mime TEXT, h TEXT)")
 db.commit()
 try:
     db.execute("ALTER TABLE players ADD COLUMN susp INTEGER DEFAULT 0")
@@ -262,6 +265,26 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         if url.path == "/api/stream":
             return self._stream()
+        if url.path == "/api/skinimgs":
+            with db_lock:
+                rows = db.execute("SELECT k,h FROM skinimg").fetchall()
+            return self._json({"map": {k: h for k, h in rows}})
+        if url.path == "/api/skinimg":
+            q = parse_qs(url.query)
+            with db_lock:
+                r = db.execute(
+                    "SELECT data,mime FROM skinimg WHERE k=?", (q.get("k", [""])[0],)
+                ).fetchone()
+            if not r:
+                return self._json({"error": "not found"}, 404)
+            self.send_response(200)
+            self._cors()
+            self.send_header("Content-Type", r[1])
+            self.send_header("Content-Length", str(len(r[0])))
+            self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+            self.end_headers()
+            self.wfile.write(r[0])
+            return
         if url.path == "/api/board":
             return self._json(get_board())
         if url.path == "/api/player":
@@ -311,7 +334,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
-        if path not in ("/api/sync", "/api/admin", "/api/grants", "/api/grants/ack"):
+        if path not in ("/api/sync", "/api/admin", "/api/grants", "/api/grants/ack", "/api/skinimg"):
             return self._json({"error": "not found"}, 404)
         try:
             n = int(self.headers.get("Content-Length", "0"))
@@ -327,6 +350,10 @@ class Handler(BaseHTTPRequestHandler):
         user = verify_init_data(str(data.get("initData", "")))
         if not user:
             return self._json({"error": "auth"}, 401)
+        if path == "/api/skinimg":
+            if int(user["id"]) != OWNER_ID:
+                return self._json({"error": "forbidden"}, 403)
+            return self._skinimg(data)
         if path == "/api/admin":
             if int(user["id"]) != OWNER_ID:
                 return self._json({"error": "forbidden"}, 403)
@@ -400,6 +427,34 @@ class Handler(BaseHTTPRequestHandler):
             db.commit()
         bump_version()
         self._json({"ok": True, "rank": get_rank(uid)})
+
+    def _skinimg(self, data):
+        k = to_str(data.get("k"), 120)
+        if not k:
+            return self._json({"error": "bad key"}, 400)
+        if data.get("del"):
+            with db_lock:
+                db.execute("DELETE FROM skinimg WHERE k=?", (k,))
+                db.commit()
+            return self._json({"ok": True, "h": ""})
+        m = re.match(r"^data:(image/(?:webp|png|jpeg));base64,([A-Za-z0-9+/=]+)$", str(data.get("data", "")))
+        if not m:
+            return self._json({"error": "bad image"}, 400)
+        try:
+            raw = base64.b64decode(m.group(2), validate=True)
+        except Exception:
+            return self._json({"error": "bad image"}, 400)
+        if len(raw) > 200_000:
+            return self._json({"error": "too big"}, 413)
+        h = hashlib.md5(raw).hexdigest()[:10]
+        with db_lock:
+            db.execute(
+                "INSERT INTO skinimg (k,data,mime,h) VALUES (?,?,?,?) "
+                "ON CONFLICT(k) DO UPDATE SET data=excluded.data, mime=excluded.mime, h=excluded.h",
+                (k, raw, m.group(1), h),
+            )
+            db.commit()
+        return self._json({"ok": True, "h": h})
 
     def _admin(self, data):
         cmd = data.get("cmd") or {}
