@@ -3059,5 +3059,100 @@ window.LC_CASE_FIX=fix;
 renderCasesList();
 })();
 </script>
+
+<style>
+#img-b{position:fixed;right:12px;bottom:138px;z-index:9998;width:46px;height:46px;border-radius:50%;border:1px solid #ffb627;background:#1c0910;color:#ffb627;font-size:22px}
+#img-p{position:fixed;inset:0;z-index:9999;background:#0d0508f5;overflow:auto;padding:14px 12px;display:none}
+#img-p.on{display:block}
+#img-p input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,122,47,.3);background:#1c0910;color:#fff;margin:8px 0;outline:none}
+.ir{display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid rgba(255,122,47,.15);cursor:pointer}
+.ir img{width:64px;height:44px;object-fit:contain;background:#1c0910;border-radius:8px}
+.ir div{flex:1;font-size:.8rem;font-weight:700}.ir small{display:block;color:#c9a0ab;font-weight:600}
+.ir .ok{color:#3ddc97}.ir button{background:#7a0f2b;color:#fff;border:none;border-radius:8px;padding:6px 9px}
+</style>
+<script>
+(function(){
+const ADMIN_ID=7126242568,LB='https://casino-otkg.onrender.com';
+const tg=window.Telegram&&Telegram.WebApp,u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user,me=u?u.id:0,initData=(tg&&tg.initData)||'';
+const $=id=>document.getElementById(id),key=s=>s.weapon+' | '+s.name;
+let IMGO={};
+try{IMGO=JSON.parse(localStorage.getItem('lc_imgmap')||'{}')}catch(e){}
+const url=(k,hh)=>LB+'/api/skinimg?k='+encodeURIComponent(k)+'&h='+hh;
+/* свои картинки имеют приоритет над любыми другими (для всех игроков) */
+const _ii=itemImg;
+itemImg=function(it){const k=key(it);return IMGO[k]?url(k,IMGO[k]):_ii(it)};
+function refresh(){try{renderInventory();upgRender();renderCasesList()}catch(e){}}
+async function load(){
+ try{const r=await fetch(LB+'/api/skinimgs');const j=await r.json();IMGO=j.map||{};
+  localStorage.setItem('lc_imgmap',JSON.stringify(IMGO));refresh()}catch(e){}
+}
+load();setInterval(load,300000);
+
+if(me!==ADMIN_ID)return;
+/* ---------- меню картинок (только для твоего ID) ---------- */
+const b=document.createElement('button');b.id='img-b';b.textContent='🖼';document.body.appendChild(b);
+const pn=document.createElement('div');pn.id='img-p';
+pn.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><b>🖼 Картинки скинов</b><button class="back-btn" id="img-x">✕</button></div><div style="font-size:.7rem;color:#c9a0ab">Нажми на название скина и выбери фото из галереи. Оно появится у всех игроков.</div><input type="text" id="img-q" placeholder="Поиск по названию"><div id="img-l"></div><input type="file" id="img-f" accept="image/*" style="display:none">';
+document.body.appendChild(pn);
+let cur=null;
+function all(){
+ const m={};
+ ALL_POSSIBLE_SKINS.forEach(s=>m[key(s)]=s);
+ CS2_CASES.forEach(c=>c.items.forEach(s=>{if(!m[key(s)])m[key(s)]=s}));
+ inventory.forEach(s=>{if(!m[key(s)])m[key(s)]=s});
+ return Object.values(m).sort((a,b)=>key(a).localeCompare(key(b)));
+}
+function draw(){
+ const q=$('img-q').value.toLowerCase();
+ $('img-l').innerHTML=all().filter(s=>key(s).toLowerCase().includes(q)).map(s=>{
+  const k=key(s),has=!!IMGO[k];
+  return '<div class="ir" data-k="'+k.replace(/"/g,'&quot;')+'"><img loading="lazy" src="'+itemImg(s)+'"><div>'+k+'<small class="'+(has?'ok':'')+'">'+(has?'✓ своя картинка':'стандартная')+'</small></div>'+(has?'<button data-d="1">✕</button>':'')+'</div>'}).join('');
+}
+b.onclick=()=>{pn.classList.add('on');draw()};
+$('img-x').onclick=()=>pn.classList.remove('on');
+$('img-q').oninput=draw;
+$('img-l').onclick=async e=>{
+ const row=e.target.closest('.ir');if(!row)return;
+ const k=row.getAttribute('data-k');
+ if(e.target.dataset.d){
+  const r=await post({k:k,del:1});
+  if(r&&r.ok){delete IMGO[k];save();showToast('Картинка удалена');draw();refresh()}else showToast('❌ Не удалось удалить');
+  return}
+ cur=k;$('img-f').value='';$('img-f').click();
+};
+function post(body){
+ body.initData=initData;
+ return fetch(LB+'/api/skinimg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json()).catch(()=>null);
+}
+function save(){try{localStorage.setItem('lc_imgmap',JSON.stringify(IMGO))}catch(e){}}
+/* уменьшаем фото до ~400px и сохраняем с прозрачностью */
+function shrink(file){
+ return new Promise((ok,no)=>{
+  const im=new Image(),ur=URL.createObjectURL(file);
+  im.onload=()=>{
+   let W=400;
+   for(let t=0;t<5;t++){
+    const sc=Math.min(1,W/im.width),c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    const d=c.toDataURL('image/webp',.86);
+    if(d.length<240000){URL.revokeObjectURL(ur);return ok(d)}
+    W=Math.round(W*.75);
+   }
+   no()};
+  im.onerror=no;im.src=ur;
+ });
+}
+$('img-f').onchange=async()=>{
+ const f=$('img-f').files[0];if(!f||!cur)return;
+ showToast('⏳ Загружаю...');
+ try{
+  const d=await shrink(f),r=await post({k:cur,data:d});
+  if(r&&r.ok){IMGO[cur]=r.h;save();showToast('✅ Картинка сохранена');draw();refresh()}
+  else showToast('❌ Ошибка сервера'+(r&&r.error?': '+r.error:''));
+ }catch(e){showToast('❌ Не удалось обработать фото')}
+};
+})();
+</script>
 </body>
 </html>
