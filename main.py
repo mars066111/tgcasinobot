@@ -367,7 +367,7 @@ class Handler(BaseHTTPRequestHandler):
         photo = to_str(user.get("photo_url"), 300)
         if not photo.startswith("https://"):
             photo = ""
-        balance = to_int(data.get("balance"))
+        balance = to_int(data.get("balance"), -MAX_BALANCE, MAX_BALANCE)
         cases = to_int(data.get("cases"), 0, 10 ** 9)
         level = to_int(data.get("level"), 1, 10 ** 4)
         pdict = clean_profile(data.get("profile") or {})
@@ -395,9 +395,10 @@ class Handler(BaseHTTPRequestHandler):
                 elapsed, strikes, bonus, base, bts = 0, 0, 0, START_BAL, now
             if now - bts > 3600 or base <= 0:
                 base, bts = max(old_nw, 1), now
-            step_cap = old_nw * STEP_MULT + STEP_FLAT + elapsed * PER_SEC
+            step_cap = max(old_nw, 0) * STEP_MULT + STEP_FLAT + elapsed * PER_SEC
             hour_cap = base * HOUR_MULT + HOUR_FLAT
-            if new_nw > min(step_cap, hour_cap) + bonus:
+            over = new_nw > min(step_cap, hour_cap)
+            if over and new_nw > min(step_cap, hour_cap) + bonus and uid != OWNER_ID:
                 # накрутка: откатываем игрока к последнему честному состоянию
                 if row:
                     strikes += 1
@@ -420,9 +421,9 @@ class Handler(BaseHTTPRequestHandler):
                 (uid, name, username, photo, balance, cases, level, now, prof),
             )
             db.execute(
-                "UPDATE players SET bonus=0, nwbase=?, nwts=? WHERE uid=?", (base, bts, uid)
+                "UPDATE players SET bonus=?, nwbase=?, nwts=? WHERE uid=?", (0 if over else bonus, base, bts, uid)
             )
-            if old and balance - old[0] > JUMP_LIMIT:
+            if old and uid != OWNER_ID and balance - old[0] > JUMP_LIMIT + bonus:
                 db.execute("UPDATE players SET susp=1 WHERE uid=?", (uid,))
             db.commit()
         bump_version()
