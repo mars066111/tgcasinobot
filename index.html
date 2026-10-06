@@ -3173,7 +3173,14 @@ $('img-f').onchange=async()=>{
 #lcx.on{display:block}.lx-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}.lx-h b{flex:1;font-size:17px}
 .lx-b{padding:11px 14px;border:0;border-radius:10px;background:#c4122f;color:#fff;font-weight:700}.lx-b.g{background:#374151}.lx-b.y{background:#ffb627;color:#1c0910}.lx-b:disabled{opacity:.4}
 .lx-r{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #4a1b2c}.lx-r img{width:56px;height:40px;object-fit:contain}.lx-r>div:nth-child(2){flex:1;font-size:12px}.lx-r>div:last-child{text-align:right;font-weight:700}
-.up{color:#3ddc97}.dn{color:#ff5d73}#lcx h4{margin:16px 0 4px;color:#ffb627}#lcx select{width:100%;padding:10px;border-radius:10px;border:1px solid #4a1b2c;background:#1c0910;color:#fff;margin:6px 0}
+.up{color:#3ddc97}.dn{color:#ff5d73}#lcx h4{margin:16px 0 4px;color:#ffb627}
+.btr-win{position:relative;overflow:hidden;height:108px;border-radius:12px;background:#0d0508;border:1px solid rgba(255,122,47,.25);margin:6px 0}
+.btr-ptr{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#ffb627;box-shadow:0 0 10px #ffb627;z-index:2}
+.btr{display:flex;gap:6px;position:absolute;left:0;top:8px;will-change:transform}
+.btt{min-width:74px;height:92px;background:#1c0910;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;border-bottom:3px solid var(--rc);flex:none}
+.btt img{width:56px;height:38px;object-fit:contain}
+.btt small{font-size:.52rem;color:#c9a0ab;text-align:center;line-height:1.15;margin-top:2px;font-weight:700}
+.btt.hit{box-shadow:0 0 16px var(--rc),inset 0 0 10px rgba(255,255,255,.12);border:1px solid var(--rc)}#lcx select{width:100%;padding:10px;border-radius:10px;border:1px solid #4a1b2c;background:#1c0910;color:#fff;margin:6px 0}
 .lx-vs{display:grid;grid-template-columns:1fr 1fr;gap:10px}.lx-c{text-align:center;font-size:11px;padding:6px;border-radius:10px;background:#1c0910;margin-bottom:6px;border-bottom:3px solid var(--c)}.lx-c img{width:100%;height:56px;object-fit:contain}
 #lcd{position:fixed;inset:0;z-index:10001;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center;color:#fff;font:15px system-ui;background:#1c0910;background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--c) 55%,#0d0508),#0d0508 72%)}
 #lcd img{width:min(78vw,340px);filter:drop-shadow(0 0 28px var(--c));animation:lcp .7s cubic-bezier(.2,1.4,.4,1)}#lcd .t{font-size:20px;font-weight:800}
@@ -3220,13 +3227,12 @@ function rng(str){let a=hs(str);return()=>{a=(a+0x6D2B79F5)>>>0;let t=Math.imul(
 function seeded(c,seed,p,i){const r=rng(seed+':'+p+':'+i);let v=r()*c.items.reduce((s,x)=>s+(x.chance||100),0);for(const x of c.items){v-=(x.chance||100);if(v<=0)return x}return c.items[0]}
 let rounds=1,q=null,live=false;
 function battle(){live=false;const cs=CS2_CASES.slice().sort((a,b)=>a.price-b.price);
- open('⚔️ Баттл кейсов','<div style="color:#9ca3af;font-size:12px">Вы открываете по одному кейсу за раунд. У кого сумма дороже, тот забирает все скины. При ничьей каждый оставляет своё.</div><select id="lb-c">'+cs.map(c=>'<option value="'+c.id+'">'+c.name+' — '+fmt(c.price)+'</option>').join('')+'</select><div style="display:flex;gap:6px;margin:6px 0" id="lb-r">'+[1,3,5].map(n=>'<button class="lx-b '+(n===rounds?'':'g')+'" data-n="'+n+'" style="flex:1">'+n+' '+(n===1?'раунд':'раунда')+'</button>').join('')+'</div><button class="lx-b y" id="lb-go" style="width:100%">Против игрока</button><button class="lx-b g" id="lb-bot" style="width:100%;margin-top:6px">Против бота</button><button class="lx-b g" id="lb-inv" style="width:100%;margin-top:6px">Позвать друга в баттл</button><div id="lb-o"></div>');
+ open('⚔️ Баттл кейсов','<div style="color:#9ca3af;font-size:12px">Вы открываете по одному кейсу за раунд. У кого сумма дороже, тот забирает все скины. При ничьей каждый оставляет своё.</div><select id="lb-c">'+cs.map(c=>'<option value="'+c.id+'">'+c.name+' — '+fmt(c.price)+'</option>').join('')+'</select><div style="display:flex;gap:6px;margin:6px 0" id="lb-r">'+[1,3,5].map(n=>'<button class="lx-b '+(n===rounds?'':'g')+'" data-n="'+n+'" style="flex:1">'+n+' '+(n===1?'раунд':'раунда')+'</button>').join('')+'</div><button class="lx-b y" id="lb-go" style="width:100%">Против игрока</button><button class="lx-b g" id="lb-bot" style="width:100%;margin-top:6px">Против бота</button><div id="lb-o"></div>');
  $('lb-r').onclick=e=>{const n=+e.target.dataset.n;if(n){rounds=n;[...$('lb-r').children].forEach(b=>b.classList.toggle('g',+b.dataset.n!==n))}};
- $('lb-go').onclick=()=>pvp($('lb-c').value);$('lb-bot').onclick=()=>fight($('lb-c').value);
- $('lb-inv').onclick=()=>{try{tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(location.href.split('#')[0])+'&text='+encodeURIComponent('Го в баттл кейсов! Открывай игру и жми «Против игрока»'))}catch(e){}}}
+ $('lb-go').onclick=()=>pvp($('lb-c').value);$('lb-bot').onclick=()=>fight($('lb-c').value);}
 async function pvp(id){const c=CS2_CASES.find(x=>x.id===id),n=rounds;if(balance<c.price*n){showToast('❌ Недостаточно монет!');return}
  live=true;const stop=()=>{live=false;if(q)api('/api/battle/cancel',{room:q}).catch(()=>{});q=null};
- $('lb-o').innerHTML='<div style="text-align:center;margin:14px 0">🔎 Ищу соперника…<br><small id="lb-w" style="color:#9ca3af">Если долго никого нет, позови друга или сыграй с ботом</small></div><button class="lx-b g" id="lb-cx" style="width:100%">Отмена</button><button class="lx-b y" id="lb-b2" style="width:100%;margin-top:6px">Играть с ботом</button>';
+ $('lb-o').innerHTML='<div style="text-align:center;margin:14px 0">🔎 Ищу соперника…<br><small id="lb-w" style="color:#9ca3af">Если долго никого нет — сыграй с ботом</small></div><button class="lx-b g" id="lb-cx" style="width:100%">Отмена</button><button class="lx-b y" id="lb-b2" style="width:100%;margin-top:6px">Играть с ботом</button>';
  $('lb-cx').onclick=()=>{stop();battle()};$('lb-b2').onclick=()=>{stop();fight(id)};
  try{let r=await api('/api/battle/join',{case:id,rounds:n,fp:fp(c)}),t0=Date.now();q=r.room||null;
   while(live&&r.status==='waiting'){await sl(1500);if(!live)return;$('lb-w').textContent='Ищу уже '+Math.round((Date.now()-t0)/1000)+' с';r=await api('/api/battle/poll',{room:q})}
@@ -3240,8 +3246,22 @@ async function fight(id,m){const c=CS2_CASES.find(x=>x.id===id),n=m?m.battle.rou
  balance-=cost;const ys=you.reduce((s,i)=>s+bp(i),0),bs=bot.reduce((s,i)=>s+bp(i),0),win=ys>bs,tie=ys===bs,give=win?you.concat(bot):tie?you:[],got=give.map(i=>Object.assign({},i,{id:Date.now()+Math.random()}));
  got.forEach(i=>inventory.unshift(i));saveGame();updateBalance();updateElo();renderInventory();
  $('lx-x').disabled=true;$('lx-b').innerHTML='<div class="lx-vs"><div id="lb-y"><b>Ты</b></div><div id="lb-b"><b>'+esc(nm)+'</b></div></div><div id="lb-s" style="text-align:center;margin:10px 0;font-weight:700"></div><div id="lb-o"></div>';
- const cd=s=>'<div class="lx-c" style="--c:'+((RARITY[s.rarity]||{}).color||'#aaa')+'">'+im(s)+s.weapon+'<br>'+s.name+'<br><b>'+fmt(bp(s))+'</b></div>';let a=0,b=0;
- for(let i=0;i<n;i++){await sl(1000);a+=bp(you[i]);b+=bp(bot[i]);$('lb-y').insertAdjacentHTML('beforeend',cd(you[i]));$('lb-b').insertAdjacentHTML('beforeend',cd(bot[i]));$('lb-s').textContent=fmt(a)+' : '+fmt(b);hapt((bp(you[i])>=bp(bot[i])?you[i]:bot[i]).rarity)}
+ const rar=r=>((RARITY[r]||{}).color||'#aaa');
+ const tk=s=>'<div class="btt" style="--rc:'+rar(s.rarity)+'">'+im(s)+'<small>'+s.weapon+'<br>'+s.name+'</small></div>';
+ const cd=s=>'<div class="lx-c" style="--c:'+rar(s.rarity)+'">'+im(s)+s.weapon+'<br>'+s.name+'<br><b>'+fmt(bp(s))+'</b></div>';
+ const roller=drop=>{const items=[];for(let k=0;k<22;k++)items.push(c.items[Math.floor(Math.random()*c.items.length)]);items[14]=drop;return'<div class="btr-win"><div class="btr-ptr"></div><div class="btr">'+items.map(tk).join('')+'</div></div>'};
+ let a=0,b=0;
+ for(let i=0;i<n;i++){
+  $('lb-y').insertAdjacentHTML('beforeend',roller(you[i]));$('lb-b').insertAdjacentHTML('beforeend',roller(bot[i]));
+  const wy=$('lb-y').lastElementChild,wb=$('lb-b').lastElementChild,sy=wy.querySelector('.btr'),sn=wb.querySelector('.btr');
+  const off=14*80+37-wy.clientWidth/2;
+  requestAnimationFrame(()=>{sy.style.transition=sn.style.transition='transform '+(2+i*.4)+'s cubic-bezier(.08,.82,.12,1)';sy.style.transform=sn.style.transform='translateX(-'+off+'px)'});
+  await sl(2150+i*400);
+  sy.parentNode.querySelectorAll('.btt')[14].classList.add('hit');sn.parentNode.querySelectorAll('.btt')[14].classList.add('hit');
+  a+=bp(you[i]);b+=bp(bot[i]);
+  wy.insertAdjacentHTML('afterend',cd(you[i]));wb.insertAdjacentHTML('afterend',cd(bot[i]));
+  $('lb-s').textContent='Раунд '+(i+1)+'/'+n+' · '+fmt(a)+' : '+fmt(b);
+  hapt((bp(you[i])>=bp(bot[i])?you[i]:bot[i]).rarity)}
  await sl(500);$('lb-s').innerHTML=win?'<span class="up">🏆 Победа! Забираешь '+got.length+' скин(ов) на '+fmt(ys+bs)+' 🪙</span>':tie?'🤝 Ничья, свои скины остаются у тебя':'<span class="dn">💀 Проигрыш: −'+fmt(cost)+' 🪙</span>';
  hapticNotif(win?'success':'error');$('lb-o').innerHTML='<button class="lx-b y" id="lb-a" style="width:100%">Ещё раз</button>';$('lb-a').onclick=battle;$('lx-x').disabled=false;if(win)drop(got)}
 /* ---------- кнопки в разделе «Игры» ---------- */
