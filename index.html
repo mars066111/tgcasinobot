@@ -3168,5 +3168,87 @@ $('img-f').onchange=async()=>{
 };
 })();
 </script>
+<style>
+#lcx{position:fixed;inset:0;z-index:10000;display:none;background:#0d0508;overflow:auto;padding:14px 14px 40px;color:#fff;font:14px system-ui}
+#lcx.on{display:block}.lx-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}.lx-h b{flex:1;font-size:17px}
+.lx-b{padding:11px 14px;border:0;border-radius:10px;background:#c4122f;color:#fff;font-weight:700}.lx-b.g{background:#374151}.lx-b.y{background:#ffb627;color:#1c0910}.lx-b:disabled{opacity:.4}
+.lx-r{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #4a1b2c}.lx-r img{width:56px;height:40px;object-fit:contain}.lx-r>div:nth-child(2){flex:1;font-size:12px}.lx-r>div:last-child{text-align:right;font-weight:700}
+.up{color:#3ddc97}.dn{color:#ff5d73}#lcx h4{margin:16px 0 4px;color:#ffb627}#lcx select{width:100%;padding:10px;border-radius:10px;border:1px solid #4a1b2c;background:#1c0910;color:#fff;margin:6px 0}
+.lx-vs{display:grid;grid-template-columns:1fr 1fr;gap:10px}.lx-c{text-align:center;font-size:11px;padding:6px;border-radius:10px;background:#1c0910;margin-bottom:6px;border-bottom:3px solid var(--c)}.lx-c img{width:100%;height:56px;object-fit:contain}
+#lcd{position:fixed;inset:0;z-index:10001;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center;color:#fff;font:15px system-ui;background:#1c0910;background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--c) 55%,#0d0508),#0d0508 72%)}
+#lcd img{width:min(78vw,340px);filter:drop-shadow(0 0 28px var(--c));animation:lcp .7s cubic-bezier(.2,1.4,.4,1)}#lcd .t{font-size:20px;font-weight:800}
+@keyframes lcp{from{transform:scale(.3) rotate(-8deg);opacity:0}}@media(prefers-reduced-motion:reduce){#lcd img{animation:none}}
+</style>
+<script>
+(function(){try{
+const $=id=>document.getElementById(id),key=s=>s.weapon+' | '+s.name,sl=ms=>new Promise(r=>setTimeout(r,ms)),H=tg&&tg.HapticFeedback;
+const img=s=>{try{return itemImg(s)}catch(e){return generateFallbackSVG(s)}};
+const im=s=>'<img src="'+img(s)+'" onerror="this.src=\''+generateFallbackSVG(s)+'\'">';
+/* ---------- вибрация по редкости ---------- */
+function hapt(r){if(!H)return;try{if(r==='special'||r==='covert'){[0,120,240,360].forEach(t=>setTimeout(()=>H.impactOccurred('heavy'),t));setTimeout(()=>H.notificationOccurred('success'),520)}else if(r==='classified')H.notificationOccurred('success');else if(r==='restricted')H.impactOccurred('medium');else H.impactOccurred('light')}catch(e){}}
+function ticks(){const r=$('case-roller'),b=$('roller-box');if(!r||!b||!H)return;const c=b.clientWidth/2,end=performance.now()+6200;let last=-1,lt=0;(function f(){const x=new DOMMatrix(getComputedStyle(r).transform).m41,i=Math.floor((c-x)/130),n=performance.now();if(i!==last){last=i;if(n-lt>45){lt=n;try{H.selectionChanged()}catch(e){}}}if(n<end)requestAnimationFrame(f)})()}
+/* ---------- экран выпадения ---------- */
+function drop(items){const best=items.reduce((a,b)=>b.price>a.price?b:a),R=RARITY[best.rarity]||{color:'#aaa',label:''},tot=items.reduce((s,i)=>s+i.price,0);hapt(best.rarity);
+ let d=$('lcd');if(d)d.remove();d=document.createElement('div');d.id='lcd';d.style.setProperty('--c',R.color);
+ d.innerHTML=im(best)+'<div class="t" style="color:'+R.color+'">'+best.weapon+' | '+best.name+'</div><div>'+R.label+', '+fmt(best.price)+' 🪙</div>'+(items.length>1?'<div>и ещё '+(items.length-1)+' шт. на '+fmt(tot-best.price)+' 🪙</div>':'')+'<div style="display:flex;gap:8px;margin-top:8px"><button class="lx-b y" id="lcd-s">Продать за '+fmt(tot)+'</button><button class="lx-b" id="lcd-k">Забрать</button></div><button class="lx-b g" id="lcd-h">Похвастаться</button>';
+ document.body.appendChild(d);$('lcd-k').onclick=()=>d.remove();
+ $('lcd-s').onclick=()=>{const ids=new Set(items.map(i=>i.id));inventory=inventory.filter(i=>!ids.has(i.id));balance+=tot;saveGame();updateBalance();updateElo();renderInventory();hapticNotif('success');showToast('💵 Продано за '+fmt(tot));d.remove()};
+ $('lcd-h').onclick=()=>{const t='Мне выпал '+best.weapon+' | '+best.name+' за '+fmt(best.price)+' 🪙!';try{tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(location.href.split('#')[0])+'&text='+encodeURIComponent(t))}catch(e){showToast('Открой игру в Telegram')}}}
+const _sco=startCaseOpening;startCaseOpening=function(){const n0=inventory.length,b0=balance;_sco.apply(this,arguments);if(balance===b0)return;ticks();setTimeout(()=>{const k=inventory.length-n0;if(k>0)drop(inventory.slice(0,k))},6200)};
+/* ---------- живой рынок ---------- */
+const BASE={};ALL_POSSIBLE_SKINS.forEach(s=>BASE[key(s)]=s.price);CS2_CASES.forEach(c=>c.items.forEach(s=>{if(!(key(s) in BASE))BASE[key(s)]=s.price}));
+function hs(s){let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h}
+function mu(k,t){const h=hs(k);return 1+.06*Math.sin(t/9+h%628/100)+.045*Math.sin(t/3.1+(h>>>7)%628/100)+.025*Math.sin(t/1.3+(h>>>13)%628/100)}
+const T=()=>Date.now()/36e5,pr=(k,t)=>Math.max(10,Math.round(BASE[k]*mu(k,t)/10)*10);
+function tick(){const t=T();let ch=0;[ALL_POSSIBLE_SKINS,inventory].forEach(a=>a.forEach(s=>{const k=key(s);if(k in BASE){const p=pr(k,t);if(s.price!==p){s.price=p;ch=1}}}));CS2_CASES.forEach(c=>c.items.forEach(s=>{const k=key(s);if(k in BASE){const p=pr(k,t);if(s.price!==p){s.price=p;ch=1}}}));
+ if(ch)try{saveGame();updateBalance(false);renderInventory();renderCasesList();upgRender()}catch(e){}}
+tick();setInterval(tick,6e5);
+const ar=c=>'<span class="'+(c>=0?'up':'dn')+'">'+(c>=0?'▲ ':'▼ ')+Math.abs(c*100).toFixed(1)+'%</span>';
+/* ---------- окно ---------- */
+const P=document.createElement('div');P.id='lcx';P.innerHTML='<div class="lx-h"><b id="lx-t"></b><button class="lx-b g" id="lx-x">✕</button></div><div id="lx-b"></div>';document.body.appendChild(P);
+$('lx-x').onclick=()=>{P.classList.remove('on');live=false;if(q){api('/api/battle/cancel',{room:q}).catch(()=>{});q=null}};
+const open=(t,h)=>{$('lx-t').textContent=t;$('lx-b').innerHTML=h;$('lx-x').disabled=false;P.classList.add('on');P.scrollTop=0};
+function market(){const t=T(),rows=Object.keys(BASE).filter(k=>BASE[k]>=500).map(k=>{const p=pr(k,t);return{k,p,c:p/pr(k,t-24)-1}}).sort((a,b)=>b.c-a.c);
+ const row=r=>{const w=r.k.split(' | ');return'<div class="lx-r">'+im({weapon:w[0],name:w[1],rarity:'milspec',price:r.p})+'<div>'+w[0]+'<br>'+w[1]+'</div><div>'+fmt(r.p)+' 🪙<br>'+ar(r.c)+'</div></div>'};
+ const now=inventory.reduce((s,i)=>s+i.price,0),was=inventory.reduce((s,i)=>{const k=key(i);return s+(k in BASE?pr(k,t-24):i.price)},0);
+ open('📈 Рынок скинов','<div>Твои скины: <b>'+fmt(now)+' 🪙</b> '+(was?ar(now/was-1):'')+' за сутки</div><small style="color:#9ca3af">Цены у всех игроков одинаковые, обновляются каждые 10 минут. Продавай на пике.</small><h4>Дорожают</h4>'+rows.slice(0,8).map(row).join('')+'<h4>Дешевеют</h4>'+rows.slice(-8).reverse().map(row).join(''))}
+/* ---------- баттлы кейсов (бот или настоящий игрок) ---------- */
+const LB='https://casino-otkg.onrender.com',INIT=(tg&&tg.initData)||'',esc=x=>String(x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const api=(p,b)=>fetch(LB+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({initData:INIT},b))}).then(r=>r.json());
+const bp=s=>BASE[key(s)]||s.price,fp=c=>hs(c.id+c.items.map(x=>key(x)+(x.chance||100)).join()).toString(36);
+function rng(str){let a=hs(str);return()=>{a=(a+0x6D2B79F5)>>>0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function seeded(c,seed,p,i){const r=rng(seed+':'+p+':'+i);let v=r()*c.items.reduce((s,x)=>s+(x.chance||100),0);for(const x of c.items){v-=(x.chance||100);if(v<=0)return x}return c.items[0]}
+let rounds=1,q=null,live=false;
+function battle(){live=false;const cs=CS2_CASES.slice().sort((a,b)=>a.price-b.price);
+ open('⚔️ Баттл кейсов','<div style="color:#9ca3af;font-size:12px">Вы открываете по одному кейсу за раунд. У кого сумма дороже, тот забирает все скины. При ничьей каждый оставляет своё.</div><select id="lb-c">'+cs.map(c=>'<option value="'+c.id+'">'+c.name+' — '+fmt(c.price)+'</option>').join('')+'</select><div style="display:flex;gap:6px;margin:6px 0" id="lb-r">'+[1,3,5].map(n=>'<button class="lx-b '+(n===rounds?'':'g')+'" data-n="'+n+'" style="flex:1">'+n+' '+(n===1?'раунд':'раунда')+'</button>').join('')+'</div><button class="lx-b y" id="lb-go" style="width:100%">Против игрока</button><button class="lx-b g" id="lb-bot" style="width:100%;margin-top:6px">Против бота</button><button class="lx-b g" id="lb-inv" style="width:100%;margin-top:6px">Позвать друга в баттл</button><div id="lb-o"></div>');
+ $('lb-r').onclick=e=>{const n=+e.target.dataset.n;if(n){rounds=n;[...$('lb-r').children].forEach(b=>b.classList.toggle('g',+b.dataset.n!==n))}};
+ $('lb-go').onclick=()=>pvp($('lb-c').value);$('lb-bot').onclick=()=>fight($('lb-c').value);
+ $('lb-inv').onclick=()=>{try{tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(location.href.split('#')[0])+'&text='+encodeURIComponent('Го в баттл кейсов! Открывай игру и жми «Против игрока»'))}catch(e){}}}
+async function pvp(id){const c=CS2_CASES.find(x=>x.id===id),n=rounds;if(balance<c.price*n){showToast('❌ Недостаточно монет!');return}
+ live=true;const stop=()=>{live=false;if(q)api('/api/battle/cancel',{room:q}).catch(()=>{});q=null};
+ $('lb-o').innerHTML='<div style="text-align:center;margin:14px 0">🔎 Ищу соперника…<br><small id="lb-w" style="color:#9ca3af">Если долго никого нет, позови друга или сыграй с ботом</small></div><button class="lx-b g" id="lb-cx" style="width:100%">Отмена</button><button class="lx-b y" id="lb-b2" style="width:100%;margin-top:6px">Играть с ботом</button>';
+ $('lb-cx').onclick=()=>{stop();battle()};$('lb-b2').onclick=()=>{stop();fight(id)};
+ try{let r=await api('/api/battle/join',{case:id,rounds:n,fp:fp(c)}),t0=Date.now();q=r.room||null;
+  while(live&&r.status==='waiting'){await sl(1500);if(!live)return;$('lb-w').textContent='Ищу уже '+Math.round((Date.now()-t0)/1000)+' с';r=await api('/api/battle/poll',{room:q})}
+  if(!live)return;live=false;
+  if(r.status==='matched'){q=null;fight(id,r)}else{q=null;showToast('Никого не нашёл, попробуй ещё раз');battle()}
+ }catch(e){if(live){stop();showToast('⚠️ Сервер недоступен');battle()}}}
+async function fight(id,m){const c=CS2_CASES.find(x=>x.id===id),n=m?m.battle.rounds:rounds,cost=c.price*n;if(!m&&balance<cost){showToast('❌ Недостаточно монет!');return}
+ const you=[],bot=[];let nm='Бот Рэй';
+ if(m){const i0=m.me,B=m.battle;nm=B.players[1-i0].name;for(let i=0;i<n;i++){you.push(seeded(c,B.seed,i0,i));bot.push(seeded(c,B.seed,1-i0,i))}}
+ else for(let i=0;i<n;i++){you.push(getWeightedDrop(c.items));bot.push(getWeightedDrop(c.items))}
+ balance-=cost;const ys=you.reduce((s,i)=>s+bp(i),0),bs=bot.reduce((s,i)=>s+bp(i),0),win=ys>bs,tie=ys===bs,give=win?you.concat(bot):tie?you:[],got=give.map(i=>Object.assign({},i,{id:Date.now()+Math.random()}));
+ got.forEach(i=>inventory.unshift(i));saveGame();updateBalance();updateElo();renderInventory();
+ $('lx-x').disabled=true;$('lx-b').innerHTML='<div class="lx-vs"><div id="lb-y"><b>Ты</b></div><div id="lb-b"><b>'+esc(nm)+'</b></div></div><div id="lb-s" style="text-align:center;margin:10px 0;font-weight:700"></div><div id="lb-o"></div>';
+ const cd=s=>'<div class="lx-c" style="--c:'+((RARITY[s.rarity]||{}).color||'#aaa')+'">'+im(s)+s.weapon+'<br>'+s.name+'<br><b>'+fmt(bp(s))+'</b></div>';let a=0,b=0;
+ for(let i=0;i<n;i++){await sl(1000);a+=bp(you[i]);b+=bp(bot[i]);$('lb-y').insertAdjacentHTML('beforeend',cd(you[i]));$('lb-b').insertAdjacentHTML('beforeend',cd(bot[i]));$('lb-s').textContent=fmt(a)+' : '+fmt(b);hapt((bp(you[i])>=bp(bot[i])?you[i]:bot[i]).rarity)}
+ await sl(500);$('lb-s').innerHTML=win?'<span class="up">🏆 Победа! Забираешь '+got.length+' скин(ов) на '+fmt(ys+bs)+' 🪙</span>':tie?'🤝 Ничья, свои скины остаются у тебя':'<span class="dn">💀 Проигрыш: −'+fmt(cost)+' 🪙</span>';
+ hapticNotif(win?'success':'error');$('lb-o').innerHTML='<button class="lx-b y" id="lb-a" style="width:100%">Ещё раз</button>';$('lb-a').onclick=battle;$('lx-x').disabled=false;if(win)drop(got)}
+/* ---------- кнопки в разделе «Игры» ---------- */
+const GG={market:['📈','Рынок',market],battle:['⚔️','Баттлы',battle]};
+Object.keys(GG).forEach(k=>$('games-grid-container').insertAdjacentHTML('beforeend','<div class="case-card" onclick="openGame(\''+k+'\')"><div class="case-img-box" style="font-size:2.5rem">'+GG[k][0]+'</div><div class="case-name">'+GG[k][1]+'</div></div>'));
+const _og=openGame;openGame=function(k){if(GG[k])return GG[k][2]();return _og.apply(this,arguments)};
+}catch(e){console.error('features',e)}})();
+</script>
 </body>
 </html>
