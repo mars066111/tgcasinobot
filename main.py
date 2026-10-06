@@ -4,6 +4,7 @@ import hmac
 import json
 import os
 import re
+import secrets
 import sqlite3
 import threading
 import time
@@ -91,6 +92,11 @@ MAX_STRIKES = 3       # после 3 нарушений игрок скрыва�
 START_BAL = 10_000
 ADMIN_CMDS = {"bal", "set", "item", "case", "clear"}
 JUMP_LIMIT = 3_000_000  # подозрительный скачок баланса между синхронизациями
+
+# ---------------------- БАТТЛЫ (комнаты живут только в памяти) ----------------------
+battle_lock = threading.Lock()
+battle_wait = {}
+battle_rooms = {}
 
 # ---------------------- LIVE (SSE) -----------------------
 clients = set()
@@ -334,7 +340,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
-        if path not in ("/api/sync", "/api/admin", "/api/grants", "/api/grants/ack", "/api/skinimg"):
+        if path not in ("/api/sync", "/api/admin", "/api/grants", "/api/grants/ack", "/api/skinimg", "/api/battle/join", "/api/battle/poll", "/api/battle/cancel"):
             return self._json({"error": "not found"}, 404)
         try:
             n = int(self.headers.get("Content-Length", "0"))
@@ -354,6 +360,8 @@ class Handler(BaseHTTPRequestHandler):
             if int(user["id"]) != OWNER_ID:
                 return self._json({"error": "forbidden"}, 403)
             return self._skinimg(data)
+        if path.startswith("/api/battle/"):
+            return self._battle(path, user, data)
         if path == "/api/admin":
             if int(user["id"]) != OWNER_ID:
                 return self._json({"error": "forbidden"}, 403)
@@ -497,6 +505,47 @@ class Handler(BaseHTTPRequestHandler):
             db.commit()
         bump_version()
         self._json({"ok": True, "count": len(ids)})
+
+    def _battle(self, path, user, data):
+        uid = int(user["id"])
+        now = time.time()
+        me = {"id": uid, "name": to_str(user.get("first_name") or user.get("username") or "Игрок", 30)}
+        rid = to_str(data.get("room"), 20)
+        with battle_lock:
+            for k in [k for k, r in battle_rooms.items() if now - r["t"] > 600]:
+                battle_rooms.pop(k, None)
+            for k in [k for k, w in battle_wait.items() if now - w["t"] > 45]:
+                battle_wait.pop(k, None)
+            if path == "/api/battle/cancel":
+                battle_wait.pop(rid, None)
+                return self._json({"ok": True})
+            if path == "/api/battle/poll":
+                b = battle_rooms.get(rid)
+                if b:
+                    for i, p in enumerate(b["players"]):
+                        if p["id"] == uid:
+                            return self._json({"status": "matched", "battle": b, "me": i})
+                if rid in battle_wait and battle_wait[rid]["uid"] == uid:
+                    battle_wait[rid]["t"] = now
+                    return self._json({"status": "waiting"})
+                return self._json({"status": "gone"})
+            case = to_str(data.get("case"), 40)
+            rounds = to_int(data.get("rounds"), 1, 5)
+            fp = to_str(data.get("fp"), 20)
+            if rounds not in (1, 3, 5) or not case:
+                return self._json({"error": "bad"}, 400)
+            for k in [k for k, w in battle_wait.items() if w["uid"] == uid]:
+                battle_wait.pop(k, None)
+            for k, w in list(battle_wait.items()):
+                if w["case"] == case and w["rounds"] == rounds and w["fp"] == fp:
+                    battle_wait.pop(k)
+                    b = {"id": k, "seed": secrets.token_hex(8), "case": case,
+                         "rounds": rounds, "t": now, "players": [w["p"], me]}
+                    battle_rooms[k] = b
+                    return self._json({"status": "matched", "battle": b, "me": 1})
+            k = secrets.token_hex(6)
+            battle_wait[k] = {"uid": uid, "case": case, "rounds": rounds, "fp": fp, "t": now, "p": me}
+            return self._json({"status": "waiting", "room": k})
 
     def _grants(self, uid, path, data):
         with db_lock:
