@@ -542,7 +542,7 @@
         let selectedCaseCount = 1;
         let currentCaseId = null;
 
-        if (localStorage.getItem('casino_balance') !== null) balance = parseInt(localStorage.getItem('casino_balance')) || 10000;
+        if (localStorage.getItem('casino_balance') !== null) { const _b = parseInt(localStorage.getItem('casino_balance')); balance = isNaN(_b) ? 10000 : _b; }
         if (localStorage.getItem('cs2_inventory') !== null) {
             try { inventory = JSON.parse(localStorage.getItem('cs2_inventory')) || []; } catch(e) { inventory = []; }
         }
@@ -3009,7 +3009,7 @@ window.fetch=function(u){
  try{if(String(u).indexOf('/api/sync')>-1)p.then(r=>r.clone().json()).then(d=>{if(d&&d.revert)back(d)}).catch(()=>{})}catch(e){}
  return p};
 function back(d){
- balance=Math.max(0,+d.balance||10000);
+ balance=Number.isFinite(+d.balance)?Math.round(+d.balance):10000;
  inventory=(d.inv||[]).map((a,i)=>({weapon:a[0],name:a[1],rarity:a[2],price:a[3],id:Date.now()+i+Math.random(),fl:.2,wr:'FT'}));
  saveGame();updateBalance(false);updateElo();renderInventory();
  showToast('⚠️ Подозрительное изменение баланса отменено сервером');
