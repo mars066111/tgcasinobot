@@ -59,6 +59,157 @@ db.execute(
 )
 db.execute("CREATE TABLE IF NOT EXISTS skinimg (k TEXT PRIMARY KEY, data BLOB, mime TEXT, h TEXT)")
 db.commit()
+# ====================== ПАТЧ v6: ТУРНИРЫ / КЛАН-ВОЙНА / БАН ======================
+db.execute("CREATE TABLE IF NOT EXISTS tour (id INTEGER PRIMARY KEY AUTOINCREMENT, a TEXT, b TEXT, odds_a REAL, odds_b REAL, starts INTEGER, status TEXT DEFAULT 'open', winner INTEGER DEFAULT -1, seed TEXT, ts INTEGER)")
+db.execute("CREATE TABLE IF NOT EXISTS tour_bets (uid INTEGER, match_id INTEGER, side INTEGER, amount INTEGER, odds REAL, settled INTEGER DEFAULT 0, PRIMARY KEY(uid, match_id))")
+db.execute("CREATE TABLE IF NOT EXISTS war (club_id INTEGER PRIMARY KEY, cases INTEGER DEFAULT 0, week TEXT)")
+db.commit()
+try:
+    db.execute("ALTER TABLE players ADD COLUMN banned INTEGER DEFAULT 0")
+    db.commit()
+except sqlite3.OperationalError:
+    pass
+
+TOUR_INTERVAL = 300      # новый матч каждые 5 минут
+TOUR_ODDS = 1.9          # выплата за угадавшего победителя
+TOUR_MAX_BET = 100000
+WAR_PRIZE_1 = 10000      # каждому участнику клуба-победителя
+WAR_PRIZE_2 = 4000       # каждому участнику клуба со 2-го места
+
+
+def _week_key():
+    import datetime
+    d = datetime.date.today()
+    return "%d-W%02d" % (d.isocalendar().year, d.isocalendar().week)
+
+
+def ensure_tour():
+    """Закрывает завершившиеся матчи, выплачивает выигрыши через grants, создаёт новые матчи."""
+    now = int(time.time())
+    with db_lock:
+        rows = db.execute(
+            "SELECT id, seed, starts FROM tour WHERE status='open' AND starts <= ?",
+            (now - 90,),
+        ).fetchall()
+        for r in rows:
+            # победитель определяется из секретного seed (50/50) только на сервере
+            win = int(hashlib.sha256((r[1] + "w").encode()).hexdigest(), 16) % 2
+            db.execute(
+                "UPDATE tour SET status='done', winner=? WHERE id=?", (win, r[0])
+            )
+            bets = db.execute(
+                "SELECT uid, amount, odds FROM tour_bets WHERE match_id=? AND side=? AND settled=0",
+                (r[0], win),
+            ).fetchall()
+            db.executemany(
+                "INSERT INTO grants (uid,kind,data,created) VALUES (?,?,?,?)",
+                [(b[0], "bal", json.dumps({"t": "bal", "v": int(b[1] * b[2]), "note": "Турнир"}, ensure_ascii=False), now) for b in bets],
+            )
+            db.execute("UPDATE tour_bets SET settled=1 WHERE match_id=?", (r[0],))
+        cnt = db.execute(
+            "SELECT COUNT(*) FROM tour WHERE status='open' AND starts > ?", (now,)
+        ).fetchone()[0]
+        last = db.execute("SELECT MAX(starts) FROM tour").fetchone()[0]
+        if not last:
+            last = now - now % TOUR_INTERVAL
+        names = ["Vortex", "Blaze", "Ghost", "Pixel", "Storm", "Rex", "Nova", "Drift", "Ace", "Fang", "Zero", "Onyx"]
+        import random as _rnd
+        while cnt < 3:
+            last += TOUR_INTERVAL
+            a, b = _rnd.sample(names, 2)
+            db.execute(
+                "INSERT INTO tour (a,b,odds_a,odds_b,starts,status,seed,ts) VALUES (?,?,?,?,?,'open',?,?)",
+                (a, b, TOUR_ODDS, TOUR_ODDS, last, secrets.token_hex(8), now),
+            )
+            cnt += 1
+        db.commit()
+
+
+def get_tour():
+    ensure_tour()
+    now = int(time.time())
+    with db_lock:
+        rows = db.execute(
+            "SELECT id,a,b,odds_a,odds_b,starts,status,winner FROM tour ORDER BY starts DESC LIMIT 12"
+        ).fetchall()
+    return {
+        "now": now,
+        "matches": [
+            {"id": r[0], "a": r[1], "b": r[2], "oa": r[3], "ob": r[4],
+             "starts": r[5], "status": r[6], "winner": r[7]}
+            for r in rows
+        ],
+    }
+
+
+def _club_of(uid):
+    with club_lock:
+        rows = db.execute("SELECT id, members FROM clubs").fetchall()
+    for r in rows:
+        if uid in json.loads(r[1] or "[]"):
+            return r[0]
+    return None
+
+
+def add_war_cases(uid, delta):
+    if delta <= 0:
+        return
+    cid = _club_of(uid)
+    if not cid:
+        return
+    with club_lock:
+        db.execute(
+            "INSERT INTO war (club_id, cases, week) VALUES (?,?,?) "
+            "ON CONFLICT(club_id) DO UPDATE SET cases=cases+excluded.cases",
+            (cid, delta, _week_key()),
+        )
+        db.commit()
+
+
+def get_war():
+    import datetime
+    wk = _week_key()
+    d = datetime.date.today()
+    end = int(time.mktime((d + datetime.timedelta(days=7 - d.isocalendar().weekday)).timetuple()))
+    now = int(time.time())
+    with club_lock:
+        # награды за прошлую неделю (лениво, при смене недели)
+        aw = db.execute("SELECT v FROM meta WHERE k='war_awarded'").fetchone()
+        if aw and aw[0] != wk:
+            old = db.execute(
+                "SELECT club_id, cases FROM war WHERE week=? ORDER BY cases DESC LIMIT 2",
+                (aw[0],),
+            ).fetchall()
+            for place, (cid, sc) in enumerate(old):
+                if sc <= 0:
+                    continue
+                r = db.execute("SELECT members FROM clubs WHERE id=?", (cid,)).fetchone()
+                if not r:
+                    continue
+                prize = WAR_PRIZE_1 if place == 0 else WAR_PRIZE_2
+                members = json.loads(r[0] or "[]")[:CLUB_MAX]
+                db.executemany(
+                    "INSERT INTO grants (uid,kind,data,created) VALUES (?,?,?,?)",
+                    [(m, "bal", json.dumps({"t": "bal", "v": prize, "note": "Клан-война"}, ensure_ascii=False), now) for m in members],
+                )
+            db.execute(
+                "INSERT INTO meta (k,v) VALUES ('war_awarded',?) "
+                "ON CONFLICT(k) DO UPDATE SET v=excluded.v", (wk,),
+            )
+            db.execute("DELETE FROM war WHERE week != ?", (wk,))
+            db.commit()
+        rows = db.execute(
+            "SELECT club_id, cases FROM war WHERE week=? ORDER BY cases DESC LIMIT 2", (wk,)
+        ).fetchall()
+    out = []
+    for r in rows:
+        c = db.execute("SELECT name,tag,emblem,members FROM clubs WHERE id=?", (r[0],)).fetchone()
+        if c:
+            out.append({"id": r[0], "name": c[0], "tag": c[1], "emblem": c[2],
+                        "cases": r[3], "members": len(json.loads(c[4] or "[]"))})
+    return {"week": wk, "end": end, "prize1": WAR_PRIZE_1, "prize2": WAR_PRIZE_2, "clubs": out}
+# ====================== КОНЕЦ ПАТЧА v6 ======================
+
 try:
     db.execute("ALTER TABLE players ADD COLUMN susp INTEGER DEFAULT 0")
     db.commit()
@@ -327,6 +478,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"messages": [{"id": r[0], "uid": r[1], "name": r[2], "text": r[3], "ts": r[4]} for r in rows]})
         if url.path == "/api/board":
             return self._json(get_board())
+        if url.path == "/api/tour":
+            return self._json(get_tour())
+        if url.path == "/api/war":
+            return self._json(get_war())
         if url.path == "/api/player":
             q = parse_qs(url.query)
             try:
@@ -379,6 +534,7 @@ class Handler(BaseHTTPRequestHandler):
                         "/api/battle/online", "/api/battle/invite", "/api/battle/invites",
                         "/api/battle/accept", "/api/battle/status", "/api/battle/decline",
                         "/api/chat/send",
+                        "/api/tour/bet",
                         "/api/trades/create", "/api/trades/list", "/api/trades/accept", "/api/trades/decline",
                         "/api/clubs/create", "/api/clubs/join", "/api/clubs/leave", "/api/clubs/list", "/api/clubs/mine"):
             return self._json({"error": "not found"}, 404)
@@ -396,6 +552,10 @@ class Handler(BaseHTTPRequestHandler):
         user = verify_init_data(str(data.get("initData", "")))
         if not user:
             return self._json({"error": "auth"}, 401)
+        with db_lock:
+            _bn = db.execute("SELECT banned FROM players WHERE uid=?", (int(user["id"]),)).fetchone()
+        if _bn and _bn[0]:
+            return self._json({"error": "banned"}, 403)
         if path == "/api/skinimg":
             if int(user["id"]) != OWNER_ID:
                 return self._json({"error": "forbidden"}, 403)
@@ -414,6 +574,29 @@ class Handler(BaseHTTPRequestHandler):
             return self._trades(int(user["id"]), path, data)
         if path.startswith("/api/clubs/"):
             return self._clubs(int(user["id"]), path, data)
+
+        if path == "/api/tour/bet":
+            mid = to_int(data.get("match_id"), 0, 10 ** 9)
+            side = 1 if data.get("side") == 1 else 0
+            amount = to_int(data.get("amount"), 0, TOUR_MAX_BET)
+            if amount < 10:
+                return self._json({"error": "минимальная ставка 10"}, 400)
+            now = int(time.time())
+            with db_lock:
+                m = db.execute(
+                    "SELECT id, starts, status, odds_a, odds_b FROM tour WHERE id=?", (mid,)
+                ).fetchone()
+                if not m or m[2] != "open" or now >= m[1]:
+                    return self._json({"error": "ставки на этот матч закрыты"}, 400)
+                try:
+                    db.execute(
+                        "INSERT INTO tour_bets (uid,match_id,side,amount,odds) VALUES (?,?,?,?,?)",
+                        (int(user["id"]), mid, side, amount, m[3] if side == 0 else m[4]),
+                    )
+                    db.commit()
+                except sqlite3.IntegrityError:
+                    return self._json({"error": "у тебя уже есть ставка на этот матч"}, 400)
+            return self._json({"ok": True})
 
         uid = int(user["id"])
         name = to_str(user.get("first_name") or user.get("username") or "Игрок", 40)
@@ -465,6 +648,12 @@ class Handler(BaseHTTPRequestHandler):
                     {"ok": False, "revert": True, "balance": old_bal, "inv": old_inv[:200]}
                 )
             old = (old_bal,) if row else None
+            # очки клан-войны: сколько кейсов открыл игрок с прошлой синхронизации
+            try:
+                _oc = db.execute("SELECT cases FROM players WHERE uid=?", (uid,)).fetchone()
+                add_war_cases(uid, cases - (_oc[0] if _oc else cases))
+            except Exception:
+                pass
             db.execute(
                 """INSERT INTO players (uid,name,username,photo,balance,cases,level,seen,profile)
                    VALUES (?,?,?,?,?,?,?,?,?)
@@ -1011,6 +1200,38 @@ def give_money(message):
             f" запустил бота или заблокировал его.\nОшибка: {e}"
         ),
     )
+
+
+@bot.message_handler(commands=["ban"])
+def cmd_ban(message):
+    if message.from_user.id != OWNER_ID:
+        return bot.reply_to(message, "⛔ Нет прав.")
+    try:
+        uid = int(message.text.split()[1])
+    except Exception:
+        return bot.reply_to(message, "Использование: /ban ID_игрока")
+    with db_lock:
+        db.execute(
+            "INSERT INTO players (uid,name,balance) VALUES (?,?,?) ON CONFLICT(uid) DO NOTHING",
+            (uid, "Игрок", START_BAL),
+        )
+        db.execute("UPDATE players SET banned=1 WHERE uid=?", (uid,))
+        db.commit()
+    bot.reply_to(message, f"🔨 Игрок {uid} заблокирован.")
+
+
+@bot.message_handler(commands=["unban"])
+def cmd_unban(message):
+    if message.from_user.id != OWNER_ID:
+        return bot.reply_to(message, "⛔ Нет прав.")
+    try:
+        uid = int(message.text.split()[1])
+    except Exception:
+        return bot.reply_to(message, "Использование: /unban ID_игрока")
+    with db_lock:
+        db.execute("UPDATE players SET banned=0 WHERE uid=?", (uid,))
+        db.commit()
+    bot.reply_to(message, f"✅ Игрок {uid} разблокирован.")
 
 
 if __name__ == "__main__":
