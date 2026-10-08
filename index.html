@@ -1864,6 +1864,220 @@ async function invWatch(){if(!INIT||document.hidden)return;
 setTimeout(invWatch,9000);setInterval(invWatch,25000);
 }catch(e){console.error('patch6',e)}})();
 </script>
+
+<!-- ===================== ПАТЧ v6: ТУРНИРЫ / КЛАН-ВОЙНА / ТРЕЙДЫ v2 / БАН ===================== -->
+<style>
+#lc-tour2,#lc-tr2{position:fixed;inset:0;z-index:10006;background:#0d0508;overflow:auto;padding:14px 14px 60px;color:#fff;font:14px system-ui;display:none}
+#lc-tour2.on,#lc-tr2.on{display:block}
+.lx6-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}.lx6-h b{flex:1;font-size:17px}
+.lx6-b{padding:11px 14px;border:0;border-radius:10px;background:#c4122f;color:#fff;font-weight:800;cursor:pointer}
+.lx6-b.g{background:#374151}.lx6-b.y{background:linear-gradient(135deg,#ffb627,#ff7a2f);color:#1c0910}.lx6-b:disabled{opacity:.4}
+.tm{background:linear-gradient(160deg,#3d1322,#210911);border:1px solid rgba(255,122,47,.28);border-radius:16px;padding:12px;margin-bottom:10px}
+.tm-vs{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:900;font-size:1.05rem;margin-bottom:6px}
+.tm-vs small{color:var(--text-muted);font-weight:700}
+.tm-btns{display:flex;gap:8px}.tm-btns button{flex:1;padding:10px 4px;border:1px solid rgba(255,122,47,.35);border-radius:10px;background:#1c0910;color:#fff;font-weight:900;cursor:pointer}
+.tm-btns button:active{transform:scale(.96)}
+.tm-status{text-align:center;font-size:.78rem;color:var(--text-muted);margin-top:6px}
+.tm-live{color:#4ade80;font-weight:900}
+.tm-my{font-size:.72rem;color:var(--gold);margin-top:6px;text-align:center}
+.lx6-note{font-size:.72rem;color:var(--text-muted);text-align:center;margin:8px 0}
+.war-p{background:linear-gradient(160deg,#3d1322,#210911);border:1px solid rgba(255,122,47,.35);border-radius:16px;padding:12px;margin-bottom:12px}
+.war-row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.war-row .em{font-size:1.9rem}
+.war-row .inf{flex:1}.war-row .nm{font-weight:900;font-size:.88rem}.war-row .bar{height:10px;background:#1c0910;border-radius:8px;overflow:hidden;margin-top:4px}
+.war-row .bar div{height:100%;background:linear-gradient(90deg,#ffb627,#ff7a2f);border-radius:8px;transition:width .5s}
+.war-row .sc{font-weight:900;color:var(--gold);white-space:nowrap}
+.tg6{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:30vh;overflow-y:auto;padding:2px;margin:6px 0}
+.tg6-i{border-radius:10px;padding:6px 3px;text-align:center;background:#1c0910;border:1px solid transparent;border-bottom:3px solid var(--c,#666);font-size:.6rem;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer}
+.tg6-i img{width:100%;height:38px;object-fit:contain}
+.tg6-i b{color:var(--gold);font-size:.68rem}.tg6-i span{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.tg6-i small{color:var(--text-muted)}
+.tg6-i.sel{border-color:#ffb627;box-shadow:0 0 10px rgba(255,182,39,.4)}
+.t6-in{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,122,47,.3);background:#1c0910;color:#fff;margin:4px 0;outline:none;box-sizing:border-box}
+.tr6-row{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,122,47,.15)}
+.tr6-row div{flex:1;font-size:.78rem}
+#lc-ban{position:fixed;inset:0;z-index:99999;background:#0d0508;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;text-align:center;padding:24px}
+</style>
+<script>
+(function(){
+try{
+const $=id=>document.getElementById(id),esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const tg=window.Telegram&&Telegram.WebApp,INIT=(tg&&tg.initData)||'';
+const myId=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user?tg.initDataUnsafe.user.id:0;
+const LB='https://casino-otkg.onrender.com';
+const api=(p,b)=>fetch(LB+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({initData:INIT},b||{}))}).then(r=>r.json());
+const rarC=r=>(RARITY[r]||RARITY.milspec).color;
+const imS=s=>{try{return itemImg(s)}catch(e){return generateFallbackSVG(s)}};
+const F=n=>Number(n||0).toLocaleString('ru-RU');
+const mmss=s=>{s=Math.max(0,s);return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2)};
+
+/* ================= БАН: перехват 403 от сервера ================= */
+const _f=window.fetch;
+window.fetch=function(u){const p=_f.apply(this,arguments);
+ try{if(String(u).indexOf('/api/')>-1)p.then(r=>{if(r.status===403)return r.json().then(d=>{if(d&&d.error==='banned')banScreen()}).catch(()=>{})}).catch(()=>{})}catch(e){}
+ return p};
+function banScreen(){if($('lc-ban'))return;const d=document.createElement('div');d.id='lc-ban';
+ d.innerHTML='<div style="font-size:64px">🚫</div><h2>Доступ заблокирован</h2><p style="color:#c9a0ab;max-width:320px">Администрация ограничила доступ к игре. Если это ошибка — напиши владельцу: @Larp333you</p>';
+ document.body.appendChild(d);try{hapticNotif('error')}catch(e){}}
+
+/* ================= ТУРНИРЫ: ставки на матчи ботов ================= */
+const tourOv=document.createElement('div');tourOv.id='lc-tour2';
+tourOv.innerHTML='<div class="lx6-h"><b>🏟 Турнир ботов</b><button class="lx6-b g" id="tour-x">✕</button></div>'
+ +'<div class="lx6-note">Ставь на победителя матча ботов. Угадал — получи x1.9. Матчи каждые 5 минут, исход определяет сервер.</div>'
+ +'<div style="display:flex;gap:8px;margin-bottom:10px"><input id="tour-amt" type="number" value="500" min="10" class="t6-in" style="margin:0"><button class="lx6-b y" id="tour-reb" style="white-space:nowrap">🔄 Обновить</button></div>'
+ +'<div id="tour-list"><div class="lx6-note">Загрузка…</div></div>';
+document.body.appendChild(tourOv);
+let tourTimer=null;
+function getBets(){try{return JSON.parse(localStorage.getItem('lc_tour_bets')||'{}')}catch(e){return{}}}
+function setBets(b){try{localStorage.setItem('lc_tour_bets',JSON.stringify(b))}catch(e){}}
+function settleDone(ms){const bets=getBets();let ch=0;
+ ms.forEach(m=>{const b=bets[m.id];if(!b||m.status!=='done')return;delete bets[m.id];ch=1;
+  if(m.winner===b.side){const w=Math.round(b.amt*b.odds);balance+=w;try{hapticNotif('success')}catch(e){}showToast('🏟 Турнир: угадал! +'+F(w));}
+  else showToast('🏟 Турнир: '+m.a+' vs '+m.b+' — ставка не зашла');});
+ if(ch){setBets(bets);saveGame();updateBalance();}}
+async function tourLoad(){const box=$('tour-list');if(!box)return;let j;
+ try{j=await(await fetch(LB+'/api/tour')).json()}catch(e){box.innerHTML='<div class="lx6-note">⚠️ Сервер недоступен. Обнови main.py на Render (патч v6).</div>';return}
+ const ms=(j.matches||[]).slice(0,8),bets=getBets();settleDone(ms);
+ box.innerHTML=ms.map(m=>{
+  const mine=bets[m.id],left=m.starts-j.now;
+  let st='';
+  if(m.status==='done'){const w=m.winner===0?m.a:m.b;st='<div class="tm-status">🏆 Победил: <b style="color:var(--gold)">'+esc(w)+'</b>'+(mine?(mine.side===m.winner?' · твой выигрыш ✅':' · ты проиграл ставку ❌'):'')+'</div>';}
+  else if(left<=0)st='<div class="tm-status tm-live">🔴 Матч идёт…</div>';
+  else st='<div class="tm-status">Начало через <b data-tour-cd="'+left+'">'+mmss(left)+'</b></div>';
+  const btns=(left>0)?'<div class="tm-btns"><button data-mid="'+m.id+'" data-side="0">'+esc(m.a)+' — x'+m.oa+'</button><button data-mid="'+m.id+'" data-side="1">'+esc(m.b)+' — x'+m.ob+'</button></div>':'';
+  return'<div class="tm"><div class="tm-vs"><span>🤖 '+esc(m.a)+'</span><small>VS</small><span>'+esc(m.b)+' 🤖</span></div>'+btns+st+(mine?'<div class="tm-my">Твоя ставка: '+F(mine.amt)+' 🪙 на '+esc(mine.side===0?m.a:m.b)+'</div>':'')+'</div>';}).join('')
+  ||'<div class="lx6-note">Матчей пока нет</div>';
+ box.querySelectorAll('[data-mid]').forEach(b=>b.onclick=()=>tourBet(+b.dataset.mid,+b.dataset.side,b));}
+async function tourBet(mid,side,btn){if(btn)btn.disabled=true;
+ const amt=Math.floor(+$('tour-amt').value);
+ if(!(amt>=10)){showToast('❌ Минимальная ставка 10');if(btn)btn.disabled=false;return}
+ if(amt>balance){showToast('❌ Недостаточно монет!');if(btn)btn.disabled=false;return}
+ let j;try{j=await api('/api/tour/bet',{match_id:mid,side:side,amount:amt})}catch(e){j={error:'сервер недоступен'}}
+ if(!j.ok){showToast('❌ '+(j.error||'ставка не принята'));if(btn)btn.disabled=false;return}
+ balance-=amt;saveGame();updateBalance();
+ const bets=getBets();const ms=(await(await fetch(LB+'/api/tour')).json()).matches||[];
+ const m=ms.find(x=>x.id===mid)||{};
+ bets[mid]={side:side,amt:amt,odds:side===0?(m.oa||1.9):(m.ob||1.9)};setBets(bets);
+ try{haptic('light')}catch(e){}showToast('🏟 Ставка '+F(amt)+' 🪙 принята!');tourLoad();}
+setInterval(()=>{document.querySelectorAll('[data-tour-cd]').forEach(e=>{const v=+e.dataset.tourCd-1;e.dataset.tourCd=v;e.textContent=mmss(v);if(v<=0)tourLoad()})},1000);
+window.lcOpenTour=function(){tourOv.classList.add('on');tourLoad();clearInterval(tourTimer);tourTimer=setInterval(tourLoad,5000);};
+$('tour-x').onclick=()=>{tourOv.classList.remove('on');clearInterval(tourTimer)};
+$('tour-reb').onclick=tourLoad;
+/* карточка в разделе «Казино» */
+const gcard=document.createElement('div');gcard.className='case-card';
+gcard.innerHTML='<div class="case-img-box" style="font-size:2.5rem">🏟</div><div class="case-name">Ставки на ботов</div>';
+gcard.onclick=()=>lcOpenTour();
+const gg=$('games-grid-container');if(gg)gg.appendChild(gcard);
+
+/* ================= КЛАН-ВОЙНА: панель в клубе ================= */
+async function warHTML(){let j;try{j=await(await fetch(LB+'/api/war')).catch(()=>null)}catch(e){return ''}
+ if(!j)return '';
+ const left=j.end-Math.floor(Date.now()/1000);
+ const head='<div class="war-p"><b style="color:var(--gold)">⚔️ Клан-война недели</b><div class="lx6-note" style="margin:4px 0">Каждый открытый кейс любого участника = 1 очко. Приз: победителю по '+F(j.prize1)+' 🪙 каждому, 2-му месту — по '+F(j.prize2)+'. До конца: <b data-tour-cd="'+left+'">'+mmss(left)+'</b></div>';
+ if(!j.clubs||!j.clubs.length)return head+'<div class="lx6-note">Очков пока нет — открывай кейсы в составе клуба!</div></div>';
+ const a=j.clubs[0],b=j.clubs[1],tot=(a?a.cases:0)+(b?b.cases:0)||1;
+ const row=(c,pct)=>c?'<div class="war-row"><span class="em">'+esc(c.emblem)+'</span><div class="inf"><div class="nm">'+esc(c.name)+' <small style="color:var(--text-muted)">['+esc(c.tag)+'] · '+c.members+' чел.</small></div><div class="bar"><div style="width:'+pct+'%"></div></div></div><div class="sc">'+F(c.cases)+'</div></div>':'';
+ return head+row(a,Math.round(a.cases/tot*100))+row(b,b?Math.round(b.cases/tot*100):0)+'</div>';}
+const clubTab=$('tab-club');
+if(clubTab){const mo=new MutationObserver(async()=>{if(!clubTab.classList.contains('active-tab'))return;
+  let wp=$('lc-war');if(!wp){wp=document.createElement('div');wp.id='lc-war';clubTab.insertBefore(wp,clubTab.children[1]||null);}
+  wp.innerHTML=await warHTML();});
+ mo.observe(clubTab,{childList:true});
+ setInterval(async()=>{if(clubTab.classList.contains('active-tab')&&$('lc-war'))$('lc-war').innerHTML=await warHTML()},30000);}
+
+/* ================= ТРЕЙДЫ v2: деньги + скины между игроками ================= */
+const tr2=document.createElement('div');tr2.id='lc-tr2';
+tr2.innerHTML='<div class="lx6-h"><b>🔄 Обмен с игроком</b><button class="lx6-b g" id="tr2-x">✕</button></div><div id="tr2-b"></div>';
+document.body.appendChild(tr2);
+$('tr2-x').onclick=()=>tr2.classList.remove('on');
+window.lcOpenTr2=function(toId,toName){tr2.classList.add('on');if(toId)tr2Form(toId,toName||('Игрок '+toId));else tr2Pick();};
+function tr2Pick(){const b=$('tr2-b');
+ b.innerHTML='<div class="lx6-note">Шаг 1: выбери, с кем меняться</div><div id="tr2-pl" class="lx6-note">Загружаю игроков онлайн…</div>'
+ +'<input id="tr2-uid" type="number" class="t6-in" placeholder="…или введи Telegram ID игрока">'
+ +'<button class="lx6-b y" id="tr2-uid-go" style="width:100%">Продолжить →</button>'
+ +'<button class="lx6-b g" id="tr2-bk" style="width:100%;margin-top:6px">Мои предложения</button>';
+ $('tr2-uid-go').onclick=()=>{const v=+$('tr2-uid').value;if(v>0&&v!==myId)tr2Form(v,'Игрок '+v);else showToast('❌ Неверный ID')};
+ $('tr2-bk').onclick=tr2List;
+ api('/api/battle/online',{}).then(r=>{const pl=(r.players||[]).filter(p=>p.id!==myId);const el=$('tr2-pl');
+  if(el)el.innerHTML=pl.length?pl.map(p=>'<div class="tr6-row"><div style="flex:1;font-weight:800">'+esc(p.name)+'</div><button class="lx6-b y" data-p="'+p.id+'" style="padding:8px 12px">Выбрать</button></div>').join(''):'Сейчас никого нет онлайн — введи ID вручную';}).catch(()=>{});
+ b.onclick=e=>{const x=e.target.closest('[data-p]');if(x)tr2Form(+x.dataset.p,x.previousElementSibling.textContent)};}
+async function tr2Form(to,name){const b=$('tr2-b');
+ b.innerHTML='<div class="lx6-note">Загружаю…</div>';
+ let their=[];try{const r=await fetch(LB+'/api/player?id='+to).then(r=>r.json());their=((r.profile||{}).inv||[]).slice(0,60)}catch(e){}
+ const mySel=new Set(),thSel=new Set();
+ const inSt='width:110px;padding:9px;border-radius:9px;border:1px solid rgba(255,122,47,.3);background:#1c0910;color:#fff';
+ b.innerHTML='<div class="lx6-note">Обмен с <b>'+esc(name)+'</b></div>'
+ +'<h4 style="margin:10px 0 4px;color:var(--gold)">Ты отдаёшь</h4><div class="lx6-note">Монеты: <input id="t2-gb" type="number" value="0" min="0" style="'+inSt+'"></div>'
+ +'<div class="tg6">'+(inventory.length?inventory.slice(0,60).map((s,i)=>'<div class="tg6-i" data-g="'+i+'" style="--c:'+rarC(s.rarity)+'"><img src="'+imS(s)+'"><small>'+esc(s.weapon)+'</small><span>'+esc(s.name)+'</span><b>'+F(s.price)+'</b></div>').join(''):'<div class="lx6-note">Инвентарь пуст</div>')+'</div>'
+ +'<h4 style="margin:10px 0 4px;color:var(--gold)">Ты хочешь получить</h4><div class="lx6-note">Монеты: <input id="t2-wb" type="number" value="0" min="0" style="'+inSt+'"></div>'
+ +'<div class="tg6">'+(their.length?their.map((a,i)=>'<div class="tg6-i" data-w="'+i+'" style="--c:'+rarC(a[2])+'"><img src="'+imS({weapon:a[0],name:a[1],rarity:a[2],price:a[3]})+'"><small>'+esc(a[0])+'</small><span>'+esc(a[1])+'</span><b>'+F(a[3])+'</b></div>').join(''):'<div class="lx6-note">У игрока нет скинов — можно меняться только монетами</div>')+'</div>'
+ +'<button class="lx6-b y" id="t2-send" style="width:100%;margin-top:10px">📨 Отправить предложение</button><button class="lx6-b g" id="t2-bk2" style="width:100%;margin-top:6px">← Назад</button>';
+ $('t2-bk2').onclick=tr2Pick;
+ b.onclick=e=>{const g=e.target.closest('[data-g]'),w=e.target.closest('[data-w]');
+  if(g){const i=+g.dataset.g;if(mySel.has(i)){mySel.delete(i);g.classList.remove('sel')}else{mySel.add(i);g.classList.add('sel')}}
+  if(w){const i=+w.dataset.w;if(thSel.has(i)){thSel.delete(i);w.classList.remove('sel')}else{thSel.add(i);w.classList.add('sel')}}};
+ $('t2-send').onclick=async()=>{
+  const give={bal:Math.max(0,Math.floor(+$('t2-gb').value||0)),items:[...mySel].map(i=>{const s=inventory[i];return[s.weapon,s.name,s.rarity,s.price]})};
+  const want={bal:Math.max(0,Math.floor(+$('t2-wb').value||0)),items:[...thSel].map(i=>their[i])};
+  if(!give.bal&&!give.items.length&&!want.bal&&!want.items.length)return showToast('❌ Пустой обмен');
+  if(give.bal>balance)return showToast('❌ Недостаточно монет');
+  try{const r=await api('/api/trades/create',{to:to,give:give,want:want});
+   if(r.ok){showToast('📨 Предложение отправлено!');tr2List()}else showToast('❌ '+(r.error||'ошибка'))}catch(e){showToast('⚠️ Ошибка сервера')}};}
+const part=x=>(x.bal?F(x.bal)+' 🪙':'')+((x.items||[]).map(a=>a[0]+' | '+a[1]).join(', '))||'—';
+async function tr2List(){const b=$('tr2-b');
+ b.innerHTML='<div class="lx6-note">Загрузка…</div>';
+ let j;try{j=await api('/api/trades/list',{})}catch(e){b.innerHTML='<div class="lx6-note">Сервер недоступен</div>';return}
+ const inc=j.incoming||[],out=j.outgoing||[];
+ b.innerHTML='<button class="lx6-b y" id="t2-new" style="width:100%">＋ Новый обмен</button>'
+ +(inc.length?'<h4 style="margin:14px 0 6px;color:var(--gold)">Входящие предложения</h4>'+inc.map(t=>'<div class="tm"><b>'+esc(t.from_name)+'</b> предлагает:<div class="lx6-note" style="text-align:left;margin:6px 0 2px">🟢 Отдаёт: '+esc(part(t.give))+'</div><div class="lx6-note" style="text-align:left;margin:0 0 8px">🔴 Хочет: '+esc(part(t.want))+'</div><div style="display:flex;gap:6px"><button class="lx6-b y" data-acc="'+t.id+'" style="flex:1">Принять</button><button class="lx6-b g" data-dec="'+t.id+'" style="flex:1">Отклонить</button></div></div>').join(''):'')
+ +(out.length?'<h4 style="margin:14px 0 6px;color:var(--gold)">Твои предложения</h4>'+out.map(t=>'<div class="tm"><b>→ '+esc(t.to_name)+'</b><div class="lx6-note" style="text-align:left;margin:6px 0 2px">🟢 Отдаёшь: '+esc(part(t.give))+'</div><div class="lx6-note" style="text-align:left;margin:0">🔴 Хочешь: '+esc(part(t.want))+'</div></div>').join(''):'')
+ +'<div class="lx6-note">Если игрок примет предложение — монеты и скины перейдут автоматически.</div>';
+ $('t2-new').onclick=tr2Pick;
+ b.onclick=async e=>{const a=e.target.closest('[data-acc]'),d=e.target.closest('[data-dec]');
+  if(d){await api('/api/trades/decline',{id:+d.dataset.dec});tr2List();return}
+  if(a){a.disabled=true;try{const r=await api('/api/trades/accept',{id:+a.dataset.acc});
+   if(r.ok){showToast('✅ Обмен принят! Передаю предметы…');await flushGrants();tr2List()}else showToast('❌ '+(r.error||'ошибка'))}catch(x){showToast('⚠️ Ошибка')}return}}}
+/* получение выданного (обмены/призы) */
+async function flushGrants(){try{
+ const r=await fetch(LB+'/api/grants',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:INIT})});
+ const j=await r.json(),ids=[];let seen={};try{seen=JSON.parse(localStorage.getItem('lc_gseen')||'{}')}catch(e){}
+ (j.grants||[]).forEach(g=>{if(seen[g.id]){ids.push(g.id);return}seen[g.id]=1;
+  let m='';const n=Math.max(1,Math.min(500,g.n||1));
+  if(g.t==='bal'){balance=Math.round(balance+(g.v||0));m=(g.v>=0?'+':'')+F(g.v)+' 🪙'}
+  else if(g.t==='item'){const s=ALL_POSSIBLE_SKINS.find(x=>x.weapon+' | '+x.name===g.item);if(s){for(let i=0;i<n;i++)inventory.unshift(Object.assign({},s,{id:Date.now()+Math.random()}));m=g.item+' ×'+n}}
+  else if(g.t==='trade'){const rc=g.receive||{},ls=g.lose||{};balance+=Math.round(rc.bal||0)-Math.round(ls.bal||0);
+   (rc.items||[]).forEach(a=>{const s=ALL_POSSIBLE_SKINS.find(x=>x.weapon===a[0]&&x.name===a[1]);inventory.unshift(Object.assign({},s||{weapon:a[0],name:a[1],rarity:a[2],price:a[3]},{id:Date.now()+Math.random()}))});
+   (ls.items||[]).forEach(a=>{const i=inventory.findIndex(x=>x.weapon===a[0]&&x.name===a[1]);if(i>-1)inventory.splice(i,1)});m='обмен выполнен'}
+  if(m){showToast((g.t==='trade'?'🔄 Обмен: ':'🎁 ')+(g.note?g.note+': ':'')+m);ids.push(g.id)}});
+ try{localStorage.setItem('lc_gseen',JSON.stringify(seen))}catch(e){}
+ if(ids.length)fetch(LB+'/api/grants/ack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:INIT,ids:ids})}).catch(()=>{});
+ saveGame();updateBalance();updateElo();renderInventory();
+}catch(e){}}
+window.lcFlushGrants=flushGrants;
+setTimeout(flushGrants,8000);setInterval(flushGrants,20000);
+/* прячем старую карточку обменов, вставляем новую */
+const mc=$('tab-more');
+new MutationObserver(()=>{try{
+ Array.prototype.forEach.call(mc.children,el=>{if(el.textContent.indexOf('Обмены с игроками')>-1&&!el.__t2){el.__t2=1;el.style.display='none';
+  if(!$('lc-tr2-card')){const c=document.createElement('div');c.id='lc-tr2-card';c.className='prof-card';c.style.cursor='pointer';
+   c.innerHTML='🔄 <b>Обмены с игроками</b><br><small style="color:var(--text-muted)">Меняйся скинами и монетами с другими игроками</small>';
+   c.onclick=()=>tr2List();tr2.classList.add;mc.insertBefore(c,el);}}});
+}catch(e){}}).observe(mc,{childList:true});
+/* кнопка в шторке «Ещё» */
+const ovm=$('mo-ov'),gm=ovm&&ovm.querySelector('.mo-g');
+if(gm&&!gm.querySelector('[data-s=trade2]')){gm.insertAdjacentHTML('beforeend','<button data-s="trade2"><i>🔄</i><b>Обмены</b><small>Скины и монеты с игроками</small></button>');
+ ovm.addEventListener('click',e=>{if(!e.target.closest('button[data-s=trade2]'))return;e.stopPropagation();ovm.classList.remove('vis');setTimeout(()=>ovm.classList.remove('on'),300);tr2List();},true);}
+/* кнопка «Обмен» в профиле игрока из лидерборда */
+const lbsc=$('lb-sc');
+if(lbsc)new MutationObserver(()=>{try{
+ if(!lbsc.querySelector('.lb-hn')||lbsc.querySelector('#lb-tr2-btn'))return;
+ const b=document.createElement('button');b.id='lb-tr2-btn';b.className='lx6-b y';b.style.cssText='margin-top:12px;padding:12px 22px';b.textContent='🔄 Предложить обмен';
+ b.onclick=()=>{const id=(cache&&cache.id)||0;if(id&&id!==myId){const sh=$('lb-ov');if(sh){sh.classList.remove('vis');setTimeout(()=>sh.classList.remove('on'),300)}lcOpenTr2(id,cache.name)}};
+ lbsc.querySelector('.lb-hero').appendChild(b);
+}catch(e){}}).observe(lbsc,{childList:true,subtree:true});
+}catch(e){console.error('patch6-client',e)}})();
+</script>
+
 </body> -->
 <style>
 .prof-card{background:linear-gradient(160deg,#3d1322,#210911);border:1px solid rgba(255,122,47,.28);border-radius:16px;padding:14px;margin-bottom:12px}
