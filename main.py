@@ -98,6 +98,25 @@ battle_lock = threading.Lock()
 battle_wait = {}
 battle_rooms = {}
 
+# ---------------------- ЧАТ / ТРЕЙДЫ / КЛУБЫ ----------------------
+db.execute("CREATE TABLE IF NOT EXISTS chat (id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER, name TEXT, text TEXT, ts INTEGER)")
+db.execute("CREATE TABLE IF NOT EXISTS trades (id INTEGER PRIMARY KEY AUTOINCREMENT, from_uid INTEGER, to_uid INTEGER, give TEXT, want TEXT, status TEXT DEFAULT 'pending', ts INTEGER)")
+db.execute("CREATE TABLE IF NOT EXISTS clubs (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT COLLATE NOCASE UNIQUE, tag TEXT, emblem TEXT, owner INTEGER, members TEXT, ts INTEGER)")
+db.commit()
+chat_lock = threading.Lock()
+trade_lock = threading.Lock()
+club_lock = threading.Lock()
+battle_invites = {}   # uid -> [ {room, from{id,name}, case, rounds, fp, t} ]
+last_chat = {}        # uid -> ts (антиспам)
+CHAT_KEEP = 200
+CHAT_THROТTLE = 1.5
+CHAT_THROTTLE = 1.5
+CLUB_COST = 10_000
+CLUB_MAX = 20
+CLUB_EMBLEMS = ["🛡","⚔","🐉","🦅","🔥","💀","👑","🌊","⚡","🐺","🎯","🚀","🍀","💎","🐍","🦂","🌹","🪐","🎩","🐻","🦈","🌵","⭐","🎭"]
+chat_version = 0
+last_chat_msg = None
+
 # ---------------------- LIVE (SSE) -----------------------
 clients = set()
 clients_lock = threading.Lock()
@@ -238,6 +257,16 @@ def clean_profile(p):
     }
 
 
+def clean_items(items):
+    out = []
+    for it in (items or [])[:10]:
+        try:
+            out.append([to_str(it[0], 40), to_str(it[1], 60), to_str(it[2], 12), to_int(it[3], 0, 10 ** 9)])
+        except Exception:
+            continue
+    return out
+
+
 # ---------------------- HTTP-СЕРВЕР ----------------------
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
@@ -291,6 +320,11 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(r[0])
             return
+        if url.path == "/api/chat/history":
+            with chat_lock:
+                rows = db.execute("SELECT id,uid,name,text,ts FROM chat ORDER BY id DESC LIMIT 40").fetchall()
+            rows.reverse()
+            return self._json({"messages": [{"id": r[0], "uid": r[1], "name": r[2], "text": r[3], "ts": r[4]} for r in rows]})
         if url.path == "/api/board":
             return self._json(get_board())
         if url.path == "/api/player":
@@ -340,7 +374,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
-        if path not in ("/api/sync", "/api/admin", "/api/grants", "/api/grants/ack", "/api/skinimg", "/api/battle/join", "/api/battle/poll", "/api/battle/cancel"):
+        if path not in ("/api/sync", "/api/admin", "/api/grants", "/api/grants/ack", "/api/skinimg",
+                        "/api/battle/join", "/api/battle/poll", "/api/battle/cancel",
+                        "/api/battle/online", "/api/battle/invite", "/api/battle/invites",
+                        "/api/battle/accept", "/api/battle/status", "/api/battle/decline",
+                        "/api/chat/send",
+                        "/api/trades/create", "/api/trades/list", "/api/trades/accept", "/api/trades/decline",
+                        "/api/clubs/create", "/api/clubs/join", "/api/clubs/leave", "/api/clubs/list", "/api/clubs/mine"):
             return self._json({"error": "not found"}, 404)
         try:
             n = int(self.headers.get("Content-Length", "0"))
@@ -368,6 +408,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._admin(data)
         if path in ("/api/grants", "/api/grants/ack"):
             return self._grants(int(user["id"]), path, data)
+        if path == "/api/chat/send":
+            return self._chat_send(user, data)
+        if path.startswith("/api/trades/"):
+            return self._trades(int(user["id"]), path, data)
+        if path.startswith("/api/clubs/"):
+            return self._clubs(int(user["id"]), path, data)
 
         uid = int(user["id"])
         name = to_str(user.get("first_name") or user.get("username") or "Игрок", 40)
@@ -516,6 +562,60 @@ class Handler(BaseHTTPRequestHandler):
                 battle_rooms.pop(k, None)
             for k in [k for k, w in battle_wait.items() if now - w["t"] > 45]:
                 battle_wait.pop(k, None)
+            for u, lst in list(battle_invites.items()):
+                lst[:] = [i for i in lst if now - i["t"] < 60]
+                if not lst:
+                    battle_invites.pop(u, None)
+            if path == "/api/battle/online":
+                with db_lock:
+                    rows = db.execute("SELECT uid,name FROM players WHERE seen > ? AND uid != ? ORDER BY seen DESC LIMIT 30", (int(now) - 600, uid)).fetchall()
+                return self._json({"players": [{"id": r[0], "name": r[1]} for r in rows]})
+            if path == "/api/battle/invite":
+                case = to_str(data.get("case"), 40)
+                rounds = to_int(data.get("rounds"), 1, 5)
+                fp = to_str(data.get("fp"), 20)
+                to = to_int(data.get("to"), 0, 10 ** 15)
+                if rounds not in (1, 3, 5) or not case or to <= 0 or to == uid:
+                    return self._json({"error": "bad"}, 400)
+                k = secrets.token_hex(6)
+                battle_rooms[k] = {"id": k, "seed": None, "case": case, "rounds": rounds,
+                                   "t": now, "players": [{"id": uid, "name": me["name"]}]}
+                battle_invites.setdefault(to, []).append(
+                    {"room": k, "from": {"id": uid, "name": me["name"]},
+                     "case": case, "rounds": rounds, "fp": fp, "t": now})
+                return self._json({"ok": True, "room": k})
+            if path == "/api/battle/invites":
+                return self._json({"invites": battle_invites.get(uid, [])})
+            if path == "/api/battle/accept":
+                room = to_str(data.get("room"), 20)
+                lst = battle_invites.get(uid, [])
+                inv = next((i for i in lst if i["room"] == room), None)
+                if not inv:
+                    return self._json({"error": "gone"}, 404)
+                b = battle_rooms.get(room)
+                if not b or b.get("seed"):
+                    return self._json({"error": "gone"}, 404)
+                b["players"].append({"id": uid, "name": me["name"]})
+                b["seed"] = secrets.token_hex(8)
+                lst.remove(inv)
+                return self._json({"status": "matched", "battle": b, "me": 1})
+            if path == "/api/battle/status":
+                room = to_str(data.get("room"), 20)
+                b = battle_rooms.get(room)
+                if not b:
+                    return self._json({"status": "gone"})
+                if b.get("seed"):
+                    return self._json({"status": "matched", "battle": b, "me": 0})
+                b["t"] = now
+                return self._json({"status": "waiting"})
+            if path == "/api/battle/decline":
+                room = to_str(data.get("room"), 20)
+                lst = battle_invites.get(uid, [])
+                inv = next((i for i in lst if i["room"] == room), None)
+                if inv:
+                    lst.remove(inv)
+                    battle_rooms.pop(room, None)
+                return self._json({"ok": True})
             if path == "/api/battle/cancel":
                 battle_wait.pop(rid, None)
                 return self._json({"ok": True})
@@ -571,6 +671,203 @@ class Handler(BaseHTTPRequestHandler):
                 pass
         self._json({"grants": out})
 
+    def _chat_send(self, user, data):
+        global chat_version, last_chat_msg
+        uid = int(user["id"])
+        name = to_str(user.get("first_name") or user.get("username") or "Игрок", 30)
+        text = to_str(data.get("text"), 140).strip()
+        if not text:
+            return self._json({"error": "empty"}, 400)
+        now = time.time()
+        with chat_lock:
+            if now - last_chat.get(uid, 0) < 1.5:
+                return self._json({"error": "slow"}, 429)
+            last_chat[uid] = now
+            db.execute("INSERT INTO chat (uid,name,text,ts) VALUES (?,?,?,?)", (uid, name, text, int(now)))
+            db.execute("DELETE FROM chat WHERE id NOT IN (SELECT id FROM chat ORDER BY id DESC LIMIT ?)", (CHAT_KEEP,))
+            db.commit()
+            mid = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+        last_chat_msg = {"id": mid, "uid": uid, "name": name, "text": text, "ts": int(now)}
+        with version_cond:
+            chat_version += 1
+            version_cond.notify_all()
+        self._json({"ok": True})
+
+    def _trades(self, uid, path, data):
+        if path == "/api/trades/create":
+            to = to_int(data.get("to"), 0, 10 ** 15)
+            if to <= 0 or to == uid:
+                return self._json({"error": "bad player"}, 400)
+            give = data.get("give") or {}
+            want = data.get("want") or {}
+            gbal = to_int(give.get("bal"), 0, 10 ** 12)
+            wbal = to_int(want.get("bal"), 0, 10 ** 12)
+            gitems = clean_items(give.get("items"))
+            witems = clean_items(want.get("items"))
+            if not (gbal or gitems or wbal or witems):
+                return self._json({"error": "пустой обмен"}, 400)
+            now = int(time.time())
+            with trade_lock:
+                c = db.execute(
+                    "SELECT COUNT(*) FROM trades WHERE from_uid=? AND to_uid=? AND status='pending'",
+                    (uid, to),
+                ).fetchone()[0]
+                if c >= 3:
+                    return self._json({"error": "максимум 3 активных предложения этому игроку"}, 400)
+                db.execute(
+                    "INSERT INTO trades (from_uid,to_uid,give,want,ts) VALUES (?,?,?,?,?)",
+                    (uid, to,
+                     json.dumps({"bal": gbal, "items": gitems}, ensure_ascii=False),
+                     json.dumps({"bal": wbal, "items": witems}, ensure_ascii=False), now),
+                )
+                db.commit()
+            return self._json({"ok": True})
+        if path == "/api/trades/list":
+            with trade_lock:
+                rows = db.execute(
+                    "SELECT id,from_uid,to_uid,give,want,ts FROM trades WHERE (to_uid=? OR from_uid=?) AND status='pending' ORDER BY id DESC LIMIT 50",
+                    (uid, uid),
+                ).fetchall()
+            incoming, outgoing = [], []
+            with db_lock:
+                for r in rows:
+                    fn = db.execute("SELECT name FROM players WHERE uid=?", (r[1],)).fetchone()
+                    tn = db.execute("SELECT name FROM players WHERE uid=?", (r[2],)).fetchone()
+                    item = {"id": r[0], "from_name": fn[0] if fn else str(r[1]),
+                            "to_name": tn[0] if tn else str(r[2]),
+                            "give": json.loads(r[3]), "want": json.loads(r[4]), "ts": r[5]}
+                    (incoming if r[2] == uid else outgoing).append(item)
+            return self._json({"incoming": incoming, "outgoing": outgoing})
+        if path == "/api/trades/accept":
+            tid = to_int(data.get("id"), 0, 10 ** 9)
+            with trade_lock:
+                r = db.execute(
+                    "SELECT id,from_uid,to_uid,give,want FROM trades WHERE id=? AND status='pending'",
+                    (tid,),
+                ).fetchone()
+                if not r or r[2] != uid:
+                    return self._json({"error": "не найдено"}, 404)
+                db.execute("UPDATE trades SET status='accepted' WHERE id=?", (tid,))
+                db.commit()
+            give = json.loads(r[3])
+            want = json.loads(r[4])
+            now = int(time.time())
+            with db_lock:
+                db.executemany(
+                    "INSERT INTO grants (uid,kind,data,created) VALUES (?,?,?,?)",
+                    [(uid, "trade",
+                      json.dumps({"t": "trade", "receive": give, "lose": want, "with": r[1]}, ensure_ascii=False), now),
+                     (r[1], "trade",
+                      json.dumps({"t": "trade", "receive": want, "lose": give, "with": uid}, ensure_ascii=False), now)],
+                )
+                db.commit()
+            return self._json({"ok": True})
+        if path == "/api/trades/decline":
+            tid = to_int(data.get("id"), 0, 10 ** 9)
+            with trade_lock:
+                db.execute(
+                    "UPDATE trades SET status='declined' WHERE id=? AND to_uid=? AND status='pending'",
+                    (tid, uid),
+                )
+                db.commit()
+            return self._json({"ok": True})
+        return self._json({"error": "not found"}, 404)
+
+    def _clubs(self, uid, path, data):
+        if path == "/api/clubs/create":
+            name = to_str(data.get("name"), 20).strip()
+            tag = to_str(data.get("tag"), 5).strip().upper()
+            emblem = to_str(data.get("emblem"), 8)
+            if not re.match(r"^[\wА-Яа-яЁё \-\.]{3,20}$", name):
+                return self._json({"error": "название: 3–20 символов (буквы, цифры, пробел)"}, 400)
+            if not re.match(r"^[A-ZА-Я0-9]{2,5}$", tag):
+                return self._json({"error": "тег: 2–5 символов"}, 400)
+            if emblem not in CLUB_EMBLEMS:
+                return self._json({"error": "выбери значок"}, 400)
+            with club_lock:
+                if db.execute("SELECT 1 FROM clubs WHERE name=?", (name,)).fetchone():
+                    return self._json({"error": "такой клуб уже есть"}, 400)
+                for row in db.execute("SELECT members FROM clubs").fetchall():
+                    if uid in json.loads(row[0] or "[]"):
+                        return self._json({"error": "сначала выйди из своего клуба"}, 400)
+                db.execute(
+                    "INSERT INTO clubs (name,tag,emblem,owner,members,ts) VALUES (?,?,?,?,?,?)",
+                    (name, tag, emblem, uid, json.dumps([uid]), int(time.time())),
+                )
+                db.commit()
+            with db_lock:
+                db.execute("UPDATE players SET balance=MAX(0,balance-?) WHERE uid=?", (CLUB_COST, uid))
+                db.commit()
+            bump_version()
+            return self._json({"ok": True})
+        if path == "/api/clubs/join":
+            cid = to_int(data.get("id"), 0, 10 ** 9)
+            with club_lock:
+                r = db.execute("SELECT id,members FROM clubs WHERE id=?", (cid,)).fetchone()
+                if not r:
+                    return self._json({"error": "клуб не найден"}, 404)
+                members = json.loads(r[1] or "[]")
+                if uid in members:
+                    return self._json({"error": "ты уже в этом клубе"}, 400)
+                for row in db.execute("SELECT members FROM clubs").fetchall():
+                    if uid in json.loads(row[0] or "[]"):
+                        return self._json({"error": "сначала выйди из своего клуба"}, 400)
+                if len(members) >= CLUB_MAX:
+                    return self._json({"error": "клуб полон"}, 400)
+                members.append(uid)
+                db.execute("UPDATE clubs SET members=? WHERE id=?", (json.dumps(members), cid))
+                db.commit()
+            return self._json({"ok": True})
+        if path == "/api/clubs/leave":
+            with club_lock:
+                rows = db.execute("SELECT id,owner,members FROM clubs").fetchall()
+                for r in rows:
+                    members = json.loads(r[2] or "[]")
+                    if uid in members:
+                        members.remove(uid)
+                        if not members:
+                            db.execute("DELETE FROM clubs WHERE id=?", (r[0],))
+                        else:
+                            owner = members[0] if r[1] == uid else r[1]
+                            db.execute("UPDATE clubs SET members=?, owner=? WHERE id=?",
+                                       (json.dumps(members), owner, r[0]))
+                        db.commit()
+                        return self._json({"ok": True})
+            return self._json({"error": "ты не в клубе"}, 400)
+        if path == "/api/clubs/list":
+            with club_lock:
+                rows = db.execute("SELECT id,name,tag,emblem,owner,members,ts FROM clubs").fetchall()
+            out = []
+            with db_lock:
+                for r in rows:
+                    members = json.loads(r[5] or "[]")
+                    score = 0
+                    for m in members:
+                        b = db.execute("SELECT balance FROM players WHERE uid=?", (m,)).fetchone()
+                        score += b[0] if b else 0
+                    out.append({"id": r[0], "name": r[1], "tag": r[2], "emblem": r[3],
+                                "owner": r[4], "count": len(members), "score": score})
+            out.sort(key=lambda c: -c["score"])
+            return self._json({"clubs": out[:50]})
+        if path == "/api/clubs/mine":
+            with club_lock:
+                rows = db.execute("SELECT id,name,tag,emblem,owner,members,ts FROM clubs").fetchall()
+            for r in rows:
+                members = json.loads(r[5] or "[]")
+                if uid in members:
+                    ml, score = [], 0
+                    with db_lock:
+                        for m in members:
+                            row = db.execute("SELECT name,balance FROM players WHERE uid=?", (m,)).fetchone()
+                            if row:
+                                ml.append({"id": m, "name": row[0], "balance": row[1]})
+                                score += row[1]
+                    return self._json({"club": {"id": r[0], "name": r[1], "tag": r[2],
+                                                "emblem": r[3], "owner": r[4],
+                                                "members": ml, "score": score}})
+            return self._json({"club": None})
+        return self._json({"error": "not found"}, 404)
+
     def _stream(self):
         with clients_lock:
             if len(clients) >= MAX_SSE:
@@ -586,6 +883,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("X-Accel-Buffering", "no")
             self.end_headers()
             seen_version = -1
+            seen_chat = -1
             last_ping = 0
             last_push = 0
             while True:
@@ -600,7 +898,14 @@ class Handler(BaseHTTPRequestHandler):
                     self.wfile.write(f"event: board\ndata: {payload}\n\n".encode())
                     self.wfile.flush()
                     last_ping = now
-                elif now - last_ping >= 15:
+                if chat_version != seen_chat and last_chat_msg is not None:
+                    seen_chat = chat_version
+                    try:
+                        self.wfile.write(("event: chat\ndata: " + json.dumps(last_chat_msg, ensure_ascii=False) + "\n\n").encode())
+                        self.wfile.flush()
+                    except Exception:
+                        pass
+                if now - last_ping >= 15:
                     self.wfile.write(b": ping\n\n")
                     self.wfile.flush()
                     last_ping = now
