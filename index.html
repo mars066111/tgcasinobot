@@ -308,6 +308,7 @@
         }
         #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -1689,6 +1690,180 @@ function boot(){patchOpen();hookSettle();installRobot();patchCases()}boot();setI
 })();
 </script>
 
+<style>
+/* ===== ЧАТ ===== */
+#lc-chat .lc-ch-msgs{max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:8px;background:#120609;border-radius:12px;border:1px solid rgba(255,122,47,.2);margin-top:6px}
+.lc-msg{font-size:.78rem;line-height:1.35;word-break:break-word}
+.lc-msg b{color:var(--gold)}
+.lc-msg.me b{color:#7dd3fc}
+.lc-msg small{color:#8b6f79;margin-left:6px;font-size:.6rem}
+.lc-ch-row{display:flex;gap:6px;margin-top:8px}
+.lc-ch-row input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,122,47,.3);background:#1c0910;color:#fff;outline:none;min-width:0}
+/* ===== ОБМЕНЫ ===== */
+#lc-tr{position:fixed;inset:0;z-index:10002;background:#0d0508;overflow:auto;padding:14px 14px 40px;color:#fff;font:14px system-ui;display:none}
+#lc-tr.on{display:block}
+.tr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:28vh;overflow-y:auto;padding:2px;margin:6px 0}
+.tr-it{border-radius:10px;padding:6px 3px;text-align:center;background:#1c0910;border:1px solid transparent;border-bottom:3px solid var(--c,#666);font-size:.6rem;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer}
+.tr-it img{width:100%;height:36px;object-fit:contain}
+.tr-it b{color:var(--gold);font-size:.7rem}
+.tr-it span{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.tr-it small{color:var(--text-muted)}
+.tr-it.sel{border-color:#ffb627;box-shadow:0 0 10px rgba(255,182,39,.4)}
+/* ===== КЛУБ ===== */
+.cl-em{border:1px solid #4a1b2c;background:#1c0910;border-radius:10px;padding:7px 0;font-size:1.25rem}
+.cl-em.sel{border-color:#ffb627;background:#3d1322;box-shadow:0 0 10px rgba(255,182,39,.4)}
+.club-row{display:flex;align-items:center;gap:10px;background:linear-gradient(160deg,#3d1322,#210911);border:1px solid rgba(255,122,47,.28);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.club-row .em{font-size:1.8rem}
+.club-row .inf{flex:1;min-width:0}
+</style>
+<script>
+/* ===== ПАТЧ 6: чат, обмены, клубы, приглашения ===== */
+(function(){
+try{
+const $=id=>document.getElementById(id),tg=window.Telegram&&Telegram.WebApp;
+const INIT=(tg&&tg.initData)||'',myId=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user?tg.initDataUnsafe.user.id:0;
+const LB='https://casino-otkg.onrender.com';
+const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const apiP=(p,b)=>fetch(LB+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({initData:INIT},b||{}))}).then(r=>r.json());
+const rarC=r=>(RARITY[r]||RARITY.milspec).color;
+const imS=s=>{try{return itemImg(s)}catch(e){return generateFallbackSVG(s)}};
+
+/* ================= ЧАТ (вкладка «Ещё») ================= */
+const mc=$('tab-more');
+const chat=document.createElement('div');chat.id='lc-chat';chat.className='prof-card';
+chat.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><b>💬 Чат игроков</b><small id="lc-ch-on" style="color:var(--gold)"></small></div><div class="lc-ch-msgs" id="lc-ch-msgs"><div class="mini-note">Загрузка…</div></div><div class="lc-ch-row"><input id="lc-ch-in" maxlength="140" placeholder="Сообщение…"><button class="btn" id="lc-ch-b" style="width:auto;padding:10px 16px">➤</button></div>';
+const tradeCard=document.createElement('div');tradeCard.className='prof-card';tradeCard.style.cursor='pointer';
+tradeCard.innerHTML='🔄 <b>Обмены с игроками</b><br><small style="color:var(--text-muted)">Меняйся скинами и монетами с другими игроками</small>';
+tradeCard.onclick=()=>{if(!INIT)return showToast('Открой игру из Telegram');openTrade()};
+const moOv=$('mo-ov');
+new MutationObserver(()=>{try{
+ if(mc&&!mc.contains(chat))mc.insertBefore(chat,mc.firstChild);
+ if(mc&&!mc.contains(tradeCard))mc.insertBefore(tradeCard,chat.nextSibling);
+}catch(e){}}).observe(mc||document.body,{childList:true});
+try{mc.insertBefore(chat,mc.firstChild);mc.insertBefore(tradeCard,chat.nextSibling)}catch(e){}
+
+let chLast=0;
+const msgHtml=m=>'<div class="lc-msg'+(m.uid===myId?' me':'')+'"><b>'+esc(m.name)+'</b><small>'+new Date(m.ts*1000).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'</small><br>'+esc(m.text)+'</div>';
+function renderMsgs(ms){const el=$('lc-ch-msgs');if(!el)return;
+ el.innerHTML=ms.length?ms.map(msgHtml).join(''):'<div class="mini-note">Пока пусто — напиши первым!</div>';
+ el.scrollTop=el.scrollHeight;}
+async function chLoad(){if(document.hidden)return;let j;try{j=await(await fetch(LB+'/api/chat/history')).json()}catch(e){return}
+ const ms=j.messages||[];if(ms.length&&ms[ms.length-1].id===chLast)return;if(ms.length)chLast=ms[ms.length-1].id;
+ const el=$('lc-ch-msgs');if(el&&el.querySelector('.mini-note')&&el.children.length===1)renderMsgs(ms);}
+async function chSend(){const inp=$('lc-ch-in');if(!inp)return;const v=inp.value.trim();if(!v)return;inp.value='';
+ try{const r=await fetch(LB+'/api/chat/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:INIT,text:v})});
+ if(r.status===429)showToast('⏳ Не так быстро');else if(!r.ok)showToast('❌ Ошибка отправки');}catch(e){showToast('⚠️ Нет связи')}
+ setTimeout(chLoad,300);}
+try{$('lc-ch-b').onclick=chSend;$('lc-ch-in').onkeydown=e=>{if(e.key==='Enter')chSend()};}catch(e){}
+setInterval(()=>{if(mc&&mc.classList.contains('active-tab'))chLoad()},3000);
+async function chOnline(){try{const b=await(await fetch(LB+'/api/board')).json();const el=$('lc-ch-on');if(el)el.textContent='🟢 '+F2(b.online||0)+' онлайн'}catch(e){}}
+setInterval(chOnline,30000);
+/* мгновенная доставка через SSE */
+try{const es=new EventSource(LB+'/api/stream');es.addEventListener('chat',e=>{let m;try{m=JSON.parse(e.data)}catch(x){return}
+ if(m.id===chLast)return;chLast=m.id;const el=$('lc-ch-msgs');if(!el)return;
+ el.insertAdjacentHTML('beforeend',msgHtml(m));while(el.children.length>50)el.firstChild.remove();el.scrollTop=el.scrollHeight;});}catch(e){}
+function F2(n){return Number(n||0).toLocaleString('ru-RU')}
+
+/* ================= ОБМЕНЫ ================= */
+const tr=document.createElement('div');tr.id='lc-tr';
+tr.innerHTML='<div class="lx-h"><b>🔄 Обмены с игроками</b><button class="lx-b g" id="tr-x">✕</button></div><div id="lc-tr-b"></div>';
+document.body.appendChild(tr);
+$('tr-x').onclick=()=>tr.classList.remove('on');
+function openTrade(){tr.classList.add('on');tr.scrollTop=0;trList();}
+function part(x){const s=(x.bal?fmt(x.bal)+' 🪙':'')+((x.items||[]).map(a=>a[0]+' | '+a[1]).join(', '));return s||'—';}
+async function flushGrants(){try{
+ const r=await fetch(LB+'/api/grants',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:INIT})});
+ const j=await r.json(),ids=[];let seen={};try{seen=JSON.parse(localStorage.getItem('lc_gseen')||'{}')}catch(e){}
+ (j.grants||[]).forEach(g=>{if(seen[g.id]){ids.push(g.id);return}seen[g.id]=1;const m=window.lcApplyGrant&&window.lcApplyGrant(g);if(m){showToast((g.t==='trade'?'🔄 Обмен: ':'🎁 ')+m);ids.push(g.id)}});
+ try{localStorage.setItem('lc_gseen',JSON.stringify(seen))}catch(e){}
+ if(ids.length)fetch(LB+'/api/grants/ack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:INIT,ids:ids})}).catch(()=>{});
+}catch(e){}}
+async function trList(){const el=$('lc-tr-b');el.innerHTML='<div class="lb-load">Загружаю…</div>';
+ let j;try{j=await apiP('/api/trades/list',{})}catch(e){el.innerHTML='<div class="lb-note">Сервер недоступен</div>';return}
+ const inc=j.incoming||[],out=j.outgoing||[];
+ el.innerHTML='<button class="lx-b y" id="tr-new" style="width:100%">＋ Создать обмен</button>'
+ +(inc.length?'<h4 style="margin:14px 0 6px;color:#ffb627">Входящие предложения</h4>'+inc.map(t=>'<div class="prof-card"><b>'+esc(t.from_name)+'</b> предлагает:<br><small style="color:#3ddc97">Отдаёт: '+esc(part(t.give))+'</small><br><small style="color:#ff5d73">Хочет: '+esc(part(t.want))+'</small><div style="display:flex;gap:6px;margin-top:8px"><button class="lx-b y" data-acc="'+t.id+'" style="flex:1">Принять</button><button class="lx-b g" data-dec="'+t.id+'" style="flex:1">Отклонить</button></div></div>').join(''):'')
+ +(out.length?'<h4 style="margin:14px 0 6px;color:#ffb627">Твои предложения</h4>'+out.map(t=>'<div class="prof-card"><b>→ '+esc(t.to_name)+'</b><br><small style="color:#3ddc97">Отдаёшь: '+esc(part(t.give))+'</small><br><small style="color:#ff5d73">Хочешь: '+esc(part(t.want))+'</small></div>').join(''):'')
+ +'<small style="color:#9ca3af">Выбери игрока, укажи что отдаёшь и что хочешь получить. Если он примет — предметы и монеты перейдут автоматически.</small>';
+ $('tr-new').onclick=trCreate;
+ el.onclick=async e=>{const a=e.target.closest('[data-acc]'),d=e.target.closest('[data-dec]');
+  if(d){await apiP('/api/trades/decline',{id:+d.dataset.dec});trList();return}
+  if(a){a.disabled=true;try{const r=await apiP('/api/trades/accept',{id:+a.dataset.acc});
+   if(r.ok){showToast('✅ Обмен принят! Передаю предметы…');await flushGrants();trList()}else showToast('❌ '+(r.error||'ошибка'))}catch(x){showToast('⚠️ Ошибка')}return}}}
+async function trCreate(){const el=$('lc-tr-b');
+ el.innerHTML='<div class="mini-note">Шаг 1: выбери игрока</div><div id="tr-pl" class="lb-load">Загружаю…</div><div class="lc-ch-row"><input id="tr-uid" type="number" placeholder="или введи Telegram ID"><button class="btn" id="tr-uid-go" style="width:auto;padding:10px 14px">✓</button></div><button class="lx-b g" id="tr-bk" style="width:100%;margin-top:8px">← Назад</button>';
+ $('tr-bk').onclick=trList;
+ $('tr-uid-go').onclick=()=>{const v=+$('tr-uid').value;if(v>0&&v!==myId)trForm(v,'Игрок '+v);else showToast('❌ Неверный ID')};
+ try{const r=await apiP('/api/battle/online',{});const pl=r.players||[];
+  $('tr-pl').innerHTML=pl.length?pl.map(p=>'<div class="lx-r"><div style="flex:1;font-weight:700">'+esc(p.name)+'</div><button class="lx-b y" data-p="'+p.id+'" style="padding:8px 12px">Выбрать</button></div>').join(''):'<div class="lb-note">Никого онлайн — введи ID вручную</div>';
+  $('tr-pl').onclick=e=>{const b=e.target.closest('[data-p]');if(!b)return;
+   fetch(LB+'/api/player?id='+b.dataset.p).then(r=>r.json()).then(p=>trForm(+b.dataset.p,(p.name||'Игрок'))).catch(()=>trForm(+b.dataset.p,'Игрок'))};}catch(e){$('tr-pl').innerHTML='<div class="lb-note">Ошибка загрузки</div>'}}
+async function trForm(to,name){const el=$('lc-tr-b');
+ let their=[];try{const r=await fetch(LB+'/api/player?id='+to).then(r=>r.json());their=((r.profile||{}).inv||[]).slice(0,60)}catch(e){}
+ const mySel=new Set(),thSel=new Set();
+ const inSt='padding:7px;border-radius:8px;border:1px solid #4a1b2c;background:#1c0910;color:#fff;width:120px';
+ el.innerHTML='<div class="mini-note">Обмен с <b>'+esc(name)+'</b></div>'
+ +'<h4 style="margin:12px 0 4px;color:#ffb627">Ты отдаёшь</h4><div class="mini-note">Монеты: <input id="tr-gb" type="number" value="0" min="0" style="'+inSt+'"></div>'
+ +'<div class="tr-grid">'+(inventory.length?inventory.slice(0,60).map((s,i)=>'<div class="tr-it" data-g="'+i+'" style="--c:'+rarC(s.rarity)+'"><img src="'+imS(s)+'"><small>'+esc(s.weapon)+'</small><span>'+esc(s.name)+'</span><b>'+fmt(s.price)+'</b></div>').join(''):'<div class="lb-note">Инвентарь пуст</div>')+'</div>'
+ +'<h4 style="margin:12px 0 4px;color:#ffb627">Ты хочешь получить</h4><div class="mini-note">Монеты: <input id="tr-wb" type="number" value="0" min="0" style="'+inSt+'"></div>'
+ +'<div class="tr-grid">'+(their.length?their.map((a,i)=>'<div class="tr-it" data-w="'+i+'" style="--c:'+rarC(a[2])+'"><img src="'+imS({weapon:a[0],name:a[1],rarity:a[2],price:a[3]})+'"><small>'+esc(a[0])+'</small><span>'+esc(a[1])+'</span><b>'+fmt(a[3])+'</b></div>').join(''):'<div class="lb-note">У игрока нет скинов — можно меняться только монетами</div>')+'</div>'
+ +'<button class="lx-b y" id="tr-send" style="width:100%;margin-top:10px">Отправить предложение</button><button class="lx-b g" id="tr-bk2" style="width:100%;margin-top:6px">← Назад</button>';
+ $('tr-bk2').onclick=trList;
+ el.onclick=e=>{const g=e.target.closest('[data-g]'),w=e.target.closest('[data-w]');
+  if(g){const i=+g.dataset.g;if(mySel.has(i)){mySel.delete(i);g.classList.remove('sel')}else{mySel.add(i);g.classList.add('sel')}}
+  if(w){const i=+w.dataset.w;if(thSel.has(i)){thSel.delete(i);w.classList.remove('sel')}else{thSel.add(i);w.classList.add('sel')}}};
+ $('tr-send').onclick=async()=>{
+  const give={bal:Math.max(0,Math.floor(+$('tr-gb').value||0)),items:[...mySel].map(i=>{const s=inventory[i];return[s.weapon,s.name,s.rarity,s.price]})};
+  const want={bal:Math.max(0,Math.floor(+$('tr-wb').value||0)),items:[...thSel].map(i=>their[i])};
+  if(!give.bal&&!give.items.length&&!want.bal&&!want.items.length)return showToast('❌ Пустой обмен');
+  if(give.bal>balance)return showToast('❌ Недостаточно монет');
+  try{const r=await apiP('/api/trades/create',{to:to,give:give,want:want});
+   if(r.ok){showToast('📨 Предложение отправлено!');trList()}else showToast('❌ '+(r.error||'ошибка'))}catch(e){showToast('⚠️ Ошибка сервера')}}}
+
+/* ================= КЛУБ ================= */
+const EMB=['🛡','⚔','🐉','🦅','🔥','💀','👑','🌊','⚡','🐺','🎯','🚀','🍀','💎','🐍','🦂','🌹','🪐','🎩','🐻','🦈','🌵','⭐','🎭'];
+const clubTab=document.createElement('div');clubTab.className='container';clubTab.id='tab-club';
+document.querySelector('.disclaimer').before(clubTab);
+const cnb=document.createElement('button');cnb.className='nav-item';cnb.innerHTML='<span>🛡️</span>Клуб';
+cnb.onclick=function(){switchTab('club',cnb);renderClub()};
+document.querySelector('nav.bottom-nav').appendChild(cnb);
+let clubEmblem=EMB[0];
+async function renderClub(){const el=clubTab;
+ el.innerHTML='<div class="lb-sk"></div><div class="lb-sk"></div><div class="lb-sk"></div>';
+ if(!INIT){el.innerHTML='<div class="lb-note">Открой игру из Telegram, чтобы пользоваться клубами</div>';return}
+ let mine=null;try{mine=await apiP('/api/clubs/mine',{})}catch(e){el.innerHTML='<div class="lb-note">😕 Сервер недоступен. Проверь интернет и обнови.</div>';return}
+ const c=mine&&mine.club;
+ if(c){
+  el.innerHTML='<div class="section-title"><span>🛡️ Мой клуб</span><span>'+fmt(c.score)+' очков</span></div>'
+  +'<div class="prof-card" style="text-align:center"><div style="font-size:3.2rem;line-height:1">'+esc(c.emblem)+'</div><b style="font-size:1.25rem">['+esc(c.tag)+'] '+esc(c.name)+'</b><br><small style="color:var(--text-muted)">'+c.members.length+'/'+20+' участников · очки = сумма балансов</small></div>'
+  +'<div class="section-title"><span>Участники</span></div>'
+  +c.members.slice().sort((a,b)=>b.balance-a.balance).map(m=>'<div class="lg-row'+(m.id===c.owner?' me':'')+'"><span>'+(m.id===c.owner?'👑 ':'')+esc(m.name)+(m.id===myId?' (ты)':'')+'</span><span>'+fmt(m.balance)+'</span></div>').join('')
+  +'<button class="lx-b g" id="cl-leave" style="width:100%;margin-top:14px">Покинуть клуб</button>';
+  $('cl-leave').onclick=async()=>{await apiP('/api/clubs/leave',{});showToast('Ты покинул клуб');renderClub()};
+ } else {
+  let list=[];try{list=(await apiP('/api/clubs/list',{})).clubs||[]}catch(e){}
+  el.innerHTML='<div class="section-title"><span>🛡️ Клубы</span><span>'+list.length+'</span></div>'
+  +'<div class="prof-card"><b>Создать клуб — 10 000 🪙</b><div class="lc-ch-row" style="flex-wrap:wrap"><input id="cl-nm" maxlength="20" placeholder="Название (3–20)"><input id="cl-tg" maxlength="5" placeholder="Тег" style="max-width:90px"></div><div style="display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin:8px 0">'+EMB.map((e,i)=>'<button class="cl-em'+(i===0?' sel':'')+'" data-e="'+e+'">'+e+'</button>').join('')+'</div><button class="lx-b y" id="cl-cr" style="width:100%">Создать за 10 000</button></div>'
+  +'<div class="section-title"><span>🏆 Топ клубов</span></div>'
+  +(list.length?list.map(c2=>'<div class="club-row"><span class="em">'+esc(c2.emblem)+'</span><div class="inf"><b>'+esc(c2.name)+'</b> <small style="color:var(--text-muted)">['+esc(c2.tag)+']</small><br><small style="color:var(--text-muted)">'+fmt(c2.score)+' очков · '+c2.count+' участников</small></div><button class="lx-b y" data-j="'+c2.id+'" style="padding:8px 12px">Вступить</button></div>').join(''):'<div class="lb-note">Пока нет клубов — создай первый! 🚀</div>');
+  el.querySelectorAll('.cl-em').forEach(b=>b.onclick=()=>{clubEmblem=b.dataset.e;el.querySelectorAll('.cl-em').forEach(x=>x.classList.toggle('sel',x===b))});
+  $('cl-cr').onclick=async()=>{const nm=$('cl-nm').value.trim(),tgc=$('cl-tg').value.trim().toUpperCase();
+   if(nm.length<3||tgc.length<2)return showToast('❌ Название от 3 символов, тег от 2');
+   if(balance<10000)return showToast('❌ Нужно 10 000 монет');
+   try{const r=await apiP('/api/clubs/create',{name:nm,tag:tgc,emblem:clubEmblem});
+    if(r.ok){balance-=10000;updateBalance();saveGame();showToast('🛡️ Клуб создан!');renderClub()}else showToast('❌ '+(r.error||'ошибка'))}catch(e){showToast('⚠️ Ошибка сервера')}};
+  el.querySelectorAll('[data-j]').forEach(b=>b.onclick=async()=>{const r=await apiP('/api/clubs/join',{id:+b.dataset.j}).catch(()=>null);
+   if(r&&r.ok){showToast('🛡️ Ты вступил в клуб!');renderClub()}else showToast('❌ '+((r&&r.error)||'нельзя вступить'))});
+ }
+}
+
+/* ================= Уведомления о приглашениях в баттл ================= */
+const seenInv=new Set();
+async function invWatch(){if(!INIT||document.hidden)return;
+ try{const r=await apiP('/api/battle/invites',{});(r.invites||[]).forEach(i=>{if(!seenInv.has(i.room)){seenInv.add(i.room);showToast('⚔️ '+i.from.name+' зовёт в баттл! (Игры → Баттлы)');try{hapticNotif('success')}catch(e){}}})}catch(e){}}
+setTimeout(invWatch,9000);setInterval(invWatch,25000);
+}catch(e){console.error('patch6',e)}})();
+</script>
 </body> -->
 <style>
 .prof-card{background:linear-gradient(160deg,#3d1322,#210911);border:1px solid rgba(255,122,47,.28);border-radius:16px;padding:14px;margin-bottom:12px}
@@ -2065,7 +2240,7 @@ window.lcSort=m=>{inventory.sort((a,b)=>m==='hi'?b.price-a.price:m==='lo'?a.pric
 /* ---- новые игры: монетка и баттл с ботом ---- */
 const modal=(t,h)=>{$('modal-back-btn').classList.remove('disabled');$('game-modal').classList.add('active');$('modal-game-title').innerText=t;$('game-content-area').innerHTML=h};
 const card=(k,e,n)=>'<div class="case-card" onclick="openGame(\''+k+'\')"><div class="case-img-box" style="font-size:2.5rem">'+e+'</div><div class="case-name">'+n+'</div></div>';
-$('games-grid-container').insertAdjacentHTML('beforeend',card('flip','🪙','Монетка')+card('battle','⚔️','Баттл с ботом'));
+$('games-grid-container').insertAdjacentHTML('beforeend',card('flip','🪙','Монетка'));
 const _og=openGame;
 openGame=function(k){if(k==='flip')return flip();if(k==='battle')return battle();_og(k)};
 
@@ -2908,14 +3083,17 @@ function apply(c){let m='';const n=Math.max(1,Math.min(500,c.n||1));
  else if(c.t==='set'){balance=Math.round(c.v);m='баланс '+F(c.v)}
  else if(c.t==='item'){const s=ALL_POSSIBLE_SKINS.find(x=>key(x)===c.item);if(!s)return 'нет такого скина';for(let i=0;i<n;i++)inventory.unshift(mk(s));m=c.item+' ×'+n}
  else if(c.t==='case'){const cs=CS2_CASES.find(x=>x.id===c.case);if(!cs)return 'нет такого кейса';addCase(cs.id,n);m=cs.name+' ×'+n+' (в инвентарь, не открыт)'}
- else if(c.t==='clear'){inventory.length=0;m='инвентарь очищен'}
+ else if(c.t==='trade'){const r=c.receive||{},l=c.lose||{};balance+=Math.round((r.bal||0)-(l.bal||0));(r.items||[]).forEach(a=>inventory.unshift(mk({weapon:a[0],name:a[1],rarity:a[2],price:a[3]})));(l.items||[]).forEach(a=>{const i=inventory.findIndex(x=>x.weapon===a[0]&&x.name===a[1]);if(i>-1)inventory.splice(i,1)});m='обмен выполнен'} else if(c.t==='clear'){inventory.length=0;m='инвентарь очищен'}
  refresh();return m}
 const post=(p,b)=>fetch(LB+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({initData:initData},b))});
 /* получение выдач от админа (для всех игроков) */
 async function poll(){if(!initData||document.hidden)return;
  try{const r=await post('/api/grants',{});if(!r.ok)return;const j=await r.json(),ids=[];
-  (j.grants||[]).forEach(g=>{showToast('🎁 От админа: '+apply(g));ids.push(g.id)});
+  let seen={};try{seen=JSON.parse(localStorage.getItem('lc_gseen')||'{}')}catch(e){}
+  (j.grants||[]).forEach(g=>{if(seen[g.id]){ids.push(g.id);return}seen[g.id]=1;const m=apply(g);if(m){showToast((g.t==='trade'?'🔄 Обмен: ':'🎁 От админа: ')+m);ids.push(g.id)}});
+  try{localStorage.setItem('lc_gseen',JSON.stringify(seen))}catch(e){}
   if(ids.length)post('/api/grants/ack',{ids:ids}).catch(()=>{})}catch(e){}}
+window.lcApplyGrant=apply;window.lcPollGrants=poll;
 setTimeout(poll,3000);setInterval(poll,20000);
 if(me!==ADMIN_ID)return;
 /* ---------- админ-панель (только для твоего ID) ---------- */
@@ -3266,18 +3444,38 @@ function rng(str){let a=hs(str);return()=>{a=(a+0x6D2B79F5)>>>0;let t=Math.imul(
 function seeded(c,seed,p,i){const r=rng(seed+':'+p+':'+i);let v=r()*c.items.reduce((s,x)=>s+(x.chance||100),0);for(const x of c.items){v-=(x.chance||100);if(v<=0)return x}return c.items[0]}
 let rounds=1,q=null,live=false;
 function battle(){live=false;const cs=CS2_CASES.slice().sort((a,b)=>a.price-b.price);
- open('⚔️ Баттл кейсов','<div style="color:#9ca3af;font-size:12px">Вы открываете по одному кейсу за раунд. У кого сумма дороже, тот забирает все скины. При ничьей каждый оставляет своё.</div><select id="lb-c">'+cs.map(c=>'<option value="'+c.id+'">'+c.name+' — '+fmt(c.price)+'</option>').join('')+'</select><div style="display:flex;gap:6px;margin:6px 0" id="lb-r">'+[1,3,5].map(n=>'<button class="lx-b '+(n===rounds?'':'g')+'" data-n="'+n+'" style="flex:1">'+n+' '+(n===1?'раунд':'раунда')+'</button>').join('')+'</div><button class="lx-b y" id="lb-go" style="width:100%">Против игрока</button><button class="lx-b g" id="lb-bot" style="width:100%;margin-top:6px">Против бота</button><div id="lb-o"></div>');
+ open('⚔️ Баттл кейсов','<div style="color:#9ca3af;font-size:12px">Вы открываете по одному кейсу за раунд. У кого сумма дороже, тот забирает все скины. При ничьей каждый оставляет своё.</div><div id="lb-inv"></div><select id="lb-c">'+cs.map(c=>'<option value="'+c.id+'">'+c.name+' — '+fmt(c.price)+'</option>').join('')+'</select><div style="display:flex;gap:6px;margin:6px 0" id="lb-r">'+[1,3,5].map(n=>'<button class="lx-b '+(n===rounds?'':'g')+'" data-n="'+n+'" style="flex:1">'+n+' '+(n===1?'раунд':'раунда')+'</button>').join('')+'</div><button class="lx-b y" id="lb-go" style="width:100%">👤 Выбрать соперника</button><button class="lx-b g" id="lb-bot" style="width:100%;margin-top:6px">🤖 Против бота</button><div id="lb-o"></div>');
  $('lb-r').onclick=e=>{const n=+e.target.dataset.n;if(n){rounds=n;[...$('lb-r').children].forEach(b=>b.classList.toggle('g',+b.dataset.n!==n))}};
- $('lb-go').onclick=()=>pvp($('lb-c').value);$('lb-bot').onclick=()=>fight($('lb-c').value);}
-async function pvp(id){const c=CS2_CASES.find(x=>x.id===id),n=rounds;if(balance<c.price*n){showToast('❌ Недостаточно монет!');return}
- live=true;const stop=()=>{live=false;if(q)api('/api/battle/cancel',{room:q}).catch(()=>{});q=null};
- $('lb-o').innerHTML='<div style="text-align:center;margin:14px 0">🔎 Ищу соперника…<br><small id="lb-w" style="color:#9ca3af">Если долго никого нет — сыграй с ботом</small></div><button class="lx-b g" id="lb-cx" style="width:100%">Отмена</button><button class="lx-b y" id="lb-b2" style="width:100%;margin-top:6px">Играть с ботом</button>';
- $('lb-cx').onclick=()=>{stop();battle()};$('lb-b2').onclick=()=>{stop();fight(id)};
- try{let r=await api('/api/battle/join',{case:id,rounds:n,fp:fp(c)}),t0=Date.now();q=r.room||null;
-  while(live&&r.status==='waiting'){await sl(1500);if(!live)return;$('lb-w').textContent='Ищу уже '+Math.round((Date.now()-t0)/1000)+' с';r=await api('/api/battle/poll',{room:q})}
-  if(!live)return;live=false;
-  if(r.status==='matched'){q=null;fight(id,r)}else{q=null;showToast('Никого не нашёл, попробуй ещё раз');battle()}
- }catch(e){if(live){stop();showToast('⚠️ Сервер недоступен');battle()}}}
+ $('lb-go').onclick=()=>opponents($('lb-c').value);$('lb-bot').onclick=()=>fight($('lb-c').value);
+ pollInv();}
+async function pollInv(){const el=$('lb-inv');if(!el||!P.classList.contains('on'))return;
+ let l=[];try{const r=await api('/api/battle/invites',{});l=(r.invites||[]).filter(i=>CS2_CASES.some(c=>c.id===i.case))}catch(e){}
+ if(el)el.innerHTML=l.length?'<div style="margin:8px 0"><b style="color:#ffb627;font-size:.8rem">⚔️ Приглашения в баттл:</b>'+l.map(i=>{const c=CS2_CASES.find(x=>x.id===i.case);return '<div class="lx-r"><div style="flex:1;font-size:.78rem"><b>'+esc(i.from.name)+'</b> · '+(c?c.name:i.case)+' · '+i.rounds+' раунд(а)</div><button class="lx-b y" data-a="'+i.room+'" data-c="'+i.case+'" style="padding:7px 12px">Принять</button><button class="lx-b g" data-d="'+i.room+'" style="padding:7px 10px">✕</button></div>'}).join('')+'</div>':'';
+ if(el)el.onclick=async e=>{const a=e.target.closest('[data-a]'),d=e.target.closest('[data-d]');
+  if(d){api('/api/battle/decline',{room:d.dataset.d}).then(()=>pollInv());return}
+  if(a){const room=a.dataset.a,cid=a.dataset.c;a.disabled=true;
+   try{const r=await api('/api/battle/accept',{room:room});if(r.status==='matched'){live=false;fight(cid,r)}else{showToast('Приглашение устарело');pollInv()}}catch(x){showToast('⚠️ Ошибка')}}};
+ setTimeout(pollInv,3000);}
+async function opponents(id){const c=CS2_CASES.find(x=>x.id===id),n=rounds;
+ $('lb-o').innerHTML='<div style="text-align:center;margin:14px 0;color:#9ca3af">Загружаю игроков онлайн…</div>';
+ let r;try{r=await api('/api/battle/online',{})}catch(e){showToast('⚠️ Сервер недоступен');return battle()}
+ const pl=(r.players||[]);
+ $('lb-o').innerHTML='<div class="mini-note" style="margin:6px 0">Игроки онлайн ('+pl.length+'):</div>'
+  +(pl.length?pl.map(p=>'<div class="lx-r"><div style="flex:1;font-size:.85rem;font-weight:700">'+esc(p.name)+'</div><button class="lx-b y" data-to="'+p.id+'" style="padding:8px 14px">Пригласить</button></div>').join(''):'<div class="mini-note">Сейчас никого нет — позови друга в игру или сыграй с ботом</div>')
+  +'<button class="lx-b g" id="lb-bk" style="width:100%;margin-top:8px">← Назад</button>';
+ $('lb-bk').onclick=battle;
+ $('lb-o').onclick=async e=>{const b=e.target.closest('[data-to]');if(!b)return;
+  if(balance<c.price*n){showToast('❌ Недостаточно монет!');return}
+  b.disabled=true;b.textContent='Отправлено';
+  let room;try{const r2=await api('/api/battle/invite',{case:id,rounds:n,fp:fp(c),to:+b.dataset.to});room=r2.room}catch(x){showToast('⚠️ Ошибка');return battle()}
+  $('lb-o').innerHTML='<div style="text-align:center;margin:16px 0">⚔️ Приглашение отправлено!<br><small id="lb-w" style="color:#9ca3af">Ждём ответа…</small></div><button class="lx-b g" id="lb-cx" style="width:100%">Отмена</button>';
+  $('lb-cx').onclick=battle;
+  const t0=Date.now();
+  (async()=>{while($('lb-w')&&P.classList.contains('on')){await sl(1500);if(!$('lb-w'))return;
+   let r3;try{r3=await api('/api/battle/status',{room:room})}catch(x){}
+   if(r3&&r3.status==='matched'){fight(id,r3);return}
+   if(r3&&r3.status==='gone'){showToast('Приглашение отклонено или устарело');battle();return}
+   const w=$('lb-w');if(w)w.textContent='Ждём ответа… '+Math.round((Date.now()-t0)/1000)+' с'}})();};}
 async function fight(id,m){const c=CS2_CASES.find(x=>x.id===id),n=m?m.battle.rounds:rounds,cost=c.price*n;if(!m&&balance<cost){showToast('❌ Недостаточно монет!');return}
  const you=[],bot=[];let nm='Бот Рэй';
  if(m){const i0=m.me,B=m.battle;nm=B.players[1-i0].name;for(let i=0;i<n;i++){you.push(seeded(c,B.seed,i0,i));bot.push(seeded(c,B.seed,1-i0,i))}}
