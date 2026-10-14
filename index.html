@@ -3432,22 +3432,6 @@ try{
 
 
 <script>
-/* ===== ПАТЧ 4: откат накрутки по ответу сервера ===== */
-(function(){
-const _f=window.fetch;
-window.fetch=function(u){
- const p=_f.apply(this,arguments);
- try{if(String(u).indexOf('/api/sync')>-1)p.then(r=>r.clone().json()).then(d=>{if(d&&d.revert)back(d)}).catch(()=>{})}catch(e){}
- return p};
-function back(d){
- balance=Number.isFinite(+d.balance)?Math.round(+d.balance):10000;
- inventory=(d.inv||[]).map((a,i)=>({weapon:a[0],name:a[1],rarity:a[2],price:a[3],id:Date.now()+i+Math.random(),fl:.2,wr:'FT'}));
- saveGame();updateBalance(false);updateElo();renderInventory();
- showToast('⚠️ Подозрительное изменение баланса отменено сервером');
-}
-})();
-</script>
-<script>
 /* ===== ПАТЧ 5: честная экономика кейсов (макс. дроп ≈ 7.5× цены кейса, возврат ≈ 85%) ===== */
 (function(){
 const ORD=['consumer','milspec','restricted','classified','covert','special'];
